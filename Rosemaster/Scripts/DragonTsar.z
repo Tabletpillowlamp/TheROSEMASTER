@@ -1,0 +1,1234 @@
+namespace KaiserDragon
+{
+    CONFIG SFX_KAISER_QUAKE = 85; // Quake upon appearing, before unleashing megaflare
+    CONFIG SFX_KAISER_ROAR = 132; // Roaring
+    CONFIG SFX_KAISER_FORMCHANGE = 70; // Flashing the screen when changing attacks
+    CONFIG SFX_KAISER_SKULLWAVE = 64; // Circling Skulls
+    CONFIG SFX_KAISER_BUBBLE = 102; // Bubble appearing
+    CONFIG SFX_KAISER_LEECH = 84; // Life leeching weapons
+    CONFIG SFX_KAISER_LEECH_HITS = 6; // Life leeching weapon collision
+    CONFIG SFX_KAISER_LEECH_HEAL = 102; // Life leeching weapon takes life
+    CONFIG SFX_KAISER_RUNE_APPEAR = 124; // Three RNG runes appearing
+    CONFIG SFX_KAISER_RUNE_TRIGGERED = 120; // Link touching one of the runes
+    CONFIG SFX_KAISER_RUNE_SELECT = 91; // The rune's effect activating
+    CONFIG SFX_KAISER_EGGSHELL = 74; // An egg exploding into shards
+    CONFIG SFX_KAISER_GREENFIRE = 13; // Sound of green fire. Probably fire
+    CONFIG SFX_KAISER_GREENFIRE_STRONG = 37; // Sound of green fire's strong attack
+    CONFIG SFX_KAISER_LASER = 78; // Lasers
+    CONFIG SFX_KAISER_BLADE = 102; // A blade appearing
+    CONFIG SFX_KAISER_BLADE_LAUNCH = 102; // A blade launching
+    CONFIG SFX_KAISER_DASH = 37; // Sound when dashing
+    CONFIG SFX_KAISER_MERTON_FIRE = 13; // Sound when creating red fires
+    CONFIG SFX_KAISER_MEGAFLARE_CHARGE = 35; // Sound when charging up Megaflare
+    CONFIG SFX_KAISER_MEGAFLARE_LASER = 37; // Sweeping the laser when using Megaflare
+    CONFIG SFX_KAISER_MEGAFLARE_DETONATION = 133; // Each individual megaflare detonation
+
+    CONFIG MIDI_KAISER = 151; // The MIDI that plays during the boss fight
+
+    CONFIG SPR_KAISER_BUBBLE = 240; // Bubble weapons
+    CONFIG SPR_KAISER_LEECH = 109; // Leech weapon
+    CONFIG SPR_KAISER_EGGSHELL = 241; // Shards of an egg weapon
+    CONFIG SPR_KAISER_GREENFIRE = 114; // Green fire attack
+    CONFIG SPR_KAISER_MERTON_FIRE = 35; // Fire trails created when dashing
+    
+    CONFIG TIL_KAISER_RUNES = 83740; // First of tiles used for green dragon attack's runes
+    CONFIG TIL_KAISER_BLADE = 83820;
+
+    CONFIG NPC_KAISER_SKULL = 486; // Enemy used for the skulls
+    CONFIG NPC_KAISER_EGG = 485; // Eggs created by the green attack
+
+    CONFIG DAMAGE_KAISER_BUBBLE = 48; // Damage of bubble attack
+    CONFIG DAMAGE_KAISER_LEECH = 48; // Damage of life leech
+    CONFIG HEALING_KAISER_LEECH = 48; // Healing of life leech to the boss
+    CONFIG DAMAGE_KAISER_GREENFIRE = 48; // Damage of green fire
+    CONFIG DAMAGE_KAISER_LASER = 48; // Damage of the laser strikes
+    CONFIG DAMAGE_KAISER_BLADES = 48; // Damage of the swords
+    CONFIG DAMAGE_KAISER_MERTON = 16; // Damage of fire trails
+    CONFIG DAMAGE_KAISER_MEGAFLARE = 24; // Damage of megaflare explosions (4 hits, unavoidable piercing damage)
+
+    CONFIG MSG_KAISER_MEGAFLARE_COUNT = 7883;
+    CONFIG KAISER_MEGAFLARE_COUNT_COUNT = 4;
+    CONFIG MSG_KAISER_MEGAFLARE = 7887;
+
+    class KaiserDragonData
+    {
+        int X,Y;
+        int RandOffset;
+        npc Owner;
+        int State;
+        int Frame;
+        int Timer;
+        int Phase;
+        int Scale;
+        int Hidden;
+        bool FaceLeft;
+        int Defenses[MAX_DEFENSE];
+
+        KaiserDragonData(npc owner)
+        {
+            Owner = owner;
+            owner->DrawXOffset = -10000;
+            Scale = 1;
+            for(int i=0; i<MAX_DEFENSE; ++i)
+            {
+                Defenses[i] = owner->Defense[i];
+            }
+        }
+
+        int GetAttackColor(int which)
+        {
+            switch(which)
+            {
+                case 0: // Black Dragon
+                    return 0xB5;
+                case 1: // Purple Dragon
+                    return 0xA4;
+                case 2: // Orange Dragon
+                    return 0x89;
+                case 3: // Green Dragon
+                    return 0x78;
+                case 4: // Blue Dragon
+                    return 0x74;
+                case 5: // White Dragon
+                    return 0x71;
+                case 6: // Red Dragon
+                    return 0x84;
+            }
+            return 0x00;
+        }
+        int GetPhaseHP(int which)
+        {
+            switch(which)
+            {
+                case 0: // Black Dragon
+                    return 200;
+                case 1: // Purple Dragon
+                    return 200;
+                case 2: // Orange Dragon
+                    return 200;
+                case 3: // Green Dragon
+                    return 200;
+                case 4: // Blue Dragon
+                    return 200;
+                case 5: // White Dragon
+                    return 150;
+                case 6: // Red Dragon
+                    return 150;
+                case 7: // Final
+                    return 700;
+            }
+            return 0;
+        }
+        int GetTotalPhaseHP(int which)
+        {
+            int total;
+            for(int i=which; i<=7; ++i)
+            {
+                total += GetPhaseHP(i);
+            }
+            return total;
+        }
+        void Update()
+        {
+            Owner->Stun = 1000;
+            int minHP = GetTotalPhaseHP(Phase+1);
+            Owner->HP = Max(Owner->HP, minHP);
+            if(Owner->HP==minHP)
+            {
+                for(int i=0; i<MAX_DEFENSE; ++i)
+                    Owner->Defense[i] = NPCDT_BLOCK;
+            }
+            else
+            {
+                for(int i=0; i<MAX_DEFENSE; ++i)
+                    Owner->Defense[i] = Defenses[i];
+            }
+            Timer = (Timer+1)%360;
+            switch(State)
+            {
+                case 0:
+                    Frame = 0;
+                    break;
+                case 1:
+                    Frame = 1;
+                    break;
+                case 2:
+                    Frame = Timer%8<4?2:3;
+                    break;
+            }
+            Draw();
+        }
+        void Draw()
+        {
+            int xOff = 64;
+            int flip = FLIP_NONE;
+            if(FaceLeft)
+                flip = FLIP_HORIZONTAL;
+            if(FaceLeft)
+            {
+                xOff = 0;
+            }
+            Owner->X = X+(FaceLeft?0:96);
+            Owner->Y = Y+16;
+            Owner->X = Clamp(Owner->X, -48, 256+16);
+            Owner->Y = Clamp(Owner->Y, -48, 176+16);
+            int rXOff;
+            int rYOff;
+            if(RandOffset)
+            {
+                rXOff = Rand(-RandOffset, RandOffset);
+                rYOff = Rand(-RandOffset, RandOffset);
+            }
+            int op = OP_OPAQUE;
+            int reps = 1;
+            switch(Hidden)
+            {
+                case 1:
+                    op = OP_TRANS;
+                    reps = 2;
+                    break;
+                case 2:
+                    op = OP_TRANS;
+                    break;
+                case 3:
+                    return;
+            }
+            for(int i=0; i<reps; ++i)
+            {
+                if(Scale<1)
+                {
+                    int w = 128*Scale;
+                    int h = 112*Scale;
+                    Screen->DrawTile(0, X+64-w/2+rXOff, Y+56-h/2+rYOff, Owner->OriginalTile+8, 8, 7, Owner->FlashingCSet, w, h, 0, 0, 0, flip, true, op);
+                }
+                else
+                {
+                    Screen->DrawTile(1, X+rXOff, Y+rYOff, Owner->OriginalTile, 8, 7, Owner->FlashingCSet, -1, -1, 0, 0, 0, flip, true, op);
+                    Screen->DrawTile(1, X+xOff+rXOff, Y+rYOff, Owner->OriginalTile+140+4*Frame, 4, 4, Owner->FlashingCSet, -1, -1, 0, 0, 0, flip, true, op);
+                }
+            }
+        }
+        bool GlideFrame(int tX, int tY, int step)
+        {
+            if(Distance(X, Y, tX, tY)>step)
+            {
+                int angle = Angle(X, Y, tX, tY);
+                X += VectorX(step, angle);
+                Y += VectorY(step, angle);
+            }
+            else
+            {
+                X = tX;
+                Y = tY;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    enum KaiserDragonStates
+    {
+        KDSTATE_NEUTRAL,
+        KDSTATE_WINDUP,
+        KDSTATE_ROAR
+    };
+
+    npc script KaiserDragon
+    {
+        void run()
+        {
+            this->HitWidth = 32;
+            this->HitHeight = 32;
+            KaiserDragonData kdd = new KaiserDragonData(this);
+            this->HP = kdd->GetTotalPhaseHP(0);
+            kdd->X = 40;
+            kdd->Y = 176;
+            this->CollDetection = false;
+            Audio->PlaySound(SFX_KAISER_QUAKE);
+            for(int i=0; i<180; ++i)
+            {
+                kdd->X = 40+Rand(-2, 2);
+                kdd->Y = Lerp(176, 64, i/179)+Rand(-2, 2);
+                KDWaitframe(kdd);
+            }
+            kdd->X = 40;
+            kdd->Y = 64;
+            kdd->State = KDSTATE_WINDUP;
+            KDWaitframe(kdd, 32);
+            kdd->State = KDSTATE_ROAR;
+            Audio->PlaySound(SFX_KAISER_ROAR);
+            kdd->RandOffset = 2;
+            KDWaitframe(kdd, 64);
+            kdd->RandOffset = 0;
+            Audio->PlayMIDI(MIDI_KAISER);
+            kdd->State = KDSTATE_NEUTRAL;
+            KDWaitframe(kdd, 32);
+            this->CollDetection = true;
+            this->Immortal = true;
+
+            int megaflareCount;
+            bool didCharge;
+            int prevElement = 0;
+            while(true)
+            {
+                if(this->HP<=kdd->GetTotalPhaseHP(kdd->Phase+1))
+                {
+                    if(kdd->Phase<7)
+                    {
+                        ++kdd->Phase;
+                    }
+                    if(kdd->Phase==7)
+                    {
+                        prevElement = Rand(0,4);
+                    }
+                    this->HP = kdd->GetTotalPhaseHP(kdd->Phase);
+                }
+                int attack = 0;
+                if(kdd->Phase<7)
+                    attack = kdd->Phase;
+                else
+                {
+                    if(didCharge)
+                    {
+                        do
+                        {
+                            attack = Rand(0,4);
+                        }while(attack==prevElement)
+                        didCharge = false;
+                    }
+                    else
+                    {
+                        attack = 7;
+                    }
+                }
+                switch(attack)
+                {
+                    case 0: // Zombie Skulls
+                    {
+                        if(prevElement!=attack)
+                            KDFlashScreen(kdd, kdd->GetAttackColor(0),0);
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        KDGlide(kdd, Rand(16, 112), Rand(32, 64), 2, 0.5);
+                        int turn = Choose(-1, 1);
+                        for(int i=0; i<3; ++i)
+                        {
+                            kdd->State = KDSTATE_ROAR;
+                            Audio->PlaySound(SFX_KAISER_SKULLWAVE);
+                            for(int j=0; j<7; ++j)
+                            {
+                                npc n = RunNPCScript(NPC_KAISER_SKULL, CheckNPCScript("KaiserSkull"), {(360/7)*j, 96, (4+i)*turn, 0.5});
+                            }
+                            turn *= -turn;
+                            KDWaitframe(kdd, 32);
+                            kdd->State = KDSTATE_NEUTRAL;
+                            KDWaitframe(kdd, 96);
+                        }
+                        KDWaitframe(kdd, 64);
+                        break;
+                    }
+                    case 1: // Rising Bubbles
+                    {
+                        if(prevElement!=attack)
+                            KDFlashScreen(kdd, kdd->GetAttackColor(1),1);
+                        kdd->FaceLeft = 120>kdd->X+56;
+                        int x = kdd->FaceLeft?192:-64;
+                        KDGlide(kdd, x, 80, 4, 1);
+                        for(int i=0; i<64; ++i)
+                        {
+                            if(i==0)
+                                kdd->State = KDSTATE_WINDUP;
+                            if(i==24)
+                            {
+                                kdd->State = KDSTATE_ROAR;
+                                Audio->PlaySound(SFX_KAISER_ROAR);
+                                kdd->RandOffset = 2;
+                            }
+                            kdd->Y = 80+4*Sin(kdd->Timer);
+                            KDWaitframe(kdd);
+                        }
+                        kdd->RandOffset = 0;
+                        int bubbleSlot = CheckEWeaponScript("RisingBubble");
+                        for(int i=0; i<240; ++i)
+                        {
+                            if(i%20==0)
+                            {
+                                eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, Rand(240), 176, -90, 100+Rand(25), DAMAGE_KAISER_BUBBLE, SPR_KAISER_BUBBLE, SFX_KAISER_BUBBLE, bubbleSlot, {Choose(-1, 1)*Rand(16, 24), Rand(20, 30)/10});
+                                e->Unblockable = UNBLOCK_ALL;
+                                if(i%120<60)
+                                    e->X = Link->X;
+                            }
+                            kdd->Y = 80+4*Sin(kdd->Timer);
+                            if(kdd->State==KDSTATE_ROAR)
+                            {
+                                kdd->X = x+Rand(-2, 2);
+                                kdd->Y += Rand(-2, 2);
+                            }
+                            KDWaitframe(kdd);
+                        }
+                        kdd->State = KDSTATE_NEUTRAL;
+                        break;
+                    }
+                    case 2: // Life Leech
+                    {
+                        if(prevElement!=attack)
+                            KDFlashScreen(kdd, kdd->GetAttackColor(2),2);
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        KDGlide(kdd, Link->X-56, 24, 12);
+                        KDWaitframe(kdd, 12);
+                        eweapon e[32];
+                        int slotLeech = CheckEWeaponScript("LifeLeech");
+                        int r = Rand(2);
+                        if(r==0)
+                        {
+                            for(int i=0; i<10; ++i)
+                            {
+                                e[i] = FireEWeaponDegAngle(EW_SCRIPT10, kdd->X+56+Lerp(-40, 40, i/9), kdd->Y+40, 90, 0, DAMAGE_KAISER_LEECH, SPR_KAISER_LEECH, SFX_KAISER_LEECH, slotLeech, {<untyped>this, HEALING_KAISER_LEECH});
+                                e[i]->Unblockable = UNBLOCK_ALL;
+                            }
+                        }
+                        else
+                        {
+                            for(int i=0; i<6; ++i)
+                            {
+                                for(int j=0; j<2; ++j)
+                                {
+                                    int x = kdd->X+56;
+                                    int y = kdd->Y+24;
+                                    x += VectorX(Lerp(24, 76, i/5), j==0?30:150);
+                                    y += VectorY(Lerp(24, 76, i/5), j==0?30:150);
+                                    e[i+j*6] = FireEWeaponDegAngle(EW_SCRIPT10, x, y, j==0?80:100, 0, DAMAGE_KAISER_LEECH, SPR_KAISER_LEECH, SFX_KAISER_LEECH, slotLeech, {<untyped>this, HEALING_KAISER_LEECH});
+                                    e[i+j*6]->Unblockable = UNBLOCK_ALL;
+                                }
+                            }
+                        }
+                        KDWaitframe(kdd, r==0?48:24);
+                        for(int i=0; i<32; ++i)
+                        {
+                            if(e[i]->isValid())
+                                e[i]->Step = Rand(400, 500);
+                        }
+                        KDGlide(kdd, kdd->X, 96, 4);
+                        KDWaitframe(kdd, 32);
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        KDGlide(kdd, kdd->X, 48, 3);
+                        for(int i=0; i<3; ++i)
+                        {
+                            int x = Clamp(this->X+8+Rand(-48, 48), 8, 232);
+                            int y = this->Y-32+Rand(-8, 8);
+                            eweapon e[5];
+                            for(int j=0; j<5; ++j)
+                            {
+                                e[j] = FireEWeaponDegAngle(EW_SCRIPT10, x, y, 0, 0, DAMAGE_KAISER_LEECH, SPR_KAISER_LEECH, SFX_KAISER_LEECH, slotLeech, {<untyped>this, HEALING_KAISER_LEECH});
+                                e[j]->Unblockable = UNBLOCK_ALL;
+                            }
+                            for(int k=0; k<24; ++k)
+                            {
+                                for(int j=0; j<5; ++j)
+                                {
+                                    e[j]->X = x+VectorX(Lerp(12, 0, k/23), j*72+k*4);
+                                    e[j]->Y = y+VectorY(Lerp(12, 0, k/23), j*72+k*4);
+                                    e[j]->DeadState = WDS_ALIVE;
+                                }
+                                KDWaitframe(kdd);
+                            }
+                            for(int j=0; j<5; ++j)
+                            {
+                                e[j]->DegAngle = Angle(x, y, Link->X, Link->Y);
+                                e[j]->Step = 250+25*j;
+                            }
+                            KDWaitframe(kdd, 40);
+                        }
+                        KDWaitframe(kdd, 40);
+                        break;
+                    }
+                    case 3: // RNG - 3 attacks chosen at random
+                    {
+                        if(prevElement!=attack)
+                            KDFlashScreen(kdd, kdd->GetAttackColor(3),3);
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        KDGlide(kdd, 64, 176, 4, 0.5);
+                        int ang = Rand(360);
+                        int subAttack = -1;
+                        int dist;
+                        Audio->PlaySound(SFX_KAISER_RUNE_APPEAR);
+                        for(int i=0; i<64&&subAttack==-1; ++i)
+                        {
+                            dist = Lerp(0, 96, i/63);
+                            for(int j=0; j<3; ++j)
+                            {
+                                int x = 112+VectorX(dist, ang+j*120);
+                                int y = 56+VectorY(dist, ang+j*120);
+                                Screen->DrawTile(6, x, y, TIL_KAISER_RUNES+2*j, 2, 2, 7, -1, -1, 0, 0, 0, 0, true, OP_OPAQUE);
+                                if(Distance(x+8, y+8, Link->X, Link->Y)<16)
+                                {
+                                    Audio->PlaySound(SFX_KAISER_RUNE_TRIGGERED);
+                                    subAttack = j;
+                                }
+                            }
+                            ang = WrapDegrees(ang+5);
+                            KDWaitframe(kdd);
+                        }
+                        for(int i=0; i<128&&subAttack==-1; ++i)
+                        {
+                            for(int j=0; j<3; ++j)
+                            {
+                                int x = 112+VectorX(dist, ang+j*120);
+                                int y = 56+VectorY(dist, ang+j*120);
+                                Screen->DrawTile(6, x, y, TIL_KAISER_RUNES+2*j, 2, 2, 7, -1, -1, 0, 0, 0, 0, true, OP_OPAQUE);
+                                if(Distance(x+8, y+8, Link->X, Link->Y)<16)
+                                {
+                                    Audio->PlaySound(SFX_KAISER_RUNE_TRIGGERED);
+                                    subAttack = j;
+                                }
+                            }
+                            ang = WrapDegrees(ang+8);
+                            KDWaitframe(kdd);
+                        }
+                        if(subAttack==-1)
+                            subAttack = Rand(3);
+                        for(int i=0; i<12; ++i)
+                        {
+                            for(int j=0; j<3; ++j)
+                            {
+                                int x = 112+VectorX(Lerp(dist, 0, i/11), ang+j*120);
+                                int y = 56+VectorY(Lerp(dist, 0, i/11), ang+j*120);
+                                Screen->DrawTile(6, x, y, TIL_KAISER_RUNES+2*j, 2, 2, 7, -1, -1, 0, 0, 0, 0, true, OP_OPAQUE);
+                            }
+                            ang = WrapDegrees(ang+8);
+                            KDWaitframe(kdd);
+                        }
+                        Audio->PlaySound(SFX_KAISER_RUNE_SELECT);
+                        for(int i=0; i<48; ++i)
+                        {
+                            if(i%8<4)
+                                Screen->DrawTile(6, 112, 56, TIL_KAISER_RUNES+2*subAttack, 2, 2, 7, -1, -1, 0, 0, 0, 0, true, OP_OPAQUE);
+                            if(i>24&&i%8<4)
+                                Screen->Rectangle(6, 0, 0, 256, 176, kdd->GetAttackColor(3), 1, 0, 0, 0, true, OP_TRANS);
+                            KDWaitframe(kdd);
+                        }
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        KDGlide(kdd, 64, 48, 8);
+                        switch(subAttack)
+                        {
+                            case 0: // Eggs (Healing)
+                            {
+                                for(int i=0; i<3; ++i)
+                                {
+                                    Audio->PlaySound(SFX_FALL);
+                                    npc egg = RunNPCScript(NPC_KAISER_EGG, CheckNPCScript("KaiserEgg"));
+                                    egg->X = Rand(16, 224);
+                                    egg->Y = 0;
+                                    KDWaitframe(kdd, 48);
+                                }
+                                KDWaitframe(kdd, 96);
+                                break;
+                            }
+                            case 1: // Medium attack
+                            {
+                                kdd->State = KDSTATE_ROAR;
+                                for(int i=0; i<30; ++i)
+                                {
+                                    eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, this->X+8+Rand(-4, 4), this->Y+8+Rand(-4, 4), kdd->FaceLeft?180:0, 600, DAMAGE_KAISER_GREENFIRE, SPR_KAISER_GREENFIRE, SFX_KAISER_GREENFIRE);
+                                    e->Unblockable = UNBLOCK_ALL;
+                                    KDWaitframe(kdd, 4);
+                                }
+                                for(int i=0; i<6; ++i)
+                                {
+                                    int y = Rand(48, 112);
+                                    if(i==0)
+                                        y = 112;
+                                    for(int j=0; j<8; ++j)
+                                    {
+                                        eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, kdd->FaceLeft?0:240, y, kdd->FaceLeft?0:180, 400, DAMAGE_KAISER_GREENFIRE, SPR_KAISER_GREENFIRE, SFX_KAISER_GREENFIRE);
+                                        e->Unblockable = UNBLOCK_ALL;
+                                        KDWaitframe(kdd, 4);
+                                    }
+                                    KDWaitframe(kdd, 8);
+                                }
+                                kdd->State = KDSTATE_NEUTRAL;
+                                KDWaitframe(kdd, 80);
+                                break;
+                            }
+                            case 2: // Deadly attack
+                            {
+                                for(int i=0; i<5; ++i)
+                                {
+                                    KDGlide(kdd, 64+Rand(-32, 32), 8+Rand(-16, 16), 8);
+                                    kdd->State = KDSTATE_ROAR;
+                                    KDWaitframe(kdd, 16);
+                                    Audio->PlaySound(SFX_KAISER_GREENFIRE_STRONG);
+                                    for(int j=0; j<16; ++j)
+                                    {
+                                        int x = this->X+8+VectorX(16, j*22.5);
+                                        int y = this->Y+8+VectorY(16, j*22.5);
+                                        eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, x, y, j*22.5+45, 350, DAMAGE_KAISER_GREENFIRE, SPR_KAISER_GREENFIRE, SFX_KAISER_GREENFIRE);
+                                        e->Unblockable = UNBLOCK_ALL;
+                                        e = FireEWeaponDegAngle(EW_SCRIPT10, x, y, j*22.5+60, 250, DAMAGE_KAISER_GREENFIRE, SPR_KAISER_GREENFIRE, SFX_KAISER_GREENFIRE);
+                                        e->Unblockable = UNBLOCK_ALL;
+                                    }
+                                }
+                                kdd->State = KDSTATE_NEUTRAL;
+                                KDWaitframe(kdd, 64);
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                    case 4: // Million Lasers
+                    {
+                        if(prevElement!=attack)
+                            KDFlashScreen(kdd, kdd->GetAttackColor(4),4);
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        for(int i=0; i<64; ++i)
+                        {
+                            if(i==0)
+                                kdd->State = KDSTATE_WINDUP;
+                            if(i==24)
+                            {
+                                kdd->State = KDSTATE_ROAR;
+                                Audio->PlaySound(SFX_KAISER_ROAR);
+                                kdd->RandOffset = 2;
+                            }
+                            KDWaitframe(kdd);
+                        }
+                        kdd->State = KDSTATE_NEUTRAL;
+                        kdd->RandOffset = 0;
+                        KDGlide(kdd, kdd->X, 176, 3);
+                        this->CollDetection = false;
+                        int tX = (kdd->X+64+Rand(-24, 24))/2;
+                        int tY = 48;
+                        int dist = Distance(kdd->X, kdd->Y, tX, tY);
+                        while(kdd->GlideFrame(tX, tY, 1.5))
+                        {
+                            kdd->Scale = Lerp(0.75, 1, Distance(kdd->X, kdd->Y, tX, tY)/dist);
+                            KDWaitframe(kdd);
+                        }
+                        kdd->Scale = 0.75;
+                        for(int i=0; i<10; ++i)
+                        {
+                            int x = kdd->X+64+Rand(-16, 16);
+                            int y = kdd->Y+32;
+                            Audio->PlaySound(SFX_KAISER_LASER);
+                            for(int j=0; j<6; ++j)
+                            {
+                                int w = Lerp(3, 0, j/5);
+                                Screen->Rectangle(0, x-w, 0, x+w, y, 0x01, 1, 0, 0, 0, true, OP_OPAQUE);
+                                KDWaitframe(kdd);
+                            }
+                        }
+                        KDGlide(kdd, kdd->X, -112, 3);
+                        this->CollDetection = true;
+                        kdd->Scale = 1;
+                        int sign = Choose(-1, 1);
+                        int laserSlot = CheckEWeaponScript("KaiserLaserStrike");
+                        for(int i=0; i<4; ++i)
+                        {
+                            int x = Link->X;
+                            int range = Lerp(16, 40, i/3);
+                            for(int k=0; k<5; ++k)
+                            {
+                                eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, x+Lerp(-range*sign, range*sign, k/4), 0, 0, 0, DAMAGE_KAISER_LASER, 0, 0, laserSlot, {12, 24});
+                                for(int j=0; j<4; ++j)
+                                {
+                                    kdd->GlideFrame(Link->X-56, Link->Y-48, 0.5);
+                                    KDWaitframe(kdd);
+                                }
+                            }
+                            sign = -sign;
+                            for(int j=0; j<48; ++j)
+                            {
+                                kdd->GlideFrame(Link->X-56, Link->Y-48, 0.5);
+                                KDWaitframe(kdd);
+                            }
+                        }
+                        for(int j=0; j<120; ++j)
+                        {
+                            kdd->GlideFrame(Link->X-56, Link->Y-48, 0.5);
+                            KDWaitframe(kdd);
+                        }
+                        int x = kdd->X+56;
+                        for(int k=0; k<7; ++k)
+                        {
+                            eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, x+Lerp(48, 0, k/4), 0, 0, 0, DAMAGE_KAISER_LASER, 0, 0, laserSlot, {12, 24});
+                            if(k<4)
+                                e = FireEWeaponDegAngle(EW_SCRIPT10, x+Lerp(-48, 0, k/4), 0, 0, 0, DAMAGE_KAISER_LASER, 0, 0, laserSlot, {12, 24});
+                            KDWaitframe(kdd, 4);
+                        }
+                        KDWaitframe(kdd, 160);
+                        break;
+                    }
+                    case 5: // Assassin's Blades
+                    {
+                        if(prevElement!=attack)
+                            KDFlashScreen(kdd, kdd->GetAttackColor(5),5);
+                        int angle = Angle(Link->X, Link->Y, kdd->X+56, kdd->Y+48);
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        for(int i=0; i<24; ++i)
+                        {
+                            kdd->X += VectorX(1, angle);
+                            kdd->Y += VectorY(1, angle);
+                            kdd->Hidden = Floor(Lerp(0, 3, i/23));
+                            KDWaitframe(kdd);
+                        }
+                        kdd->X = Rand(-16, 240-128);
+                        kdd->Y = Rand(24, 72);
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        int slotSword = CheckEWeaponScript("KaiserBlade");
+                        int xo = Rand(2);
+                        for(int i=0; i<2; ++i)
+                        {
+                            for(int j=0; j<8; ++j)
+                            {
+                                eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, xo*16+j*32, 0, 90, 400, DAMAGE_KAISER_BLADES, 0, SFX_KAISER_BLADE, slotSword, {60});
+                            }
+                            xo = xo?0:1;
+                            KDWaitframe(kdd, 30);
+                        }
+                        KDWaitframe(kdd, 90);
+                        for(int i=0; i<6; ++i)
+                        {
+                            while(Distance(this->X+8, this->Y+8, Link->X, Link->Y)<48)
+                            {
+                                kdd->X = Rand(-16, 240-128);
+                                kdd->Y = Rand(24, 72);
+                                kdd->FaceLeft = Link->X<kdd->X+56;
+                                KDWaitframe(kdd);
+                            }
+                            for(int j=0; j<3; ++j)
+                            {
+                                int ang = Angle(this->X+8, this->Y+8, Link->X, Link->Y)+j*120;
+                                eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, this->X+8+VectorX(8, ang), this->Y+8+VectorY(8, ang), ang, 400, DAMAGE_KAISER_BLADES, 0, SFX_KAISER_BLADE, slotSword, {30});
+                            }
+                            for(int j=0; j<90; ++j)
+                            {
+                                if(this->HitBy[HIT_BY_LWEAPON_PTR])
+                                {
+                                    break 2;
+                                }
+                                KDWaitframe(kdd);
+                            }
+                            if(Rand(2))
+                            {
+                                kdd->X = Rand(-16, 240-128);
+                                kdd->Y = Rand(24, 72);
+                                kdd->FaceLeft = Link->X<kdd->X+56;
+                            }
+                        }
+                        kdd->FaceLeft = Link->X<kdd->X+56;
+                        for(int i=0; i<24; ++i)
+                        {
+                            kdd->Hidden = Floor(Lerp(3, 0, i/23));
+                            KDWaitframe(kdd);
+                        }
+                        break;
+                    }
+                    case 6: // Merton
+                    {
+                        if(prevElement!=attack)
+                            KDFlashScreen(kdd, kdd->GetAttackColor(6),6);
+                        int ang = Rand(-80, -40);
+                        if(Rand(2)==0)
+                            ang = 180-ang;
+                        kdd->FaceLeft = VectorX(1, ang)<0;
+                        Audio->PlaySound(SFX_KAISER_ROAR);
+                        Audio->PlaySound(SFX_KAISER_DASH);
+                        kdd->State = KDSTATE_ROAR;
+                        kdd->RandOffset = 2;
+                        for(int i=0; i<64; ++i)
+                        {
+                            int step = Lerp(2, 8, i/63);
+                            kdd->X += VectorX(step, ang);
+                            kdd->Y += VectorY(step, ang);
+                            KDWaitframe(kdd);
+                        }
+                        int slotMerton = CheckEWeaponScript("KaiserMertonDelay");
+                        for(int i=0; i<6; ++i)
+                        {
+                            ang = Rand(-80, -40);
+                            if(Rand(2)==0)
+                                ang = 180-ang;
+                            kdd->X = Link->X-56;
+                            kdd->Y = Link->Y-48-32;
+                            kdd->X -= VectorX(256, ang);
+                            kdd->Y -= VectorY(256, ang);
+                            kdd->FaceLeft = Link->X<kdd->X+56;
+                            if(i==5)
+                            {
+                                kdd->State = KDSTATE_NEUTRAL;
+                                kdd->RandOffset = 0;
+                                KDGlide(kdd, 64+Rand(-32, 32), 64, 8, 2);
+                            }
+                            else
+                            {
+                                Audio->PlaySound(SFX_KAISER_ROAR);
+                                Audio->PlaySound(SFX_KAISER_DASH);
+                                for(int i=0; i<512; i+=8)
+                                {
+                                    kdd->X += VectorX(8, ang);
+                                    kdd->Y += VectorY(8, ang);
+                                    if(i%32==0)
+                                    {
+                                        eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, this->X+8, this->Y+8, 0, 0, DAMAGE_KAISER_MERTON, 0, 0, slotMerton);
+                                    }
+                                    KDWaitframe(kdd);
+                                }
+                            }
+                            KDWaitframe(kdd, 80);
+                        }
+                        break;
+                    }
+                    case 7: // Megaflare
+                    {
+                        if(megaflareCount<KAISER_MEGAFLARE_COUNT_COUNT)
+                        {
+                            int angles[16];
+                            int dists[16];
+                            for(int i=0; i<16; ++i)
+                            {
+                                angles[i] = Rand(360);
+                                dists[i] = 16+i*4;
+                            }
+                            kdd->State = KDSTATE_WINDUP;
+                            Audio->PlaySound(SFX_KAISER_MEGAFLARE_CHARGE);
+                            for(int i=0; i<96; ++i)
+                            {
+                                for(int j=0; j<16; ++j)
+                                {
+                                    if(dists[j]>0&&dists[j]<16)
+                                    {
+                                        int d = Lerp(0, 24, dists[j]/15);
+                                        int x = this->X+16+VectorX(d, angles[j])+(kdd->FaceLeft?6:-6);
+                                        int y = this->Y+16+VectorY(d, angles[j])+18;
+                                        Screen->Circle(2, x, y, Lerp(1, 6, dists[j]/15), 0x01, 1, 0, 0, 0, true, OP_OPAQUE);
+                                    }
+                                    --dists[j];
+                                }
+                                KDWaitframe(kdd);
+                            }
+                            kdd->State = KDSTATE_NEUTRAL;
+                            Screen->Message(MSG_KAISER_MEGAFLARE_COUNT+megaflareCount);
+                            ++megaflareCount;
+                        }
+                        else
+                        {
+                            Screen->Message(MSG_KAISER_MEGAFLARE);
+                            megaflareCount = 0;
+                            kdd->State = KDSTATE_WINDUP;
+                            for(int i=0; i<32; ++i)
+                            {
+                                kdd->GlideFrame(Link->X-56, Link->Y-48-32, 1);
+                                KDWaitframe(kdd);
+                            }
+                            Audio->PlaySound(SFX_KAISER_ROAR);
+                            kdd->State = KDSTATE_ROAR;
+                            kdd->RandOffset = 2;
+                            for(int i=0; i<32; ++i)
+                            {
+                                kdd->GlideFrame(Link->X-56, Link->Y-48-32, 1);
+                                KDWaitframe(kdd);
+                            }
+                            Audio->PlaySound(SFX_KAISER_MEGAFLARE_LASER);
+                            for(int i=0; i<12; ++i)
+                            {
+                                int x = this->X+16+(kdd->FaceLeft?-6:6);
+                                int y = this->Y+16+10;
+                                int w = Lerp(4, 1, i/11);
+                                int ang = Lerp(60, 120, (kdd->FaceLeft?(1-i/11):(i/11)));
+                                Screen->Circle(6, x, y, w, 0x01, 1, 0, 0, 0, true, OP_OPAQUE);
+                                Screen->Rectangle(6, x, y-w, x+256, y+w, 0x01, 1, x, y, ang, true, OP_OPAQUE);
+                                KDWaitframe(kdd);
+                            }
+                            KDWaitframe(kdd, 32);
+                            int slotMegaflare = CheckEWeaponScript("MegaflareShockwave");
+                            for(int i=0; i<4; ++i)
+                            {
+                                Audio->PlaySound(SFX_KAISER_MEGAFLARE_DETONATION);
+                                eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, Rand(32, 240-32), Rand(32, 160-32), 0, 0, DAMAGE_KAISER_MEGAFLARE, 0, 0, slotMegaflare);
+                                KDWaitframe(kdd, 32);
+                            }
+                        }
+                        didCharge = true;
+                        break;
+                    }
+                }
+                if(attack<7)
+                    prevElement = attack;
+                KDWaitframe(kdd);
+            }
+        }
+        void KDFlashScreen(KaiserDragonData kdd, int c, int phase)
+        {
+            Audio->PlaySound(SFX_KAISER_FORMCHANGE);
+			Game->LoadTempScreen(3)->ComboD[ComboAt(112,32)] = 6588;
+			Game->LoadTempScreen(3)->ComboD[ComboAt(128,32)] = 6588;
+			if(phase == 0){
+				Game->LoadTempScreen(1)->ComboD[ComboAt(112,32)] = 17686;
+				Game->LoadTempScreen(1)->ComboD[ComboAt(128,32)] = 17687;
+			}
+			else if(phase == 1){
+				Game->LoadTempScreen(1)->ComboD[ComboAt(112,32)] = 17688;
+				Game->LoadTempScreen(1)->ComboD[ComboAt(128,32)] = 17689;
+			}
+			else if(phase == 2){
+				Game->LoadTempScreen(1)->ComboD[ComboAt(112,32)] = 17690;
+				Game->LoadTempScreen(1)->ComboD[ComboAt(128,32)] = 17691;
+			}
+			else if(phase == 3){
+				Game->LoadTempScreen(1)->ComboD[ComboAt(112,32)] = 17692;
+				Game->LoadTempScreen(1)->ComboD[ComboAt(128,32)] = 17693;
+			}
+			else if(phase == 4){
+				Game->LoadTempScreen(1)->ComboD[ComboAt(112,32)] = 17694;
+				Game->LoadTempScreen(1)->ComboD[ComboAt(128,32)] = 17695;
+			}
+			else if(phase == 5){
+				Game->LoadTempScreen(1)->ComboD[ComboAt(112,32)] = 17696;
+				Game->LoadTempScreen(1)->ComboD[ComboAt(128,32)] = 17697;
+			}
+			else{
+				Game->LoadTempScreen(1)->ComboD[ComboAt(112,32)] = 17698;
+				Game->LoadTempScreen(1)->ComboD[ComboAt(128,32)] = 17699;
+			}
+			
+            for(int i=0; i<32; ++i)
+            {
+                if(i%8<4)
+                    Screen->Rectangle(6, 0, 0, 256, 176, c, 1, 0, 0, 0, true, OP_TRANS);
+                KDWaitframe(kdd);
+            }
+        }
+        void KDGlide(KaiserDragonData kdd, int tX, int tY, int stepStart, int stepEnd=0)
+        {
+            int dist = Distance(kdd->X, kdd->Y, tX, tY);
+            int step = stepStart;
+            while(kdd->GlideFrame(tX, tY, step))
+            {
+                if(stepEnd>0)
+                    step = Lerp(stepStart, stepEnd, Distance(kdd->X, kdd->Y, tX, tY)/dist);
+                KDWaitframe(kdd);
+            }
+        }
+        void KDDeathAnim(KaiserDragonData kdd)
+        {
+            for(int i=Screen->NumEWeapons(); i>0; --i)
+                Screen->LoadEWeapon(i)->Remove();
+            kdd->Owner->CollDetection = false;
+            kdd->Owner->InvFrames = 9999;
+            while(kdd->GlideFrame(64, 32, 4))
+            {
+                kdd->Update();
+                Waitframe();
+            }
+			Screen->ClearSprites(SL_EWPNS);
+			Screen->ClearSprites(SL_ITEMS);
+			Game->PlaySound(70);
+			int args[8] = {23, 120, 0};
+			RunFFCScript(56, args);
+			for(int j=0; j<120; ++j){
+				kdd->Update();
+				Link->PressStart = false; Link->InputStart = false;
+				Link->PressMap = false; Link->InputMap = false;
+				NoAction();
+				Game->Suspend[susptLINK] = true;
+				Game->Suspend[susptUPDATEFFC] = true;
+				Waitframe();
+			}
+			Game->Suspend[susptLINK] = false;
+			Game->Suspend[susptUPDATEFFC] = false;
+            Audio->PlayMIDI(0);
+            for(int i=0; i<32; ++i)
+            {
+                kdd->Update();
+                Waitframe();
+            }
+            npcdata nd = Game->LoadNPCData(kdd->Owner->ID);
+            Audio->PlaySound(nd->DeathSFX);
+            kdd->RandOffset = 4;
+            for(int i=0; i<32&&kdd->Y<176; ++i)
+            {
+                eweapon e = CreateEWeaponAt(EW_BOMBBLAST, kdd->X+Rand(112), kdd->Y+Rand(96));
+                e->CollDetection = false;
+                for(int j=0; j<16; ++j)
+                {
+                    kdd->Y += 0.3333;
+                    kdd->Update();
+                    Waitframe();
+                }
+            }
+            kdd->Owner->HP = -10000;
+            kdd->Owner->Immortal = false;
+            Quit();
+        }
+        void KDWaitframe(KaiserDragonData kdd, int frames=1)
+        {
+            for(int i=0; i<frames; ++i)
+            {
+                if(kdd->Owner->HP<=0&&kdd->Phase>=7)
+                {
+                    KDDeathAnim(kdd);
+                }
+                kdd->Update();
+                Waitframe();
+            }
+        }
+    }
+
+    npc script KaiserSkull
+    {
+        void run(int angle, int dist, int turn, int speed)
+        {
+            int x = Link->X;
+            int y = Link->Y;
+            while(dist>0)
+            {
+                this->X = x+VectorX(dist, angle);
+                this->Y = y+VectorY(dist, angle);
+                this->X = Clamp(this->X, -16, 256);
+                this->Y = Clamp(this->Y, -16, 176);
+                if(dist<24)
+                    dist = Max(dist-speed/4, 0);
+                else
+                    dist = Max(dist-speed, 0);
+                angle += turn;
+                Waitframe();
+            }
+            this->X = x;
+            this->Y = y;
+            Waitframes(16);
+            this->HP = 0;
+        }
+    }
+
+    eweapon script RisingBubble
+    {
+        void run(int amp, int freq)
+        {
+            int t = Rand(360);
+            while(true)
+            {
+                if(this->Y<160)
+                    this->DeadState = WDS_ALIVE;
+                this->HitXOffset = amp*Sin(t);
+                this->DrawXOffset = amp*Sin(t);
+                t = (t+freq)%360;
+                Waitframe();
+            }
+        }
+    }
+
+    eweapon script LifeLeech
+    {
+        void run(npc parent, int healing)
+        {
+            while(true)
+            {
+                if(Link->HitBy[HIT_BY_EWEAPON_PTR]==this)
+                {
+                    this->DeadState = WDS_ALIVE;
+                    Audio->PlaySound(SFX_KAISER_LEECH_HITS);
+                    break;
+                }
+                Waitframe();
+            }
+            while(true)
+            {
+                if(parent->isValid())
+                {
+                    this->DeadState = WDS_ALIVE;
+                    this->DegAngle = Angle(this->X, this->Y, CenterX(parent), CenterY(parent));
+                    if(Distance(this->X, this->Y, CenterX(parent), CenterY(parent))<this->Step/100)
+                    {
+                        Audio->PlaySound(SFX_KAISER_LEECH_HEAL);
+                        parent->HP += healing;
+                        this->Remove();
+                    }
+                }
+                Waitframe();
+            }
+        }
+    }
+
+    npc script KaiserEgg
+    {
+        void run(int delay)
+        {
+            if(!delay)
+                delay = 180;
+            Waitframes(delay);
+            if(this->HP>0)
+            {
+                for(int i=0; i<16; ++i)
+                {
+                    eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, this->X, this->Y, 22.5*i, 400, this->WeaponDamage, SPR_KAISER_EGGSHELL, SFX_KAISER_EGGSHELL);
+                    e->Unblockable = UNBLOCK_ALL;
+                }
+                this->Remove();
+            }
+        }
+    }
+
+    eweapon MakeHitbox(int x, int y, int w, int h, int damage)
+    {
+        eweapon e = CreateEWeaponAt(EW_SCRIPT10, 120, 80);
+        e->Damage = damage;
+        e->Dir = -1;
+        e->HitXOffset = x-(120);
+        e->HitYOffset = y-(80);
+        e->HitWidth = w;
+        e->HitHeight = h;
+        e->Timeout = 2;
+        e->DrawYOffset = -10000;
+        e->Unblockable = UNBLOCK_ALL;
+        return e;
+    }
+
+    eweapon script KaiserLaserStrike
+    {
+        void run(int width, int windup)
+        {
+            this->DrawXOffset = -10000;
+            this->CollDetection = false;
+            int maxY;
+            for(int i=0; i<176; i+=8)
+            {
+                if(Screen->isSolid(this->X+8, i))
+                {
+                    maxY = i-1;
+                    break;
+                }
+            }
+            for(int i=0; i<windup; ++i)
+            {
+                if(i%4<2)
+                    Screen->Line(2, this->X+8, 0, this->X+8, maxY, 0x75, 1, 0, 0, 0, OP_OPAQUE);
+                Waitframe();
+            }
+            Audio->PlaySound(SFX_KAISER_LASER);
+            for(int i=0; i<12; ++i)
+            {
+                int w = Lerp(width, 0, i/11);
+                if(RectCollision(Link->X+4, Link->Y+4, Link->X+11, Link->Y+11, this->X+8-w, 0, this->X+8+w, maxY))
+                {
+                    MakeHitbox(Link->X+4*Sign(this->X-Link->X), Link->Y, 16, 16, this->Damage);
+                }
+                Screen->Rectangle(2, this->X+8-w, 0, this->X+8+w, maxY, Choose(0x71, 0x73, 0x74), 1, 0, 0, 0, true, OP_OPAQUE);
+                Waitframe();
+            }
+            this->Remove();
+        }
+    }
+
+    eweapon script KaiserBlade
+    {
+        void run(int delay)
+        {
+            this->DrawXOffset = -10000;
+            this->CollDetection = false;
+            int step = this->Step;
+            this->Step = 0;
+            for(int i=0; i<delay; ++i)
+            {
+                Screen->DrawTile(2, this->X-16, this->Y-8, TIL_KAISER_BLADE, 3, 2, 7, -1, -1, this->X-16, this->Y-8, this->DegAngle, 0, true, OP_OPAQUE);
+                for(int i=-1; i<=1; ++i)
+                {
+                    MakeHitbox(this->X+VectorX(16*i, this->DegAngle), this->Y+VectorY(16*i, this->DegAngle), 16, 16, this->Damage);
+                }
+                Waitframe();
+            }
+            this->Step = step;
+            Audio->PlaySound(SFX_KAISER_BLADE_LAUNCH);
+            while(this->X>0&&this->Y>0&&this->X<240&&this->Y<160)
+            {
+                Screen->DrawTile(2, this->X-16, this->Y-8, TIL_KAISER_BLADE, 3, 2, 7, -1, -1, this->X-16, this->Y-8, this->DegAngle, 0, true, OP_OPAQUE);
+                for(int i=-1; i<=1; ++i)
+                {
+                    MakeHitbox(this->X+VectorX(16*i, this->DegAngle), this->Y+VectorY(16*i, this->DegAngle), 16, 16, this->Damage);
+                }
+                Waitframe();
+            }
+        }
+    }
+
+    eweapon script KaiserMertonDelay
+    {
+        void run()
+        {
+            this->CollDetection = false;
+            this->DrawXOffset = -10000;
+            Waitframes(32);
+            for(int i=0; i<16; ++i)
+            {
+                eweapon e = FireEWeaponDegAngle(EW_FIRE, this->X, this->Y, 45*i, 100, this->Damage, SPR_KAISER_MERTON_FIRE, SFX_KAISER_MERTON_FIRE);
+                e->Unblockable = UNBLOCK_ALL;
+            }
+            this->Remove();
+        }
+    }
+
+    eweapon script MegaflareShockwave
+    {
+        void run()
+        {
+            this->CollDetection = false;
+            this->DrawXOffset = -10000;
+            bool hitLink;
+            int flashTime;
+            int rad;
+            int distances[128];
+            for(int i=0; i<128; ++i)
+            {
+                distances[i] = Rand(0, 100)/100;
+            }
+            while(rad<256)
+            {
+                if(!hitLink&&Distance(this->X, this->Y, Link->X, Link->Y)<rad)
+                {
+                    Audio->PlaySound(SFX_OUCH);
+                    Audio->PlaySound(SFX_FIRE);
+                    Link->HP -= this->Damage*Game->Generic[GEN_ENEM_DMG_MULT];
+                    Link->Action = LA_GOTHURTLAND;
+                    Link->HitDir = -1;
+                    flashTime = 8;
+                    hitLink = true;
+                }
+                rad += 8;
+                if(flashTime>0)
+                {
+                    --flashTime;
+                    Screen->Rectangle(6, 0, 0, 256, 176, 0x01, 1, 0, 0, 0, true, flashTime>3?OP_OPAQUE:OP_TRANS);
+                }
+                DrawShockwaveRing(distances, 0, this->X+8, this->Y+8, rad*0.75, Lerp(12, 2, rad/256), Choose(0x83, 0x84, 0x85));
+                DrawShockwaveRing(distances, 0, this->X+8, this->Y+8, rad, Lerp(24, 4, rad/256), Choose(0x81, 0x83, 0x84));
+                Waitframe();
+            }
+        }
+        void DrawShockwaveRing(int distances, int idx, int x, int y, int rad, int thickness, int c)
+        {
+            int verts[0];
+            int angSlice = 360/32;
+            for(int i=0; i<32; ++i)
+            {
+                int j = (i+1)%32;
+
+                int d1 = rad+thickness*0.25*distances[idx+i];
+                int d2 = rad+thickness-thickness*0.25*distances[idx+i+32];
+                int d3 = rad+thickness*0.25*distances[idx+j];
+                int d4 = rad+thickness-thickness*0.25*distances[idx+j+32];
+                
+                int x1 = x+VectorX(d1, i*angSlice);
+                int y1 = y+VectorY(d1, i*angSlice);
+                
+                int x2 = x+VectorX(d2, i*angSlice);
+                int y2 = y+VectorY(d2, i*angSlice);
+                
+                int x3 = x+VectorX(d4, j*angSlice);
+                int y3 = y+VectorY(d4, j*angSlice);
+                
+                int x4 = x+VectorX(d3, j*angSlice);
+                int y4 = y+VectorY(d3, j*angSlice);
+
+                Screen->Quad(6, x1, y1, x2, y2, x3, y3, x4, y4, 1, 1, c, 0, -1, PT_FLAT);
+            }
+        }
+    }
+}

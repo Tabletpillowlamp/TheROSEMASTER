@@ -1,0 +1,303 @@
+ffc script TheEnd
+{
+	void run(int type){
+		int i; int fr = 4; int sh = 8;
+		Waitframes(50);
+		Game->PlayMIDI(148);
+		
+		//Give Link "Win Game" Item
+		if(Link->Item[30] != true){Link->Item[30] = true;}
+		
+		for(i = 1 ; i <= 60 ; ++i){
+			if(i <= fr){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 2)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 3)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 4)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 5)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 6)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 7)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 8)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 9)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 10)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 11)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 12)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 13)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i <= (fr * 14)){Screen->Rectangle(6, 64, 128, 192, 172, 15, 1, 0, 0, 0, true, sh);}
+			Waitframe();
+		}
+		Waitframes(700);
+		int lop = 0;
+		Screen->Message(8);
+		Waitframes(30);
+		for(i = 1 ; i <= 70 ; ++i){
+			if(i >= fr){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 2)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 3)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 4)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 5)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 6)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 7)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 8)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 9)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 10)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 11)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 12)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 13)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 14)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, sh);}
+			if(i >= (fr * 15)){Screen->Rectangle(6, 0, 0, 256, 172, 15, 1, 0, 0, 0, true, 128);}
+			Waitframe();
+		}
+		if(type == 0){
+			Link->WarpEx({WT_IWARP,326,10,-1,-1,WARPEFFECT_NONE,25,4});
+		}
+		else if(type == 1){
+			Link->WarpEx({WT_IWARP,326,11,-1,-1,WARPEFFECT_NONE,25,4});
+		}
+		else if(type == 2){
+			Link->WarpEx({WT_IWARP,371,75,-1,-1,WARPEFFECT_NONE,25,4});
+		}
+	}
+}
+
+ffc script PostgameEnding
+{
+	void run(){
+		Waitframes(60);
+		Link->Item[255] = true;
+		Game->Save();
+		Waitframes(120);
+		Game->End();
+	}
+}
+
+ffc script CreditsRollA
+{
+	void run(int id, int first){
+		Waitframes(60);
+		
+		if(first != 0){Game->PlayMIDI(125);}
+		int header1 = 80140; int hLength1 = 8; 	// Quest Creator
+		int header2 = 80148; int hLength2 = 10; // Character Design
+		int header3 = 80158; int hLength3 = 8; 	// Story Planning
+		int header4 = 80166; int hLength4 = 4; 	// Scripts
+		int header5 = 80170; int hLength5 = 6; 	// Illustration
+		int header6 = 80176; int hLength6 = 4; 	// Music
+		int header7 = 80180; int hLength7 = 6; 	// Graphics
+		int header8 = 80186; int hLength8 = 8; 	// Special Thanks
+		
+		int sub1A = 80194; int sLength1A = 4; 	// Tabletpillow
+		int sub1B = 80200; int sLength1B = 4; 		
+		int sub2A = 80204; int sLength2A = 10; 	// Character Design
+		int sub2B = 80214; int sLength2B = 6; 			
+		int sub3A = 80220; int sLength3A = 8; 	// Scripts 1
+		int sub3B = 80228; int sLength3B = 8; 			
+		int sub4A = 80236; int sLength4A = 8; 	// Scripts 2
+		int sub4B = 80244; int sLength4B = 8; 			
+		int sub5A = 80252; int sLength5A = 10; 	// Music 1
+		int sub5B = 80262; int sLength5B = 10; 			
+		int sub6A = 80272; int sLength6A = 10; 	// Music 2
+		int sub6B = 80282; int sLength6B = 8; 			
+		int sub6C = 80290; int sLength6C = 8; 			
+		int sub7A = 80298; int sLength7A = 8; 	// Graphics 1
+		int sub7B = 80306; int sLength7B = 6; 			
+		int sub8A = 80312; int sLength8A = 8; 	// Graphics 2
+		int sub8B = 80320; int sLength8B = 8; 			
+		int sub9A = 80328; int sLength9A = 8; 	// Special Thanks 1
+		int sub9B = 80336; int sLength9B = 6; 			
+		int sub0A = 80342; int sLength0A = 8; 	// Special Thanks 2
+		int sub0B = 80350; int sLength0B = 4; 			
+		
+		int xPos1 = 0; int xPos2 = 0; int xPos3 = 0; int xPos4 = 0;
+		int yPos1 = 112; int yPos2 = 128; int yPos3 = 144; int yPos4 = 160;
+		int i; int i1; int i2; int i3; int i4;
+		int wait1 = 360; int wait2 = 480;
+		
+		switch(id){
+			case 1:	//Quest Creator
+				xPos1 = 64; xPos2 = 96; xPos3 = 96;
+				for(i = 1 ; i <= wait1 ; ++i){
+					for(i1 = 0 ; i1 < hLength1 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header1 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength1A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub1A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength1B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub1B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 2:	//Character Design
+				xPos1 = 48; xPos2 = 48; xPos3 = 80;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength2 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header2 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength2A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub2A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength2B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub2B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 3:	//Story Planning
+				xPos1 = 64; xPos2 = 96; xPos3 = 96;
+				for(i = 1 ; i <= wait1 ; ++i){
+					for(i1 = 0 ; i1 < hLength3 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header3 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength1A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub1A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength1B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub1B + i3, 8, OP_OPAQUE);
+					}
+					FastTile(6, 96, yPos2, 80198, 8, OP_OPAQUE);
+					FastTile(6, 176, yPos2, 80199, 8, OP_OPAQUE);
+					Waitframe();
+				}
+				break;
+			case 4:	//Scripts 1
+				xPos1 = 96; xPos2 = 64; xPos3 = 64;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength4 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header4 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength3A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub3A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength3B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub3B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 5: //Scripts 1
+				xPos1 = 96; xPos2 = 64; xPos3 = 64;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength4 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header4 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength4A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub4A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength4B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub4B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 6: //Illustration
+				xPos1 = 80; xPos2 = 96; xPos3 = 96;
+				for(i = 1 ; i <= wait1 ; ++i){
+					for(i1 = 0 ; i1 < hLength5 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header5 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength1A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub1A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength1B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub1B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 7:	//Music 1
+				xPos1 = 96; xPos2 = 48; xPos3 = 48;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength6 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header6 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength5A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub5A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength5B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub5B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 8:	//Music 2
+				xPos1 = 96; xPos2 = 48; xPos3 = 64; xPos4 = 64;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength6 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header6 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength6A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub6A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength6B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub6B + i3, 8, OP_OPAQUE);
+					}
+					for(i4 = 0 ; i4 < sLength6C ; ++i4){
+						FastTile(5, xPos3 + (16 * i4), yPos4, sub6C + i4, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 9:	//Graphics 1
+				xPos1 = 80; xPos2 = 64; xPos3 = 80;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength7 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header7 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength7A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub7A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength7B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub7B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 10: //Graphics 2
+				xPos1 = 80; xPos2 = 64; xPos3 = 64;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength7 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header7 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength8A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub8A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength8B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub8B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 11: //Special Thanks 1
+				xPos1 = 64; xPos2 = 64; xPos3 = 80;
+				for(i = 1 ; i <= wait2 ; ++i){
+					for(i1 = 0 ; i1 < hLength8 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header8 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength9A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub9A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength9B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub9B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+			case 12: //Special Thanks 2
+				xPos1 = 64; xPos2 = 64; xPos3 = 96;
+				for(i = 1 ; i <= wait1 ; ++i){
+					for(i1 = 0 ; i1 < hLength8 ; ++i1){
+						FastTile(5, xPos1 + (16 * i1), yPos1, header8 + i1, 8, OP_OPAQUE);
+					}
+					for(i2 = 0 ; i2 < sLength0A ; ++i2){
+						FastTile(5, xPos2 + (16 * i2), yPos2, sub0A + i2, 8, OP_OPAQUE);
+					}
+					for(i3 = 0 ; i3 < sLength0B ; ++i3){
+						FastTile(5, xPos3 + (16 * i3), yPos3, sub0B + i3, 8, OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				break;
+		}
+	}
+}

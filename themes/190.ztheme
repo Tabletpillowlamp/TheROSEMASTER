@@ -1,0 +1,42 @@
+[Theme]
+//////////////////////////////////////////////////////// = 
+// = VGA Colours 1 to 8
+//////////////////////////////////////////////////////// = 
+color_1 = FCFC48
+color_2 = FCEC
+color_3 = 5000FC
+color_4 = 280078
+color_5 = FC
+color_6 = 5000FC
+color_7 = A8F0C0
+color_8 = FC0000
+ztheme_ver = 1
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////// = 
+// = System Elements
+//////////////////////////////////////////////////////// = 
+jcbox = 4		//Box BG
+jclight = 1		//Box Outlines (Lightest to darkest)
+jcmedlt = 4
+jcmeddark = 3
+jcdark = 1
+jcboxfg = 1		//Box Text
+jctitlel = 3		//Title Bar (Left End)
+jctitler = 5		//Title Bar (Right End)
+jctitlefg = 7		//Title Bar (Text)
+jctextbg = 5		//Radio Button BG
+jctextfg = 1		//Radio Button FG
+jcselbg = 1		//Menu Selection BG
+jcselfg = 6		//Menu Selection Text
+
+jccursormisc = 2	//Mouse Bottom Edge
+jccursoroutline = 2	//Mouse Left/Right Edges
+jccursorlight = 8	//Mouse Core, Light Half
+jccursordark = 8	//Mouse Core, Dark Half

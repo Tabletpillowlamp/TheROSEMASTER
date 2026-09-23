@@ -1,0 +1,87 @@
+ffc script playsfx{
+	void run(int s, int wait, int r, int secr){
+		if ((secr == 0) || (!Screen->SecretsTriggered()))
+		{
+			if (r == 0){
+				Waitframes(wait);
+				Game->PlaySound(s);
+			}
+			else{
+					while((secr == 0) || (!Screen->SecretsTriggered())){
+					Waitframes(wait);
+					Game->PlaySound(s);
+				}
+			}
+		}
+	}
+}
+
+ffc script GloryStealth{
+	void run(){
+		Game->PlaySound(5);
+		int n = 0;
+		while(!Screen->SecretsTriggered()){
+			n+= 1;
+			Link->PressMap = false; Link->InputMap = false;
+			if(n==25){
+				n=0;
+				Game->PlaySound(5);
+			}
+			Waitframe();
+		}
+		Game->PlaySound(9);
+		while(true){
+			Game->PlaySound(8);
+			Screen->Quake = 60;
+			Waitframes(60);
+		}
+	}
+}
+
+ffc script stringScene{
+	void run (int s, int wait){
+		Waitframes(wait);
+		if (s == -1){
+			switch(Game->Counter[11])
+			{
+				case 8:
+					Screen->Message(4863);
+					break;
+				case 9:
+					Screen->Message(4864);
+					break;
+				case 10:
+					Screen->Message(4865);
+					break;
+				case 11:
+					Screen->Message(4866);
+					break;
+			}
+		}
+		else {
+			Screen->Message(s);
+		}
+	}
+}
+
+const int EQ_QUAKE_TIME = 60;
+
+generic script genQuake
+{
+    void run()
+    {
+		Screen->Quake = EQ_QUAKE_TIME;
+	}
+}
+
+ffc script Earthquake
+{
+    void run(int wait)
+    {
+		Waitframes(wait);
+        Screen->Quake = EQ_QUAKE_TIME;
+        Link->SwordJinx = EQ_QUAKE_TIME;
+        Link->ItemJinx = EQ_QUAKE_TIME;
+    }
+}
+

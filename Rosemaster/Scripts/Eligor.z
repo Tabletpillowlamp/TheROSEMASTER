@@ -1,0 +1,450 @@
+namespace Eligor
+{
+	class EligorData
+	{
+		int InitHP;
+		
+		bitmap Wipe;
+		bitmap WipeMask;
+		bitmap Noise;
+		
+		int NumPaintingPoints;
+		int PaintingPoints[0];
+							
+		
+		EligorData(npc owner)
+		{
+			InitHP = owner->HP;
+			
+			AddPaintingPoint(48, 0, DIR_DOWN, 3);
+			AddPaintingPoint(176, 0, DIR_DOWN, 4);
+			AddPaintingPoint(0, 72, DIR_RIGHT, 5);
+			AddPaintingPoint(48, 144, DIR_UP, 0);
+			AddPaintingPoint(176, 144, DIR_UP, 1);
+			AddPaintingPoint(224, 72, DIR_LEFT, 2);
+			
+			Wipe = Game->CreateBitmap(96, 96);
+			Wipe->Own();
+			WipeMask = Game->CreateBitmap(96, 96);
+			WipeMask->Own();
+			Noise = Game->CreateBitmap(256, 256);
+			Noise->Own();
+			
+			Noise->ClearToColor(0, 0x01);
+			Noise->Dither(0, Noise, 0x0F, DITH_STATIC, 30);
+			Noise->ReplaceColors(0, 0x00, 0x01, 0x01);
+		}
+		void AddPaintingPoint(int x, int y, int dir, int opposite)
+		{
+			ResizeArray(PaintingPoints, NumPaintingPoints*4+4);
+			PaintingPoints[4*NumPaintingPoints+0] = x;
+			PaintingPoints[4*NumPaintingPoints+1] = y;
+			PaintingPoints[4*NumPaintingPoints+2] = dir;
+			PaintingPoints[4*NumPaintingPoints+3] = opposite;
+			++NumPaintingPoints;
+		}
+	}
+
+	const int ELIGOR_PHASE_THRESHOLD = 0.6;
+
+	npc script Eligor
+	{
+		using namespace NPCAnim;
+		void run(int type)
+		{
+			AnimHandler aptr = new AnimHandler(this);
+			aptr->AddAnim(0, 0, 2, 8, ADF_4WAY);
+			aptr->SetHitbox(2, 3, {8, 6, 6, 6});
+			aptr->SetMovementHitbox({16, 0, 0, 0});
+			EligorData ed = new EligorData(this);
+			this->Dir = DIR_DOWN;
+			this->Immortal = true;
+			
+			int defs[MAX_DEFENSE];
+			for(int i=0; i<MAX_DEFENSE; ++i)
+			{
+				defs[i] = this->Defense[i];
+				if(i!=NPCD_ARROW){
+					this->Defense[i] = NPCDT_BLOCK;
+				}
+				else{
+					this->Defense[i] = 0;
+				}
+			}
+			this->MoveFlags[NPCMV_IGNORE_SOLIDITY] = true;
+			while(this->HP > ed->InitHP*ELIGOR_PHASE_THRESHOLD)
+			{
+				int pos = Rand(ed->NumPaintingPoints);
+				this->X = ed->PaintingPoints[4*pos+0];
+				this->Y = ed->PaintingPoints[4*pos+1]-16;
+				this->Dir = ed->PaintingPoints[4*pos+2];
+				Wipe(this, ed, this->Dir, false);
+				int attack = Rand(0,1);
+				switch(attack)
+				{
+					case 0:
+					{
+						EligorWaitframe(this, ed, 20);
+						if(type==0){EligorWaitframe(this, ed, 16);}
+						int t = ed->PaintingPoints[4*pos+3];
+						int tx = ed->PaintingPoints[4*t+0];
+						int ty = ed->PaintingPoints[4*t+1]-16;
+						int step = 2.5;
+						int i2;
+						if(type==1){step = 4;}
+						while(Distance(this->X, this->Y, tx, ty)>step)
+						{
+							i2+=1;
+							EligorSpeedTrail(this);
+							if(this->InvFrames>0)
+								step = 4;
+							this->MoveAtAngle(Angle(this->X, this->Y, tx, ty), step, SPW_FLOATER);
+							if((type==1)&&(i2==8)){
+								eweapon e = FireEWeaponAtHero(EW_SCRIPT10, this->X+8, this->Y+16, true, 400, this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 32, 200});
+								e->Unblockable = UNBLOCK_ALL;
+							}
+							EligorWaitframe(this, ed);
+						}
+						this->X = tx;
+						this->Y = ty;
+						Wipe(this, ed, OppositeDir(this->Dir), true);
+						EligorWaitframe(this, ed, 30);
+						break;
+					}
+					case 1:
+					{
+						EligorWaitframe(this, ed, 20);
+						if(type==0){EligorWaitframe(this, ed, 16);}
+						if(type==0){
+							eweapon e = FireEWeaponAtHero(EW_SCRIPT10, this->X+8, this->Y+16, true, 250, this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 32, 200});
+							e->Unblockable = UNBLOCK_ALL;
+							EligorWaitframe(this, ed, 48);
+						}
+						else{
+							for(int i=0; i<2; ++i){	
+								eweapon e = FireEWeaponAtHero(EW_SCRIPT10, this->X+8, this->Y+16, true, 450, this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 32, 200});
+								e->Unblockable = UNBLOCK_ALL;
+								EligorWaitframe(this, ed, 16);
+							}
+						}
+						Wipe(this, ed, this->Dir, true);
+						break;
+					}
+				}
+				EligorWaitframe(this, ed);
+			}
+			int pos = Rand(ed->NumPaintingPoints);
+			this->X = ed->PaintingPoints[4*pos+0];
+			this->Y = ed->PaintingPoints[4*pos+1]-16;
+			this->Dir = ed->PaintingPoints[4*pos+2];
+			Wipe(this, ed, this->Dir, false);
+			while(Distance(this->X, this->Y, 112, 64)>1.5)
+			{
+				this->MoveAtAngle(Angle(this->X, this->Y, 112, 64), 1.5, SPW_NONE);
+				EligorWaitframe(this, ed);
+			}
+			this->X = 112;
+			this->Y = 64;
+			this->BreakShield();
+			for(int i=0; i<MAX_DEFENSE; ++i)
+				this->Defense[i] = defs[i];
+			this->MoveFlags[NPCMV_IGNORE_SOLIDITY] = false;
+			while(true){
+				EligorWaitframe(this, ed, 30);
+				int zig = Choose(-1, 1);
+				for(int i2=0; i2<2; ++i2){	
+					for(int i=0; i<2; ++i){	
+						int angle = Angle(this->X+8, this->Y+16, Link->X, Link->Y);
+						this->Dir = AngleDir4(angle);
+						for(int j=0; j<8; ++j)
+						{
+							EligorSpeedTrail(this);
+							this->MoveAtAngle(angle+60*zig, 2, SPW_NONE);
+							EligorWaitframe(this, ed);
+						}
+						EligorWaitframe(this, ed, 32);
+						for(int j=0; j<16; ++j)
+						{
+							EligorSpeedTrail(this);
+							this->MoveAtAngle(angle, 2.5, SPW_NONE);
+							EligorWaitframe(this, ed);
+						}
+						zig = -zig;
+						EligorWaitframe(this, ed, 32);
+						if(type==1){
+							eweapon e = FireEWeaponAtHero(EW_SCRIPT10, this->X+8, this->Y+16, true, 350, this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 0, 100});
+							e->Unblockable = UNBLOCK_ALL;
+							EligorWaitframe(this, ed, 50);
+						}
+					}
+					int angle = Angle(this->X, this->Y, Link->X, Link->Y);
+					this->Dir = AngleDir4(angle);
+					EligorWaitframe(this, ed, 20);
+					angle = Angle(this->X, this->Y, Link->X, Link->Y);
+					this->Dir = AngleDir4(angle);
+					if(type==0){
+						eweapon e = FireEWeaponAtHero(EW_SCRIPT10, this->X+8, this->Y+16, true, 250, this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 0, 100});
+						e->Unblockable = UNBLOCK_ALL;
+						EligorWaitframe(this, ed, 80);
+					}
+					else{
+						eweapon e = FireEWeaponAtHero(EW_SCRIPT10, this->X+8, this->Y+16, true, 350, this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 0, 100});
+						e->Unblockable = UNBLOCK_ALL;
+						EligorWaitframe(this, ed, 50);
+					}
+				}
+				
+				EligorWaitframe(this, ed, 40);
+				Game->PlaySound(70);
+				EligorWaitframe(this, ed, 40);
+				
+				while(Distance(this->X, this->Y, 112, 64)>1.5)
+				{
+					int angle = Angle(this->X, this->Y, 112, 64);
+					this->MoveAtAngle(angle, 1.5, SPW_NONE);
+					this->Dir = AngleDir4(angle);
+					EligorWaitframe(this, ed);
+				}
+				FaceLink(this);
+				this->X = 112;
+				this->Y = 64;
+				
+				EligorWaitframe(this, ed, 40);
+				
+				if(type==0){
+					for(int i=0; i<3; ++i){
+						int angle = Angle(this->X, this->Y, Link->X, Link->Y);
+						this->Dir = AngleDir4(angle);
+						eweapon e = FireEWeaponAtHero(EW_SCRIPT10, this->X+8, this->Y+16, true, 200, this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 0, 100});
+						e->Unblockable = UNBLOCK_ALL;
+						EligorWaitframe(this, ed, 64);
+					}
+				}
+				else{
+					for(int i=0; i<4; ++i)
+					{
+						eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, this->X+8, this->Y+16, -45+i*90, Rand(280,350), this->WeaponDamage, SPR_ELIGORCROSS, SFX_ELIGORCROSS, Game->GetEWeaponScript("EligorCross"), {0, 0, 400});
+						e->Unblockable = UNBLOCK_ALL;
+					}
+					EligorWaitframe(this, ed, 64);
+				}
+				
+				EligorWaitframe(this, ed, 64);
+				
+			}
+		}
+		void InitWipeBitmap(EligorData ed, int dir)
+		{
+			bitmap w = ed->WipeMask;
+			w->Clear(0);
+			bitmap n = ed->Noise;
+			for(int i=0; i<8; ++i)
+			{
+				int x, y;
+				bool vert;
+				switch(dir)
+				{
+					case DIR_UP:
+						y = 64+i*4;
+						break;
+					case DIR_DOWN:
+						y = 28-i*4;
+						break;
+					case DIR_LEFT:
+						x = 64+i*4;
+						vert = true;
+						break;
+					case DIR_RIGHT:
+						x = 28-i*4;
+						vert = true;
+						break;
+				}
+				for(int j=0; j<i; ++j)
+				{
+					if(vert)
+						n->Blit(0, w, Rand(0, 255-4), Rand(0, 255-48), 4, 48, x, y, 4, 48, 0, 0, 0, BITDX_NORMAL, 0, true);
+					else
+						n->Blit(0, w, Rand(0, 255-48), Rand(0, 255-4), 48, 4, x, y, 48, 4, 0, 0, 0, BITDX_NORMAL, 0, true);
+				}
+			}
+		}
+		void DrawWipeFrame(npc this, EligorData ed, int dir, int dist)
+		{
+			bitmap wm = ed->WipeMask;
+			bitmap w = ed->Wipe;
+			int x, y;
+			int xoff, yoff;
+			switch(dir)
+			{
+				case DIR_UP:
+					y = 96-dist;
+					yoff = Max(48-dist, 0);
+					break;
+				case DIR_DOWN:
+					y = -48+dist;
+					yoff = -48+Min(dist, 48);
+					break;
+				case DIR_LEFT:
+					x = 112-dist;
+					xoff = Max(48-dist, 0);
+					break;
+				case DIR_RIGHT:
+					x = -48+dist;
+					xoff = -48+Min(dist, 48);
+					break;
+			}
+			w->Clear(0);
+			w->DrawTile(0, x, y, this->Tile, 2, 3, this->CSet, -1, -1, 0, 0, 0, 0, true, 128);
+			w->MaskedDraw(0, wm, 0x00);
+			w->Blit(SPLAYER_NPC_DRAW, RT_SCREEN, x, y, 32, 48, this->X+xoff, this->Y+yoff, 32, 48, 0, 0, 0, BITDX_NORMAL, 0, true);
+		}
+		void Wipe(npc this, EligorData ed, int dir, bool fadeout)
+		{
+			this->DrawXOffset = -1000;
+			if(fadeout)
+			{
+				this->CollDetection = false;
+				for(int i=0; i<48; ++i)
+				{
+					InitWipeBitmap(ed, dir);
+					DrawWipeFrame(this, ed, dir, Lerp(48, 0, i/48));
+					EligorWaitframe(this, ed);
+				}
+			}
+			else
+			{
+				for(int i=0; i<48; ++i)
+				{
+					InitWipeBitmap(ed, dir);
+					DrawWipeFrame(this, ed, dir, Lerp(0, 96, i/48));
+					EligorWaitframe(this, ed);
+				}
+				this->CollDetection = true;
+				this->DrawXOffset = 0;
+			}
+		}
+		void EligorSpeedTrail(npc this){
+			lweapon trail = CreateLWeaponAt(LW_SCRIPT10, this->X+this->DrawXOffset, this->Y+this->DrawYOffset);
+			trail->Extend = 3;
+			trail->TileWidth = this->TileWidth;
+			trail->TileHeight = this->TileHeight;
+			trail->DrawYOffset = 0;
+			trail->CSet = this->CSet;
+			trail->Tile = this->Tile;
+			trail->OriginalTile = this->Tile;
+			trail->DrawStyle = DS_PHANTOM;
+			trail->DeadState = 8;
+		}
+		void EligorWaitframe(npc this, EligorData ed, int frames=1)
+		{
+			for(int i=0; i<frames; ++i)
+			{
+				if(this->HP<=0)
+				{
+						if(Screen->D[2] >= 1){
+							Screen->ClearSprites(SL_EWPNS);
+							Screen->ClearSprites(SL_ITEMS);
+							if(Screen->D[2] != 6){
+								Game->PlaySound(70);
+								int args[8] = {23, 120, 0};
+								RunFFCScript(56, args);
+								for(int j=0; j<120; ++j){
+									Link->PressStart = false; Link->InputStart = false;
+									Link->PressMap = false; Link->InputMap = false;
+									NoAction();
+									Game->Suspend[susptLINK] = true;
+									Game->Suspend[susptUPDATEFFC] = true;
+									Waitframe();
+								}
+								Game->Suspend[susptLINK] = false;
+								Game->Suspend[susptUPDATEFFC] = false;
+							}
+							if (Screen->D[2] == 2){
+								Screen->D[2] = -1;
+							}
+							else if (Screen->D[2] == 3){
+								Screen->D[2] = -2;
+							}
+							else if (Screen->D[2] == 5){
+								Screen->D[2] = -4;
+							}
+							
+							if(Screen->D[2] != 6){
+								Game->PlayMIDI(0);
+							}
+						}
+						Screen->Quake = 120;
+					AnimHandler aptr = GetAnimHandler(this);
+					aptr->PlayDeathAnim();
+				}
+				Waitframe(this);
+			}
+		}
+	}
+
+	const int SPR_ELIGORCROSS = 101;
+	const int SFX_ELIGORCROSS = 108;
+	const int SFX_ELIGORCROSS_BOUNCE = 76;
+	const int SFX_ELIGORCROSS_SPLIT = 78;
+	const int FRAMES_ELIGORCROSS_SPLIT = 3;
+	
+	eweapon script EligorCross
+	{
+		void run(int type, int delay, int bouncestep)
+		{
+			if(type==0)
+			{
+				int frames = delay;
+				while(frames || !Screen->isSolid(this->X+8, this->Y+8))
+				{
+					if(this->X<-16||this->X>256||this->Y<-16||this->Y>176)
+						this->Remove();
+					if(frames)
+						--frames;
+					this->DeadState = WDS_ALIVE;
+					Waitframe();
+				}
+				this->Step = bouncestep;
+				Game->PlaySound(SFX_ELIGORCROSS_BOUNCE);
+				this->DegAngle += 180;
+				this->OriginalTile += 20;
+				this->Tile = this->OriginalTile;
+				this->NumFrames = 2;
+				for(int i=0; i<16; ++i)
+				{
+					this->DeadState = WDS_ALIVE;
+					Waitframe();
+				}
+				this->Step = 0;
+				for(int i=0; i<32; ++i)
+				{
+					this->DeadState = WDS_ALIVE;
+					Waitframe();
+				}
+				Game->PlaySound(SFX_ELIGORCROSS_SPLIT);
+				itemsprite itm = CreateItemAt(I_ARROWAMMO1, this->X, this->Y);
+				for(int i=0; i<4; ++i)
+				{
+					for(int j=0; j<8; ++j)
+					{
+						eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, this->X, this->Y, 90*i, 100+25*j, this->Damage, SPR_ELIGORCROSS, 0, this->Script, {1});
+						e->Unblockable = UNBLOCK_ALL;
+						if(i==2||i==3)
+							e->Flip = FLIP_HORIZONTAL;
+						if(i==1||i==3)
+							e->Rotation = 90;
+						e->OriginalTile += 40;
+						e->Tile = e->OriginalTile;
+						e->NumFrames = FRAMES_ELIGORCROSS_SPLIT;
+					}
+				}
+				this->Remove();
+			}
+			else
+			{
+				Waitframes(48);
+				this->Step = 300;
+			}
+		}
+	}
+}

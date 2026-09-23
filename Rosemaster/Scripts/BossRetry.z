@@ -1,0 +1,2173 @@
+generic script BossRetryVariables
+{
+    void run()
+    {
+        /*
+			
+			Data[0]: Boss ID
+			Data[1]: Bottle 1 Content
+			Data[2]: Bottle 2 Content
+			Data[3]: Bottle 3 Content
+			Data[4]: Bottle 4 Content
+			Data[5]: Rupee Count
+			Data[6]: Bomb Count
+			Data[7]: Arrow Count
+			Data[8]: Super Bomb Count
+			Data[9]: Bombchu Count
+		
+		*/
+    }
+}
+
+ffc script RetryBossExceptions{
+	void run(int type){
+		
+		/*
+			type == 0: Save Bottle Types
+			type == 1: 
+			type == 2: Final Boss Autolose
+		*/
+		
+		genericdata gd = Game->LoadGenericData(CheckGenericScript("BossRetryVariables"));
+		gd->DataSize = 10;
+		
+		if(type == 0){
+			gd->Data[1] = Game->BottleState[1];
+			gd->Data[2] = Game->BottleState[2];
+			gd->Data[3] = Game->BottleState[3];
+			gd->Data[4] = Game->BottleState[4];
+			gd->Data[5] = Game->Counter[1];   // Rupees
+			gd->Data[6] = Game->Counter[2];   // Bombs
+			gd->Data[7] = Game->Counter[3];   // Arrows
+			gd->Data[8] = Game->Counter[6];   // Super Bombs
+			gd->Data[9] = Game->Counter[7];   // Bombchus
+		}
+		else if(type == 1){
+			// Heal up and Warp Back to Fight
+			Game->LoadGenericData(CheckGenericScript("IvoryBlessing"))->Running = false;
+			Game->LoadGenericData(CheckGenericScript("CureTomeGen"))->Running = false;
+			itemdata idat = Game->LoadItemData(226);
+			idat->Tile = 23759;
+			idat->SetDisplayName("Cure Tome");
+			Link->MP = Link->MaxMP;
+			Game->BottleState[1] = gd->Data[1];
+			Game->BottleState[2] = gd->Data[2];
+			Game->BottleState[3] = gd->Data[3];
+			Game->BottleState[4] = gd->Data[4];
+			if(Game->Counter[1] < gd->Data[5]){
+				Game->Counter[1] = gd->Data[5];	// Rupees
+			}
+			Game->Counter[2] = gd->Data[6];	// Bombs
+			Game->Counter[3] = gd->Data[7];	// Arrows
+			Game->Counter[6] = gd->Data[8];	// Super Bombs
+			Game->Counter[7] = gd->Data[9];	// Bombchus
+		}
+		else if(type == 2){
+			if(Link->Item[146]){
+				if(Link->Item[151]){
+					gd->Data[0] = 154;
+				}
+				else{
+					gd->Data[0] = 132;
+				}
+				Link->WarpEx({WT_IWARP,372,0x20,-1,0,WARPEFFECT_NONE,25,4});
+			}
+			else{
+				Link->Kill(true);
+			}
+		}
+		
+	}
+}
+
+ffc script RetryBossMain{
+	void run(int bossID, int noSave){
+		
+		genericdata gd = Game->LoadGenericData(CheckGenericScript("BossRetryVariables"));
+		gd->DataSize = 10;
+		
+		// Setting the initial properties
+		if(noSave == 0){
+			gd->Data[0] = bossID;
+			gd->Data[1] = Game->BottleState[1];
+			gd->Data[2] = Game->BottleState[2];
+			gd->Data[3] = Game->BottleState[3];
+			gd->Data[4] = Game->BottleState[4];
+			gd->Data[5] = Game->Counter[1];   // Rupees
+			gd->Data[6] = Game->Counter[2];   // Bombs
+			gd->Data[7] = Game->Counter[3];   // Arrows
+			gd->Data[8] = Game->Counter[6];   // Super Bombs
+			gd->Data[9] = Game->Counter[7];   // Bombchus
+		}
+		
+		// Boss Loop
+		while(true){
+			if ( Link->HP <= 0 &&
+			    (Game->BottleState[1] != 6 && Game->BottleState[1] != 7) && 
+				(Game->BottleState[2] != 6 && Game->BottleState[2] != 7) && 
+				(Game->BottleState[3] != 6 && Game->BottleState[3] != 7) && 
+				(Game->BottleState[4] != 6 && Game->BottleState[4] != 7) &&
+				 Link->Item[146] == true){
+				// Fully Heal Link
+				Link->HP = Link->MaxHP;
+				// Warp Link
+				Link->WarpEx({WT_IWARP,372,0x20,-1,0,WARPEFFECT_NONE,25,4});
+			}
+			Waitframe();
+		}
+	}
+}
+
+ffc script RetryBossMenu{
+	void run(){
+		
+		// Set up Data
+		genericdata gd = Game->LoadGenericData(CheckGenericScript("BossRetryVariables"));
+		gd->DataSize = 10;
+		
+		// Set up Combos and Characters
+		int LINK_Down 	= 9134;
+		int LINK_Up   	= 9116;
+		int LINK_Cset 	= 6;
+		
+		int CAIN_Down 	= 9541;
+		int CAIN_Up   	= 9144;
+		int CAIN_Cset 	= 8;
+		
+		int CIEL1_Down 	= 9471;
+		int CIEL1_Up   	= 9176;
+		int CIEL2_Down 	= 9923;
+		int CIEL2_Up   	= 9916;
+		int CIEL_Cset 	= 10;
+		
+		int AURE1_Down 	= 9278;
+		int AURE1_Up   	= 9232;
+		int AURE2_Down 	= 9975;
+		int AURE2_Up   	= 9148;
+		int AURE_Cset 	= 8;
+		
+		int INGR1_Down 	= 9554;
+		int INGR1_Up   	= 9136;
+		int INGR2_Down 	= 9695;
+		int INGR2_Up   	= 9684;
+		int INGR_Cset 	= 10;
+		
+		int c_LINK		= 0;
+		int c_CAIN		= 1;
+		int c_CIEL1		= 2;
+		int c_CIEL2		= 3;
+		int c_AURE1		= 4;
+		int c_AURE2		= 5;
+		int c_INGR1		= 6;
+		int c_INGR2		= 7;
+		
+		// Set up other variables
+		int idDmap;
+		int idScr;
+		int idDir;
+		int idChar;
+		int idText = -1;
+		int mChange = -1; // Does the music change during transition?
+		
+		// Freeform Combo variables
+		int fcpD; // Player Down Combo ID
+		int fcpU; // Player Up Combo ID
+		int fcpC; // Player Cset
+		
+		int fcX1 = 120; // X Position
+		int fcY1 = 56; // Y Position
+		int fcW1 = 1; // Width
+		int fcH1 = 1; // Height
+		int fcC1 = 0; // Cset
+		int fcD1 = 1; // Combo Data ID
+		
+		int fcX2 = 120; // X Position
+		int fcY2 = 56; // Y Position
+		int fcW2 = 1; // Width
+		int fcH2 = 1; // Height
+		int fcC2 = 0; // Cset
+		int fcD2 = 1; // Combo Data ID
+		
+		// Set up Retry Type
+		switch(gd->Data[0])
+		{
+			case 1: // Aquamentus
+				idDmap 	= 1;
+				idScr 	= 118;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8023;
+				
+				fcD1 	= 9055;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 2: // Moblin Gang
+				idDmap 	= 9;
+				idScr 	= 18;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_CAIN;
+				
+				fcD1 	= 18493;
+				fcC1 	= 10;
+				break;
+			case 3: // Giant Rabbit
+				idDmap 	= 15;
+				idScr 	= 97;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 4764;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 4: // Gwonam (L1)
+				idDmap 	= 16;
+				idScr 	= 51;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_CAIN;
+				idText 	= 8024;
+				
+				fcD1 	= 13285;
+				fcC1 	= 7;
+				break;
+			case 5: // Eligor
+				idDmap 	= 15;
+				idScr 	= 20;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8025;
+				
+				fcD1 	= 9205;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 40;
+				fcW1 	= 2;	fcH1 	= 3;
+				break;
+			case 6: // Digdogger
+				idDmap 	= 30;
+				idScr 	= 34;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_LINK;
+				idText 	= 8026;
+				
+				fcD1 	= 9236;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 7: // Armos Knights
+				idDmap 	= 35;
+				idScr 	= 22;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 4674;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 8: // Wizzrobe Gang
+				idDmap 	= 202;
+				idScr 	= 18;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_CIEL1;
+				
+				fcD1 	= 18492;
+				fcC1 	= 7;
+				break;
+			case 9: // Ammit
+				idDmap 	= 35;
+				idScr 	= 33;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8027;
+				
+				fcD1 	= 9264;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 10: // Lotz
+				idDmap 	= 37;
+				idScr 	= 3;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8028;
+				
+				fcD1 	= 13461;
+				fcC1 	= 8;
+				break;
+			case 11: // Gwonam (L2)
+				idDmap 	= 46;
+				idScr 	= 55;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8029;
+				
+				fcD1 	= 13285;
+				fcC1 	= 7;
+				break;
+			case 12: // Freaky Jr.
+				idDmap 	= 47;
+				idScr 	= 35;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_AURE1;
+				
+				fcD1 	= 9288;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 13: // Freaky Sr.
+				idDmap 	= 48;
+				idScr 	= 51;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_AURE1;
+				
+				fcD1 	= 9288;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 14: // Eternal Nightmare (L1)
+				idDmap 	= 47;
+				idScr 	= 18;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE1;
+				
+				fcD1 	= 9290;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 15: // Manhandala (L1)
+				idDmap 	= 52;
+				idScr 	= 65;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 18494;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 16: // Asmody (L1)
+				idDmap 	= 54;
+				idScr 	= 17;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE1;
+				idText 	= 8030;
+				
+				fcD1 	= 9313;
+				fcC1 	= 8;
+				break;
+			case 17: // Asmody (L2)
+				idDmap 	= 55;
+				idScr 	= 113;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_AURE1;
+				idText 	= 8031;
+				
+				fcD1 	= 9313;
+				fcC1 	= 8;
+				break;
+			case 18: // Asmody (L3)
+				idDmap 	= 56;
+				idScr 	= 1;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE1;
+				idText 	= 8032;
+				
+				fcD1 	= 9321;
+				fcC1 	= 8;
+				break;
+			case 19: // Asmody (L4)
+				idDmap 	= 57;
+				idScr 	= 119;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_AURE1;
+				idText 	= 8033;
+				
+				fcD1 	= 9321;
+				fcC1 	= 8;
+				break;
+			case 20: // Chimera
+				idDmap 	= 53;
+				idScr 	= 38;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9329;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 21: // Asmodeus
+				idDmap 	= 58;
+				idScr 	= 102;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8034;
+				
+				fcD1 	= 9344;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 22: // Gwonam (L3)
+				idDmap 	= 70;
+				idScr 	= 19;
+				idDir 	= DIR_UP;
+				idChar 	= c_CAIN;
+				idText 	= 8035;
+				
+				fcD1 	= 13285;
+				fcC1 	= 7;
+				break;
+			case 23: // Gleeok
+				idDmap 	= 78;
+				idScr 	= 52;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 18496;
+				fcC1 	= 7;
+				fcX1 	= 120;	fcY1 	= 64;
+				fcD2 	= 18495;
+				fcC2 	= 7;
+				fcX2 	= 112;	fcY2 	= 48;
+				fcW2 	= 2;	fcH2 	= 2;
+				break;
+			case 24: // Page 64
+				idDmap 	= 79;
+				idScr 	= 87;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9281;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 25: // Page 128
+				idDmap 	= 81;
+				idScr 	= 52;
+				idDir 	= DIR_UP;
+				idChar 	= c_CAIN;
+				
+				fcD1 	= 9281;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 26: // Page 256
+				idDmap 	= 80;
+				idScr 	= 17;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_AURE1;
+				
+				fcD1 	= 9281;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 27: // Page 512
+				idDmap 	= 83;
+				idScr 	= 84;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9281;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 28: // Flauros
+				idDmap 	= 82;
+				idScr 	= 49;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8036;
+				
+				fcD1 	= 9420;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 29: // Talo (L1)
+				idDmap 	= 91;
+				idScr 	= 7;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_CIEL1;
+				idText 	= 8037;
+				
+				fcD1 	= 9833;
+				fcC1 	= 8;
+				break;
+			case 30: // Moldorm
+				idDmap 	= 94;
+				idScr 	= 38;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 18497;
+				fcC1 	= 10;
+				fcX1 	= 120;	fcY1 	= 24;
+				fcW1 	= 1;	fcH1 	= 4;
+				break;
+			case 31: // Crystal Barrier A
+				idDmap 	= 96;
+				idScr 	= 1;
+				idDir 	= DIR_UP;
+				idChar 	= c_CIEL1;
+				
+				fcD1 	= 7016;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 24;
+				fcW1 	= 2;	fcH1 	= 4;
+				break;
+			case 32: // Crystal Barrier B
+				idDmap 	= 96;
+				idScr 	= 6;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_CIEL1;
+				
+				fcD1 	= 7016;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 24;
+				fcW1 	= 2;	fcH1 	= 4;
+				break;
+			case 33: // Leviathan
+				idDmap 	= 95;
+				idScr 	= 22;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8038;
+				
+				fcD1 	= 10457;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 34: // Gwonam (L4)
+				idDmap 	= 99;
+				idScr 	= 17;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_CAIN;
+				idText 	= 8039;
+				
+				fcD1 	= 13285;
+				fcC1 	= 7;
+				break;
+			case 35: // Beelzebub
+				idDmap 	= 104;
+				idScr 	= 5;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 7992;
+				fcC1 	= 8;
+				fcX1 	= 96;	fcY1 	= 8;
+				fcW1 	= 4;	fcH1 	= 4;
+				fcD2 	= 18498;
+				fcC2 	= 8;
+				fcX2 	= 96;	fcY2 	= 72;
+				fcW2 	= 4;	fcH2 	= 1;
+				break;
+			case 36: // Killer Rabbit
+				idDmap 	= 107;
+				idScr 	= 33;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 4776;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 37: // Maloware (L1)
+				idDmap 	= 109;
+				idScr 	= 3;
+				idDir 	= DIR_UP;
+				idChar 	= c_CIEL1;
+				idText 	= 8040;
+				
+				fcD1 	= 10905;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 38: // Abaddon (L1)
+				idDmap 	= 107;
+				idScr 	= 38;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8041;
+				
+				fcD1 	= 9857;
+				fcC1 	= 11;
+				break;
+			case 39: // Maloware (L2)
+				idDmap 	= 114;
+				idScr 	= 3;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_CIEL1;
+				idText 	= 8042;
+				
+				fcD1 	= 10905;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 40: // Agent A
+				idDmap 	= 112;
+				idScr 	= 6;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_INGR1;
+				idText 	= 8043;
+				
+				fcD1 	= 10997;
+				fcC1 	= 8;
+				break;
+			case 41: // Cain
+				idDmap 	= 117;
+				idScr 	= 80;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_INGR1;
+				idText 	= 8044;
+				
+				fcD1 	= 11013;
+				fcC1 	= 8;
+				break;
+			case 42: // Rusl
+				idDmap 	= 120;
+				idScr 	= 0;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_INGR1;
+				idText 	= 8045;
+				
+				fcD1 	= 11044;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 43: // S Warlord 1
+				idDmap 	= 139;
+				idScr 	= 69;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_CAIN;
+				
+				fcD1 	= 18500;
+				fcC1 	= 11;
+				break;
+			case 44: // Archangel
+				idDmap 	= 122;
+				idScr 	= 19;
+				idDir 	= DIR_UP;
+				idChar 	= c_CIEL1;
+				
+				fcD1 	= 7032;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 45: // S Warlord 2
+				idDmap 	= 126;
+				idScr 	= 84;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_CIEL1;
+				
+				fcD1 	= 18500;
+				fcC1 	= 11;
+				break;
+			case 46: // Abaddon (L2)
+				idDmap 	= 133;
+				idScr 	= 6;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE2;
+				idText 	= 8046;
+				
+				fcD1 	= 11309;
+				fcC1 	= 11;
+				break;
+			case 47: // S Warlord 3
+				idDmap 	= 135;
+				idScr 	= 64;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_AURE2;
+				
+				fcD1 	= 18500;
+				fcC1 	= 11;
+				break;
+			case 48: // S Warlord 4
+				idDmap 	= 130;
+				idScr 	= 83;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_INGR1;
+				
+				fcD1 	= 18500;
+				fcC1 	= 11;
+				break;
+			case 49: // Red Aquamentus
+				idDmap 	= 151;
+				idScr 	= 82;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 18508;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 50: // Vampire Lady
+				idDmap 	= 163;
+				idScr 	= 16;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 13713;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 51: // Mothula
+				idDmap 	= 168;
+				idScr 	= 34;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8047;
+				
+				fcD1 	= 12210;
+				fcC1 	= 8;
+				fcX1 	= 96;	fcY1 	= 48;
+				fcW1 	= 4;	fcH1 	= 2;
+				break;
+			case 52: // Knil (L1)
+				idDmap 	= 155;
+				idScr 	= 54;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8048;
+				
+				fcD1 	= 11956;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 53: // Knil (L2)
+				idDmap 	= 155;
+				idScr 	= 37;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8049;
+				
+				fcD1 	= 11956;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 54: // Knil (L3)
+				idDmap 	= 165;
+				idScr 	= 71;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8050;
+				
+				fcD1 	= 11956;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 55: // Hot Head (L1)
+				idDmap 	= 179;
+				idScr 	= 21;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 12838;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 56: // Armos Knights (L2)
+				idDmap 	= 182;
+				idScr 	= 53;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 4674;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 57: // Matryoshka
+				idDmap 	= 183;
+				idScr 	= 2;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 12884;
+				fcC1 	= 10;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 58: // Elena
+				idDmap 	= 189;
+				idScr 	= 6;
+				idDir 	= DIR_UP;
+				idChar 	= c_INGR2;
+				idText 	= 8051;
+				
+				fcD1 	= 13105;
+				fcC1 	= 8;
+				break;
+			case 59: // Belphegor
+				idDmap 	= 186;
+				idScr 	= 54;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8052;
+				
+				fcD1 	= 12841;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 40;
+				fcW1 	= 2;	fcH1 	= 3;
+				break;
+			case 60: // Talo (L2)
+				idDmap 	= 210;
+				idScr 	= 20;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				idText 	= 8053;
+				
+				fcD1 	= 9833;
+				fcC1 	= 8;
+				break;
+			case 61: // Malo Corp CFO
+				idDmap 	= 210;
+				idScr 	= 52;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 7744;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 3;
+				fcD2	= 11392;
+				fcC2 	= 11;
+				fcX2 	= 104;	fcY2 	= 58;
+				fcW2 	= 3;	fcH2 	= 2;
+				break;
+			case 62: // Talo (L3)
+				idDmap 	= 218;
+				idScr 	= 2;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				idText 	= 8054;
+				
+				fcD1 	= 9833;
+				fcC1 	= 8;
+				break;
+			case 63: // Ankle
+				idDmap 	= 221;
+				idScr 	= 51;
+				idDir 	= DIR_UP;
+				idChar 	= c_CAIN;
+				
+				fcD1 	= 7764;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 3;
+				fcD2	= 11392;
+				fcC2 	= 11;
+				fcX2 	= 104;	fcY2 	= 58;
+				fcW2 	= 3;	fcH2 	= 2;
+				break;
+			case 64: // Liberty Demon
+				idDmap 	= 216;
+				idScr 	= 4;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 14132;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 65: // David Jr.
+				idDmap 	= 222;
+				idScr 	= 54;
+				idDir 	= DIR_UP;
+				idChar 	= c_CIEL2;
+				
+				fcD1 	= 7768;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 3;
+				fcD2	= 11392;
+				fcC2 	= 9;
+				fcX2 	= 104;	fcY2 	= 58;
+				fcW2 	= 3;	fcH2 	= 2;
+				break;
+			case 66: // Mammon
+				idDmap 	= 219;
+				idScr 	= 7;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8055;
+				
+				fcD1 	= 9938;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 40;
+				fcW1 	= 2;	fcH1 	= 3;
+				break;
+			case 67: // Abaddon (L3)
+				idDmap 	= 234;
+				idScr 	= 3;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8056;
+				
+				fcD1 	= 11309;
+				fcC1 	= 11;
+				break;
+			case 68: // Eternal Nightmare (L2)
+				idDmap 	= 235;
+				idScr 	= 53;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE2;
+				
+				fcD1 	= 9290;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 69: // Scott (L1)
+				idDmap 	= 254;
+				idScr 	= 39;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8057;
+				
+				fcD1 	= 14809;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				
+				break;
+			case 70: // Scott (L2)
+				idDmap 	= 254;
+				idScr 	= 70;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8058;
+				
+				fcD1 	= 14809;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 71: // Scott (L3)
+				idDmap 	= 258;
+				idScr 	= 120;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE2;
+				idText 	= 8059;
+				
+				fcD1 	= 14809;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 72: // Eternal Nightmare (L3)
+				idDmap 	= 259;
+				idScr 	= 34;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE2;
+				
+				fcD1 	= 9290;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 73: // Patra
+				idDmap 	= 255;
+				idScr 	= 54;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 18501;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 74: // Shade
+				idDmap 	= 261;
+				idScr 	= 69;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8060;
+				
+				fcD1 	= 14865;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 75: // Guardian (L1)
+				idDmap 	= 263;
+				idScr 	= 5;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_CAIN;
+				
+				fcD1 	= 14893;
+				fcC1 	= 8;
+				fcX1 	= 96;	fcY1 	= 32;
+				fcW1 	= 4;	fcH1 	= 4;
+				break;
+			case 76: // Hot Head (L2)
+				idDmap 	= 266;
+				idScr 	= 51;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_CIEL2;
+				
+				fcD1 	= 12838;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 77: // Jermafenser
+				idDmap 	= 267;
+				idScr 	= 80;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8061;
+				
+				fcD1 	= 15146;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 78: // Cold Head
+				idDmap 	= 373;
+				idScr 	= 55;
+				idDir 	= DIR_UP;
+				idChar 	= c_CIEL2;
+				idText 	= 8114;
+				
+				fcD1 	= 10196;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 79: // Gooma
+				idDmap 	= 265;
+				idScr 	= 6;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8062;
+				
+				fcD1 	= 15257;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 80: // Guardian (L2)
+				idDmap 	= 273;
+				idScr 	= 4;
+				idDir 	= DIR_UP;
+				idChar 	= c_CAIN;
+				
+				fcD1 	= 14893;
+				fcC1 	= 8;
+				fcX1 	= 96;	fcY1 	= 32;
+				fcW1 	= 4;	fcH1 	= 4;
+				break;
+			case 81: // Gwonam (L5)
+				idDmap 	= 273;
+				idScr 	= 103;
+				idDir 	= DIR_UP;
+				idChar 	= c_CAIN;
+				idText 	= 8063;
+				
+				fcD1 	= 13285;
+				fcC1 	= 7;
+				break;
+			case 82: // Carock
+				idDmap 	= 269;
+				idScr 	= 4;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8064;
+				
+				fcD1 	= 15309;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 24;
+				fcW1 	= 2;	fcH1 	= 4;
+				break;
+			case 83: // Thunderbird
+				idDmap 	= 274;
+				idScr 	= 2;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8065;
+				
+				fcD1 	= 15316;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 84: // Dark Link
+				idDmap 	= 275;
+				idScr 	= 22;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 14301;
+				fcC1 	= 11;
+				break;
+			case 85: // Vampire Queen
+				idDmap 	= 228;
+				idScr 	= 19;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 13713;
+				fcC1 	= 10;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 86: // Purple D. Boss
+				idDmap 	= 86;
+				idScr 	= 36;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				break;
+			case 87: // Ice D. Boss
+				idDmap 	= 89;
+				idScr 	= 53;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				break;
+			case 88: // Dark D. Boss
+				idDmap 	= 175;
+				idScr 	= 20;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				break;
+			case 89: // Green D. Boss
+				idDmap 	= 197;
+				idScr 	= 115;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_LINK;
+				break;
+			case 90: // Blue D. Boss
+				idDmap 	= 191;
+				idScr 	= 20;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				break;
+			case 91: // Yellow D. Boss
+				idDmap 	= 233;
+				idScr 	= 35;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				break;
+			case 92: // Red D. Boss
+				idDmap 	= 284;
+				idScr 	= 100;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				break;
+			case 93: // Gray D. Boss
+				idDmap 	= 63;
+				idScr 	= 18;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				break;
+			case 94: // Gale
+				idDmap 	= 196;
+				idScr 	= 51;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8066;
+				
+				fcD1 	= 9759;
+				fcC1 	= 11;
+				break;
+			case 95: // Hal
+				idDmap 	= 287;
+				idScr 	= 23;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8067;
+				
+				fcD1 	= 15625;
+				fcC1 	= 8;
+				break;
+			case 96: // Emily
+				idDmap 	= 293;
+				idScr 	= 34;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8068;
+				
+				fcD1 	= 15646;
+				fcC1 	= 8;
+				break;
+			case 97: // Alloces
+				idDmap 	= 230;
+				idScr 	= 22;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9205;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 40;
+				fcW1 	= 2;	fcH1 	= 3;
+				break;
+			case 98: // Kronos
+				idDmap 	= 157;
+				idScr 	= 112;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9264;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 99: // Lilith
+				idDmap 	= 162;
+				idScr 	= 68;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9344;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 100: // Dantalion
+				idDmap 	= 174;
+				idScr 	= 0;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9420;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				mChange = 0;
+				break;
+			case 101: // Ogopogo
+				idDmap 	= 147;
+				idScr 	= 85;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 10457;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 102: // Lucifer
+				idDmap 	= 233;
+				idScr 	= 97;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 12841;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 40;
+				fcW1 	= 2;	fcH1 	= 3;
+				break;
+			case 103: // Gremory
+				idDmap 	= 224;
+				idScr 	= 66;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9938;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 40;
+				fcW1 	= 2;	fcH1 	= 3;
+				break;
+			case 104: // Iblis
+				idDmap 	= 284;
+				idScr 	= 102;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 14809;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 105: // Contractor of Antiquity
+				idDmap 	= 177;
+				idScr 	= 32;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9773;
+				fcC1 	= 10;
+				break;
+			case 106: // God Among Hares
+				idDmap 	= 177;
+				idScr 	= 4;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 4776;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 107: // Thirteenth Imam
+				idDmap 	= 177;
+				idScr 	= 49;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 13285;
+				fcC1 	= 11;
+				break;
+			case 108: // Dictator
+				idDmap 	= 177;
+				idScr 	= 34;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 11044;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 109: // Grand Matriarch
+				idDmap 	= 177;
+				idScr 	= 5;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 12884;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 110: // Failed Experiment
+				idDmap 	= 177;
+				idScr 	= 36;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9329;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 40;
+				fcW1 	= 3;	fcH1 	= 3;
+				break;
+			case 111: // Page 65,636
+				idDmap 	= 177;
+				idScr 	= 38;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 9281;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 112: // Taste of Democracy
+				idDmap 	= 177;
+				idScr 	= 67;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 14132;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 113: // Knuckle
+				idDmap 	= 177;
+				idScr 	= 65;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 7764;
+				fcC1 	= 7;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 3;
+				fcD2	= 11392;
+				fcC2 	= 9;
+				fcX2 	= 104;	fcY2 	= 58;
+				fcW2 	= 3;	fcH2 	= 2;
+				break;
+			case 114: // Origin of Pests
+				idDmap 	= 177;
+				idScr 	= 69;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 12210;
+				fcC1 	= 11;
+				fcX1 	= 96;	fcY1 	= 48;
+				fcW1 	= 4;	fcH1 	= 2;
+				break;
+			case 115: // Knil's Evil Brother
+				idDmap 	= 177;
+				idScr 	= 51;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 11956;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 116: // Light Link
+				idDmap 	= 177;
+				idScr 	= 71;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 15984;
+				fcC1 	= 11;
+				break;
+			case 117: // Black Dragon
+				idDmap 	= 72;
+				idScr 	= 97;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				idText 	= 8069;
+				
+				fcD1 	= 9349;
+				fcC1 	= 11;
+				break;
+			case 118: // Purple Dragon
+				idDmap 	= 73;
+				idScr 	= 49;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8070;
+				
+				fcD1 	= 9349;
+				fcC1 	= 10;
+				break;
+			case 119: // Orange Dragon
+				idDmap 	= 89;
+				idScr 	= 117;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8071;
+				
+				fcD1 	= 9305;
+				fcC1 	= 8;
+				break;
+			case 120: // Green Dragon
+				
+				if(Game->Counter[11] >= 8){
+					idDmap 	= 145;
+					idScr 	= 37;
+					idDir 	= DIR_UP;
+					idChar 	= c_LINK;
+					idText 	= 8072;
+				}
+				else{
+					idDmap 	= 137;
+					idScr 	= 37;
+					idDir 	= DIR_UP;
+					idChar 	= c_CAIN;
+					idText 	= 4244;
+				}
+				fcD1 	= 9349;
+				fcC1 	= 9;
+				break;
+			case 121: // Blue Dragon
+				idDmap 	= 248;
+				idScr 	= 83;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8073;
+				
+				fcD1 	= 9349;
+				fcC1 	= 7;
+				break;
+			case 122: // Silver Dragon
+				idDmap 	= 227;
+				idScr 	= 20;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				idText 	= 8074;
+				
+				fcD1 	= 9965;
+				fcC1 	= 8;
+				break;
+			case 123: // Red Dragon
+				idDmap 	= 310;
+				idScr 	= 22;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8075;
+				
+				fcD1 	= 9349;
+				fcC1 	= 8;
+				break;
+			case 124: // Abaddon Dragon
+				idDmap 	= 302;
+				idScr 	= 49;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8076;
+				
+				fcD1 	= 16003;
+				fcC1 	= 8;
+				fcX1 	= 96;	fcY1 	= 32;
+				fcW1 	= 4;	fcH1 	= 4;
+				break;
+			case 125: // Abaddon Core
+				idDmap 	= 303;
+				idScr 	= 65;
+				idDir 	= DIR_UP;
+				idChar 	= c_AURE2;
+				idText 	= 8077;
+				
+				fcD1 	= 16036;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 126: // Saladin
+				idDmap 	= 311;
+				idScr 	= 82;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 16241;
+				fcC1 	= 11;
+				fcX1 	= 112;	fcY1 	= 24;
+				fcW1 	= 2;	fcH1 	= 4;
+				break;
+			case 127: // Genghis Khan
+				idDmap 	= 309;
+				idScr 	= 86;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 16269;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 128: // Charles Martel
+				idDmap 	= 311;
+				idScr 	= 22;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 16292;
+				fcC1 	= 8;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 129: // Corbin
+				idDmap 	= 314;
+				idScr 	= 112;
+				idDir 	= DIR_UP;
+				idChar 	= c_INGR2;
+				idText 	= 8078;
+				
+				fcD1 	= 9889;
+				fcC1 	= 8;
+				break;
+			case 130: // Malo
+				idDmap 	= 317;
+				idScr 	= 6;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8079;
+				
+				fcD1 	= 18502;
+				fcC1 	= 7;
+				fcX1 	= 96;	fcY1 	= 48;
+				fcW1 	= 4;	fcH1 	= 2;
+				break;
+			case 131: // Alexander
+				idDmap 	= 318;
+				idScr 	= 39;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 16466;
+				fcC1 	= 8;
+				fcX1 	= 96;	fcY1 	= 40;
+				fcW1 	= 4;	fcH1 	= 3;
+				break;
+			case 132: // Ingrid (L1)
+				idDmap 	= 320;
+				idScr 	= 3;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8080;
+				
+				fcD1 	= 16500;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				Game->Counter[10] = 0;
+				break;
+			case 133: // Lotz (L2)
+				idDmap 	= 321;
+				idScr 	= 99;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8081;
+				
+				fcD1 	= 16720;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 134: // Lotz (L3)
+				idDmap 	= 322;
+				idScr 	= 22;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8082;
+				
+				fcD1 	= 16720;
+				fcC1 	= 8;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 135: // Muerte Round 1
+				idDmap 	= 278;
+				idScr 	= 6;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8083;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				Player->Item[251] = false;
+				break;
+			case 136: // Muerte Round 2
+				idDmap 	= 279;
+				idScr 	= 73;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8084;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				break;
+			case 137: // Muerte Round 3
+				idDmap 	= 280;
+				idScr 	= 107;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8085;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				Player->Item[251] = false;
+				break;
+			case 138: // Muerte Round 4
+				idDmap 	= 281;
+				idScr 	= 3;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8086;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				break;
+			case 139: // Muerte Round 5
+				idDmap 	= 282;
+				idScr 	= 19;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8087;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				break;
+			case 140: // Muerte Round 6
+				idDmap 	= 282;
+				idScr 	= 124;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				idText 	= 8088;
+				
+				fcD1 	= 18503;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 48;
+				fcW1 	= 3;	fcH1 	= 2;
+				break;
+			case 141: // Takagon
+				idDmap 	= 283;
+				idScr 	= 67;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8089;
+				
+				fcD1 	= 15529;
+				fcC1 	= 7;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 142: // Zodiacs (L1)
+				idDmap 	= 291;
+				idScr 	= 8;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				mChange = 0;
+				break;
+			case 143: // Zodiacs (L2)
+				idDmap 	= 294;
+				idScr 	= 69;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				mChange = 0;
+				break;
+			case 144: // Zodiacs (L3)
+				idDmap 	= 295;
+				idScr 	= 9;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				mChange = 0;
+				break;
+			case 145: // Zodiacs (L4)
+				idDmap 	= 297;
+				idScr 	= 9;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				mChange = 0;
+				break;
+			case 146: // Vampire Goddess
+				idDmap 	= 297;
+				idScr 	= 49;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 13713;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 24;
+				fcW1 	= 3;	fcH1 	= 4;
+				break;
+			case 147: // Orange Dragon Skyward Tree
+				idDmap 	= 342;
+				idScr 	= 19;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_CAIN;
+				idText 	= 8090;
+				
+				fcD1 	= 9305;
+				fcC1 	= 8;
+				break;
+			case 148: // Blue Dragon Skyward Tree
+				idDmap 	= 343;
+				idScr 	= 35;
+				idDir 	= DIR_DOWN;
+				idChar 	= c_CIEL2;
+				idText 	= 8091;
+				
+				fcD1 	= 9349;
+				fcC1 	= 7;
+				break;
+			case 149: // Red Dragon Skyward Tree
+				idDmap 	= 344;
+				idScr 	= 35;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_AURE2;
+				idText 	= 8092;
+				
+				fcD1 	= 9349;
+				fcC1 	= 8;
+				break;
+			case 150: // Purple Dragon Skyward Tree
+				idDmap 	= 345;
+				idScr 	= 19;
+				idDir 	= DIR_UP;
+				idChar 	= c_INGR2;
+				idText 	= 8093;
+				
+				fcD1 	= 9349;
+				fcC1 	= 10;
+				break;
+			case 151: // Scindo
+				idDmap 	= 346;
+				idScr 	= 23;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8094;
+				
+				fcD1 	= 17112;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				break;
+			case 152: // Black & Silver Dragon Skyward Tree
+				idDmap 	= 347;
+				idScr 	= 35;
+				idDir 	= DIR_RIGHT;
+				idChar 	= c_LINK;
+				idText 	= 8095;
+				
+				fcD1 	= 9349;
+				fcC1 	= 11;
+				fcX1 	= 104;	fcY1 	= 64;
+				fcD2 	= 9965;
+				fcC2 	= 8;
+				fcX2 	= 136;	fcY2 	= 64;
+				break;
+			case 153: // Dragon Tsar
+				idDmap 	= 349;
+				idScr 	= 5;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				idText 	= 8096;
+				
+				fcD1 	= 18504;
+				fcC1 	= 11;
+				fcX1 	= 56;	fcY1 	= 16;
+				fcW1 	= 4;	fcH1 	= 4;
+				fcD2	= 18505;
+				fcC2 	= 11;
+				fcX2 	= 120;	fcY2 	= 16;
+				fcW2 	= 4;	fcH2 	= 4;
+				mChange = 0;
+				break;
+			case 154: // Ingrid (L2)
+				idDmap 	= 320;
+				idScr 	= 34;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8097;
+				
+				fcD1 	= 16500;
+				fcC1 	= 10;
+				fcX1 	= 112;	fcY1 	= 48;
+				fcW1 	= 2;	fcH1 	= 2;
+				Game->Counter[10] = 0;
+				break;
+			case 155: // Ramiel
+				idDmap 	= 371;
+				idScr 	= 123;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8098;
+				
+				fcD1 	= 18049;
+				fcC1 	= 10;
+				break;
+			case 156: // Fire Gleeok (L1)
+				idDmap 	= 168;
+				idScr 	= 113;
+				idDir 	= DIR_LEFT;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 18496;
+				fcC1 	= 8;
+				fcX1 	= 120;	fcY1 	= 64;
+				fcD2 	= 18495;
+				fcC2 	= 8;
+				fcX2 	= 112;	fcY2 	= 48;
+				fcW2 	= 2;	fcH2 	= 2;
+				break;
+			case 157: // Fire Gleeok (L2)
+				idDmap 	= 299;
+				idScr 	= 33;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 18496;
+				fcC1 	= 8;
+				fcX1 	= 120;	fcY1 	= 64;
+				fcD2 	= 18495;
+				fcC2 	= 8;
+				fcX2 	= 112;	fcY2 	= 48;
+				fcW2 	= 2;	fcH2 	= 2;
+				break;
+			case 158: // Muerte Round 1
+				idDmap 	= 278;
+				idScr 	= 6;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8083;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				mChange = 130;
+				Player->Item[251] = false;
+				break;
+			case 159: // Muerte Round 2
+				idDmap 	= 279;
+				idScr 	= 73;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8084;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				mChange = 130;
+				break;
+			case 160: // Muerte Round 3
+				idDmap 	= 280;
+				idScr 	= 107;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8085;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				mChange = 130;
+				Player->Item[251] = false;
+				break;
+			case 161: // Muerte Round 4
+				idDmap 	= 281;
+				idScr 	= 3;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8086;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				mChange = 130;
+				break;
+			case 162: // Muerte Round 5
+				idDmap 	= 282;
+				idScr 	= 19;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				idText 	= 8087;
+				
+				fcD1 	= 15349;
+				fcC1 	= 11;
+				mChange = 130;
+				break;
+			case 163: // Satan
+				idDmap 	= 179;
+				idScr 	= 81;
+				idDir 	= DIR_UP;
+				idChar 	= c_LINK;
+				
+				fcD1 	= 7994;
+				fcC1 	= 9;
+				fcX1 	= 96;	fcY1 	= 8;
+				fcW1 	= 4;	fcH1 	= 4;
+				fcD2 	= 18499;
+				fcC2 	= 9;
+				fcX2 	= 96;	fcY2 	= 72;
+				fcW2 	= 4;	fcH2 	= 1;
+				break;
+			case 164: // Number 1
+				idDmap 	= 341;
+				idScr 	= 115;
+				idDir 	= DIR_DOWN;
+				idChar  = c_LINK;
+				
+				fcD1 	= 17316;
+				fcC1 	= 11;
+				fcX1 	= 120;	fcY1 	= 40;
+				fcW1 	= 1;	fcH1 	= 3;
+				break;
+			case 165: // Number 2
+				idDmap 	= 346;
+				idScr 	= 1;
+				idDir 	= DIR_LEFT;
+				idChar  = c_LINK;
+				
+				fcD1 	= 17322;
+				fcC1 	= 11;
+				fcX1 	= 120;	fcY1 	= 40;
+				fcW1 	= 1;	fcH1 	= 3;
+				break;
+			case 166: // Number 3
+				idDmap 	= 347;
+				idScr 	= 20;
+				idDir 	= DIR_UP;
+				idChar  = c_LINK;
+				
+				fcD1 	= 17324;
+				fcC1 	= 11;
+				fcX1 	= 120;	fcY1 	= 40;
+				fcW1 	= 1;	fcH1 	= 3;
+				break;
+		}
+		
+		//printf("===P5=== %d\n", idChar);
+		
+		// Setting up Player FFC
+		if(idChar == c_LINK)	  { fcpD = LINK_Down;  fcpU = LINK_Up;  fcpC = LINK_Cset; }
+		else if(idChar == c_CAIN) { fcpD = CAIN_Down;  fcpU = CAIN_Up;  fcpC = CAIN_Cset; }
+		else if(idChar == c_CIEL1){ fcpD = CIEL1_Down; fcpU = CIEL1_Up; fcpC = CIEL_Cset; }
+		else if(idChar == c_CIEL2){ fcpD = CIEL2_Down; fcpU = CIEL2_Up; fcpC = CIEL_Cset; }
+		else if(idChar == c_AURE1){ fcpD = AURE1_Down; fcpU = AURE1_Up; fcpC = AURE_Cset; }
+		else if(idChar == c_AURE2){ fcpD = AURE2_Down; fcpU = AURE2_Up; fcpC = AURE_Cset; }
+		else if(idChar == c_INGR1){ fcpD = INGR1_Down; fcpU = INGR1_Up; fcpC = INGR_Cset; }
+		else if(idChar == c_INGR2){ fcpD = INGR2_Down; fcpU = INGR2_Up; fcpC = INGR_Cset; }
+		
+		// Printing FFC
+		ffc p = Screen->LoadFFC(5);
+		ffc enemy1 = Screen->LoadFFC(6);
+		ffc enemy2 = Screen->LoadFFC(7);
+		
+		p->Data = fcpD;
+		p->CSet = fcpC;
+		
+		enemy1->X 			= fcX1;
+		enemy1->Y 			= fcY1;
+		enemy1->TileWidth 	= fcW1;
+		enemy1->TileHeight 	= fcH1;
+		enemy1->CSet 		= fcC1;
+		enemy1->Data 		= fcD1;
+		
+		enemy2->X 			= fcX2;
+		enemy2->Y 			= fcY2;
+		enemy2->TileWidth 	= fcW2;
+		enemy2->TileHeight 	= fcH2;
+		enemy2->CSet 		= fcC2;
+		enemy2->Data 		= fcD2;
+		
+		
+		// Wait for other animation to finish
+		for(int i=0; i<140; ++i){
+			Link->Action=LA_STUNNED;
+			WaitNoAction();
+		}
+		
+		int deathCount[256];
+		int curPos = 0;
+		
+		// Display Menu
+		while(true){
+			Link->Action=LA_STUNNED;
+			// Display Text
+			sprintf(deathCount," Deaths: %d",Game->NumDeaths);
+			Screen->DrawString(6, 32, 56, 69, 0x7C, -1, TF_CENTRED, deathCount, OP_OPAQUE);
+			Screen->DrawString(6, 128, 136, 69, 0x01, -1, TF_CENTRED, "Retry this fight?", OP_OPAQUE);
+			Screen->DrawString(6, 96, 152, 69, 0x88, -1, TF_CENTRED, "Yes", OP_OPAQUE);
+			Screen->DrawString(6, 160, 152, 69, 0x88, -1, TF_CENTRED, "No", OP_OPAQUE);
+			// Draw Cursor
+			if(curPos == 0){FastTile(6,68,148,61,8,OP_OPAQUE);}
+			else{FastTile(6,132,148,61,8,OP_OPAQUE);}
+			// Move Left or Right
+			if(Link->PressLeft||Link->PressRight){
+				Game->PlaySound(5);
+				if(curPos == 0){curPos = 1;}
+				else{curPos = 0;}
+			}
+			// Confirm
+			if(Link->PressA||Link->PressStart){
+				break;
+			}
+			WaitNoAction();
+		}
+		
+		// Play Confirm Sound
+		Game->PlaySound(91);
+		
+		// Flashing
+		for(int i=0; i<50; ++i){
+			// Display Text
+			sprintf(deathCount," Deaths: %d",Game->NumDeaths);
+			Screen->DrawString(6, 32, 56, 69, 0x7C, -1, TF_CENTRED, deathCount, OP_OPAQUE);
+			Screen->DrawString(6, 128, 136, 69, 0x01, -1, TF_CENTRED, "Retry this fight?", OP_OPAQUE);
+			// Flash Yes
+			if(curPos == 0){
+				if(i % 4 > 1){
+					Screen->DrawString(6, 96, 152, 69, 0x73, -1, TF_CENTRED, "Yes", OP_OPAQUE);	
+				}
+				else{
+					Screen->DrawString(6, 96, 152, 69, 0x88, -1, TF_CENTRED, "Yes", OP_OPAQUE);
+				}
+				Screen->DrawString(6, 160, 152, 69, 0x88, -1, TF_CENTRED, "No", OP_OPAQUE);
+			}
+			else{
+				if(i % 4 > 1){
+					Screen->DrawString(6, 160, 152, 69, 0x73, -1, TF_CENTRED, "No", OP_OPAQUE);	
+				}
+				else{
+					Screen->DrawString(6, 160, 152, 69, 0x88, -1, TF_CENTRED, "No", OP_OPAQUE);
+				}
+				Screen->DrawString(6, 96, 152, 69, 0x88, -1, TF_CENTRED, "Yes", OP_OPAQUE);	
+			}
+			// Draw Cursor
+			if(curPos == 0){FastTile(6,68,148,61,8,OP_OPAQUE);}
+			else{FastTile(6,132,148,61,8,OP_OPAQUE);}
+			Link->Action=LA_STUNNED;
+			WaitNoAction();
+		}
+		
+		
+		
+		if(curPos == 0){
+			
+			//Add Death Counter
+			Game->NumDeaths += 1;
+			Game->PlaySound(94);
+			
+			for(int i=0; i<100; ++i){
+				// Display Text
+				if(i == 50){ // Get Up
+					p->Data = fcpU;
+					Game->PlaySound(60);
+				}
+				sprintf(deathCount," Deaths: %d",Game->NumDeaths);
+				Screen->DrawString(6, 32, 56, 69, 0x7C, -1, TF_CENTRED, deathCount, OP_OPAQUE);
+				Link->Action=LA_STUNNED;
+				WaitNoAction();
+			}
+			
+			// Wait
+			for(int i=0; i<30; ++i){
+				Link->Action=LA_STUNNED;
+				WaitNoAction();
+			}
+			
+			// Play Message
+			if (idText > 0){
+				Screen->Message(idText);
+				// Wait one more time
+				for(int i=0; i<30; ++i){
+					Link->Action=LA_STUNNED;
+					WaitNoAction();
+				}
+			}
+			
+			// Heal up and Warp Back to Fight
+			Game->LoadGenericData(CheckGenericScript("IvoryBlessing"))->Running = false;
+			Game->LoadGenericData(CheckGenericScript("CureTomeGen"))->Running = false;
+			itemdata idat = Game->LoadItemData(226);
+			idat->Tile = 23759;
+			idat->SetDisplayName("Cure Tome");
+			Link->MP = Link->MaxMP;
+			Game->BottleState[1] = gd->Data[1];
+			Game->BottleState[2] = gd->Data[2];
+			Game->BottleState[3] = gd->Data[3];
+			Game->BottleState[4] = gd->Data[4];
+			Game->Counter[1] = gd->Data[5];	// Rupees
+			Game->Counter[2] = gd->Data[6];	// Bombs
+			Game->Counter[3] = gd->Data[7];	// Arrows
+			Game->Counter[6] = gd->Data[8];	// Super Bombs
+			Game->Counter[7] = gd->Data[9];	// Bombchus
+			if(mChange >= 0){
+				Game->PlayMIDI(mChange);
+				Waitframes(1);
+				Link->WarpEx({WT_IWARP,idDmap,idScr,-1,3,WARPEFFECT_OPENWIPE,25,0,idDir});
+			}
+			else{
+				Link->WarpEx({WT_IWARP,idDmap,idScr,-1,3,WARPEFFECT_OPENWIPE,25,4,idDir});
+			}
+			
+			
+		}
+		else{	// Kill Link
+			Link->Kill(true);
+		}
+		
+	}
+}
+

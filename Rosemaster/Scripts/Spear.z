@@ -1,0 +1,237 @@
+item script FFCWeaponLauncher{
+	void run(int DMG, int Sprite, int ItemID, int Variable1, int Variable2, int SFX, int Variable4, int FFCScriptSlot){
+		
+		int PassArray[7];
+		PassArray[0] = DMG;
+		PassArray[1] = Sprite;
+		PassArray[2] = ItemID;
+		PassArray[3] = Variable1;
+		PassArray[4] = Variable2;
+		PassArray[5] = SFX;
+		PassArray[6] = Variable4;
+		
+		RunFFCScript(FFCScriptSlot, PassArray);		// 81?
+		
+		
+	}
+}
+
+ffc script SpearFFC{
+	void run(int DMG, int Sprite, int ItemID, int S_DMG, int Variable2, int SFX, int Variable4){
+		
+		Link->Action = LA_ATTACKING;
+		
+		Game->PlaySound(SFX);
+		
+		int InitialX = Link->X;
+		int InitialY = Link->Y;
+		
+		int TrueDir = 0;
+		if(Link->InputUp && Link->InputLeft) TrueDir = DIR_LEFTUP;
+		else if(Link->InputUp && Link->InputRight) TrueDir = DIR_RIGHTUP;
+		else if(Link->InputDown && Link->InputLeft) TrueDir = DIR_LEFTDOWN;
+		else if(Link->InputDown && Link->InputRight) TrueDir = DIR_RIGHTDOWN;
+		else TrueDir = Link->Dir;
+		
+		lweapon Damage;
+		
+		if (ItemID==119){
+			Game->PlaySound(96);
+			lweapon spearPro = NextToLink(LW_BEAM,0);
+			spearPro->Step = 600;
+			spearPro->UseSprite(106);
+			spearPro->Damage = 24;
+			spearPro->Dir = TrueDir;
+			spearPro->Weapon = LW_SWORD;
+
+			lweapon spearPro1 = NextToLink(LW_BEAM,0);
+			spearPro1->Step = 300;
+			spearPro1->UseSprite(106);
+			spearPro1->Damage = 24;
+			spearPro1->Dir = TrueDir;
+			spearPro1->Weapon = LW_SWORD;
+			
+			lweapon spearPro2 = NextToLink(LW_BEAM,0);
+			spearPro2->Step = 150;
+			spearPro2->UseSprite(106);
+			spearPro2->Damage = 24;
+			spearPro2->Dir = TrueDir;
+			spearPro2->Weapon = LW_SWORD;
+		
+			this->X = 0;
+			this->Y = 0;
+			this->Data = 0;
+			this->Script = 0;
+		}
+		
+		lweapon Spear = Screen->CreateLWeapon(LW_BEAM);
+		Spear->Weapon = LW_SWORD;
+		Spear->UseSprite(Sprite);
+		Spear->CollDetection = false;
+		Spear->Angular = true;
+		Spear->Angle = 0;
+		Spear->Extend = 4;
+		Spear->TileWidth = 2;
+		Spear->HitWidth = 0;
+		Spear->HitHeight = 0;
+		Spear->Flags[WFLAG_PICKUP_ITEMS] = true;
+		
+		Spear->Dir = Link->Dir;
+		Spear->X = Link->X;
+		Spear->Y = Link->Y;
+		
+		//Spear sprites: 221, 222, 223
+		
+		int DrawTile = Spear->OriginalTile;
+		int DrawCSet = Spear->CSet;
+		
+		//Reset to blank tiles
+		Spear->UseSprite(24);
+		
+		
+		//Angular Directions
+		if(TrueDir == DIR_UP) Spear->Angle = PI + PI/2;
+		else if(TrueDir == DIR_RIGHT) Spear->Angle = 0;
+		else if(TrueDir == DIR_LEFT) Spear->Angle = PI;
+		else if(TrueDir == DIR_DOWN) Spear->Angle = PI/2;
+		else if(TrueDir == DIR_LEFTUP) Spear->Angle = PI + PI/4;
+		else if(TrueDir == DIR_RIGHTUP) Spear->Angle = PI + PI/2 + PI/4;
+		else if(TrueDir == DIR_LEFTDOWN) Spear->Angle = PI - PI/4;
+		else if(TrueDir == DIR_RIGHTDOWN) Spear->Angle = PI/4;
+		
+		//	Spear->OriginalTile = Spear->OriginalTile + DIR;
+		
+		
+		for(int i = 0; i < 17; i ++){
+			if(i <= 6) Link->Action = LA_NONE;
+			if(i <= 6) Link->Action = LA_ATTACKING;
+			else if(Link->Action == LA_GOTHURTLAND) Link->Action = LA_NONE;
+			
+			if(Damage->isValid() == false){
+				Damage = Screen->CreateLWeapon(LW_BEAM);
+				Damage->Weapon = LW_SWORD;
+				Damage->Extend = 2;
+				Damage->TileWidth = 2;
+				Damage->UseSprite(24);
+				//	Damage->X = Spear->X;
+				//	Damage->Y = Spear->Y;
+				Damage->Dir = TrueDir;
+				Damage->HitWidth = 12;
+				Damage->HitHeight = 12;
+				Damage->HitXOffset = 0;
+				Damage->HitYOffset = 0;
+				Damage->Angular = true;
+				Damage->Angle = Spear->Angle;
+				Damage->Damage = DMG;
+				
+				//Hardcoded hitbox directions (because it does not move with angular movement)
+				if(TrueDir == DIR_UP){
+					Damage->HitXOffset = 2;
+					Damage->HitYOffset = 2 - 8;
+				}
+				else if(TrueDir == DIR_RIGHT){
+					Damage->HitXOffset = 2 + 8;
+					Damage->HitYOffset = 2;
+				}
+				else if(TrueDir == DIR_LEFT){
+					Damage->HitXOffset = 2 - 8;
+					Damage->HitYOffset = 2;
+				}
+				else if(TrueDir == DIR_DOWN){
+					Damage->HitXOffset = 2;
+					Damage->HitYOffset = 2 + 8;
+				}
+				else if(TrueDir == DIR_LEFTUP){
+					Damage->HitXOffset = 2 - 6;
+					Damage->HitYOffset = 2 - 6;
+				}
+				else if(TrueDir == DIR_RIGHTUP){
+					Damage->HitXOffset = 2 + 6;
+					Damage->HitYOffset = 2 - 6;
+				}
+				else if(TrueDir == DIR_LEFTDOWN){
+					Damage->HitXOffset = 2 - 6;
+					Damage->HitYOffset = 2 + 6;
+				}
+				else if(TrueDir == DIR_RIGHTDOWN){
+					Damage->HitXOffset = 2 + 6;
+					Damage->HitYOffset = 2 + 6;
+				}
+			}
+			
+			Damage->X = Spear->X;
+			Damage->Y = Spear->Y;
+			
+			if(Spear->X != 0 && Spear->Y != 0) Screen->DrawTile(2, Spear->X - 8, Spear->Y, DrawTile, 2, 1, DrawCSet, -1, -1, Spear->X - 8, Spear->Y, RadtoDeg(Spear->Angle), 0, true, OP_OPAQUE);
+			//DrawTile(int layer, int x, int y, int tile, int blockw, int blockh, int cset, int xscale, int yscale, int rx, int ry, int rangle, int flip, bool transparency, int opacity)
+			
+			if(i < 6) Spear->Step = 350;
+			else if(i < 12) Spear->Step = 0;
+			else if(i < 16) Spear->Step = -400;
+			else if(i < 17){
+				
+				Damage->DeadState = 0;
+				Spear->DeadState = 0;
+				Spear->X = - 60;
+				Spear->Y = - 60;
+				
+			}
+				
+			Link->HitDir = 99;
+			Waitframe();
+		}
+		
+		
+
+		//If the special move damage is set to 0, there is no special move.
+		if(S_DMG > 0){
+			
+			
+			int ChargeUp = 0;
+			
+			while(((GetEquipmentB() == ItemID) && Link->InputB == true) || ((GetEquipmentA() == ItemID) && Link->InputA == true)){
+				
+				ChargeUp ++;
+				
+				//If the special move have any requirements, this is where you put a check for that in order to play the charge complete SFX.
+				if(ChargeUp == 180 && Link->MP >= Link->MaxMP){		//this one checks for MP being full.
+					Game->PlaySound(35);
+				}
+				
+				Waitframe();
+			}
+			
+			//This part happens when you have charged long enough and meet the requirements.
+			if(ChargeUp >= 180 && Link->MP >= Link->MaxMP){
+				
+				Game->PlaySound(30);
+				
+				//Charge attack goes here.
+				
+			}
+			else if(ChargeUp >= 180){
+				Game->PlaySound(71);
+			}
+			
+			
+			
+			
+		}
+		
+		if (ItemID==198){
+			Game->PlaySound(96);
+			lweapon spearPro = NextToLink(LW_BEAM,0);
+			spearPro->Step = 500;
+			spearPro->UseSprite(106);
+			spearPro->Damage = 4;
+			spearPro->Dir = TrueDir;
+			spearPro->Weapon = LW_SWORD;
+		
+			this->X = 0;
+			this->Y = 0;
+			this->Data = 0;
+			this->Script = 0;
+		}
+		
+	}
+}

@@ -1,0 +1,450 @@
+// Delete these if they cause a compile error
+bool PressButtonItem(int itm){
+	if(Link->ItemA==itm&&Link->PressA)return true;
+	else if(Link->ItemB==itm&&Link->PressB)return true;
+	else if(Link->ItemX==itm&&Link->PressEx1)return true;
+	else if(Link->ItemY==itm&&Link->PressEx2)return true;
+	return false;
+}
+bool InputButtonItem(int itm){
+	if(Link->ItemA==itm&&Link->InputA)return true;
+	else if(Link->ItemB==itm&&Link->InputB)return true;
+	else if(Link->ItemX==itm&&Link->InputEx1)return true;
+	else if(Link->ItemY==itm&&Link->InputEx2)return true;
+	return false;
+}
+
+// First of 8 directional tiles for the rod
+const int TIL_FIREROD = 81480;
+const int CS_FIREROD = 8;
+
+// Sprite for the fire weapon
+item script invincibilityCloak{
+	void run(int dummy, int MP, int frames){
+		
+		MP *= Game->Generic[GEN_MAGICDRAINRATE] / 2;
+		if(Link->MP < MP){
+			Game->PlaySound(68);
+			Quit();
+		}
+		
+		Link->MP -= MP;
+		
+		//Invincible
+		bitmap b = Game->CreateBitmap(16,16);
+		b->Own();
+		Waitframe();
+		int args[8] = {9, 60, 0};
+		RunFFCScript(56, args);
+		Game->PlaySound(124);
+		for(int i = 0; i<frames; i++){
+			b->Clear(0);
+			b->FastTile(0,0,0,Link->Tile,6,OP_OPAQUE);
+			if(i%4 < 2){
+				b->ReplaceColors(0,0x01,0x01,0xFF);
+				b->Blit(SPLAYER_PLAYER_DRAW,RT_SCREEN,0,0,16,16,Link->X,Link->Y-Link->Z,16,16,0,0,0,BITDX_NORMAL,0,true);
+			}
+			FastCombo(6,240,0,15331,11,OP_OPAQUE);
+			Hero->InvFrames = 8;
+			Waitframe();
+			if (i==frames-60){
+				RunFFCScript(56, args);
+				Game->PlaySound(124);
+			}
+		}
+		
+	}
+	
+}
+
+const int SPR_FIREROD_FIRE = 35;
+
+// Item ID of a candle to parent the weapon to (this is used for making fire not hurt Link)
+const int FIREROD_FIRE_PARENT_ID = 11;
+
+itemdata script FireRod
+{
+    void run(int dummy, int mpCost, int freq, int fireballStep, int fireballSpread)
+    {
+        mpCost *= Game->Generic[GEN_MAGICDRAINRATE]/2;
+        if(Link->MP<=mpCost)
+            Quit();
+        int frames;
+        int ang = DirAngle(Link->Dir);
+        int xy[4];
+        for(int i=0; i<8; ++i)
+        {
+            DrawRod(xy, ang, Lerp(0, 14, i/7));
+            Link->Action = LA_NONE;
+            Link->Action = LA_ATTACKING;
+            Waitframe();
+        }
+        while(frames<30||InputButtonItem(this->ID))
+        {
+            if(Link->MP<=mpCost)
+                Quit();
+            int vX = (Link->InputLeft?-1:0) + (Link->InputRight?1:0);
+            int vY = (Link->InputUp?-1:0) + (Link->InputDown?1:0);
+            if(vX!=0||vY!=0)
+            {
+                int targetAngle = Angle(0, 0, vX, vY);
+                int diff = WrapDegrees(targetAngle-ang);
+                if(Abs(diff)>=5)
+                    ang = WrapDegrees(ang+Sign(diff)*5);
+                else
+                    ang = targetAngle;
+            }
+            Link->Dir = AngleDir4(ang);
+            DrawRod(xy, ang, 14);
+            if(frames%freq==0)
+            {
+                Link->MP -= mpCost;
+                lweapon l = FireLWeaponDegAngle(LW_FIRE, xy[2], xy[3], ang+Rand(-fireballSpread, fireballSpread), fireballStep, this->Power*Game->Generic[GEN_HERO_DMG_MULT], SPR_FIREROD_FIRE, SFX_FIRE);
+                l->Parent = FIREROD_FIRE_PARENT_ID;
+            }
+            ++frames;
+            Link->Action = LA_NONE;
+            Link->Action = LA_ATTACKING;
+            Waitframe();
+        }
+        Link->Action = LA_NONE;
+    }
+    void DrawRod(int xy, int angle, int dist)
+    {
+        int dir = AngleDir8(WrapDegrees(angle));
+        xy[0] = Link->X+DirX(dir)*dist;
+        xy[1] = Link->Y+DirY(dir)*dist;
+        xy[2] = Link->X+DirX(dir)*(dist+8);
+        xy[3] = Link->Y+DirY(dir)*(dist+8);
+        Screen->FastTile(SPLAYER_EWEAP_FRONT_DRAW, xy[0], xy[1], TIL_FIREROD+dir, CS_FIREROD, OP_OPAQUE);
+    }
+}
+
+// Air Strike Honeypot
+ffc script airstrikeCallerHoneypot{
+	void run(){
+		while(true){
+			Waitframe();
+		}
+		// Does nothing, but checks if an air strike item is used. (For the bombchu minigame)
+	}
+}
+
+// Air Strike Caller
+itemdata script airStrikeCaller{
+    void run(int dummy, int type){
+		// Check Bombs
+		if(type == 0 && (Game->Counter[2] < 4 && Game->Counter[6] < 1)){
+			Game->PlaySound(68);
+			Quit();
+		}
+		if(type == 1 && Game->Counter[1] < 8){
+			Game->PlaySound(68);
+			Quit();
+		}
+		int scr = Game->CurScreen; int map = Game->CurMap;
+		
+        genericdata gd = RunGenericScriptFrz(CheckGenericScript("airStrike"),{type});
+		
+		int honeypotted = 0;
+		for(int i1=1; i1<=32; ++i1)
+		{
+			ffc f = Screen->LoadFFC(i1);
+			if(f->Script==109) // Honeypot ffc
+			{
+				honeypotted = 1;
+			}
+		}
+		//printf("%d\n",honeypotted);
+		if (gd->Data[0]==-1){
+			Quit();
+		}
+		else if(honeypotted == 1){ // Bombchu minigame punishment
+			// Warp
+			Game->PlayMIDI(0);
+			Link->WarpEx({WT_IWARP,374,86,-1,-1,WARPEFFECT_NONE,113,0});
+			Quit();
+		}
+		else{
+			Game->PlaySound(113);
+			RunFFCScript(56, {22, 30, 0});
+		}
+		int i;
+		
+		//Bombs
+		if(gd->Data[0]<3){
+			for(i = 0; i<64; i++){
+				if (scr != Game->CurScreen || map != Game->CurMap){Quit();}
+				if(i<=30){NoAction();}
+				Waitframe();
+			}
+			
+			//Regular Bomb
+			if (gd->Data[0]==1){
+				int i2;
+				int newX = gd->Data[3]; int newY = gd->Data[4];
+				for(i2 = 0; i2<4; i2++){
+					if(i2 == 1){
+						newX = gd->Data[5]; newY = gd->Data[6];
+					}
+					else if(i2 == 2){
+						newX = gd->Data[7]; newY = gd->Data[8];
+					}
+					else if(i2 == 3){
+						newX = gd->Data[1]; newY = gd->Data[2];
+					}
+					Game->PlaySound(38);
+					for(i = 1; i<=32; i++){
+						if (scr != Game->CurScreen || map != Game->CurMap){Quit();}
+						FastTile(2,newX,newY,23304,7,OP_OPAQUE);
+						if(i >= 11){
+							FastTile(6,newX,newY-176+((i-10)*8),81469,7,OP_OPAQUE);
+						}
+						Waitframe();
+					}
+					lweapon fire = CreateLWeaponAt(LW_BOMBBLAST, newX, newY);
+					fire->Dir = 90;
+					fire->Step = 0;
+					fire->Damage = 12;
+					Waitframe();
+				}
+				Waitframes(20);
+			}
+			else if (gd->Data[0]==2){	//Super Bomb
+				Game->PlaySound(52);
+				for(i = 1; i<=64; i++){
+					if (scr != Game->CurScreen || map != Game->CurMap){Quit();}
+					FastTile(2,gd->Data[1],gd->Data[2],23304,7,OP_OPAQUE);
+					if(i >= 21){
+						FastTile(6,gd->Data[1],gd->Data[2]-176+((i-20)*4),81469,8,OP_OPAQUE);
+					}
+					Waitframe();
+				}
+				Screen->Quake = 40;
+				lweapon fire = CreateLWeaponAt(LW_SBOMBBLAST, gd->Data[1], gd->Data[2]);
+				fire->Dir = 90;
+				fire->Step = 0;
+				fire->Damage = 48;
+				Waitframes(40);
+			}
+		}
+		else if(gd->Data[0]==3){ //Aim Shot
+			for(int i=0; i<30; i++){
+				Link->Action=LA_NONE;
+				Link->Action=LA_ATTACKING;
+				Waitframe();
+			}
+			for(int i=1; i<=146; i++){
+				Link->Action=LA_NONE;
+				Link->Action=LA_ATTACKING;
+				if((i % 12 == 0)&&(i <= 96)){
+					Game->PlaySound(95); Game->PlaySound(109);
+					if(i!=96){
+						Screen->Quake = 10;
+					}
+					else{
+						Screen->Quake = 42;
+					}
+					RunFFCScript(56, {0x88, 16, 0});
+					lweapon fyre = CreateLWeaponAt(2, Link->X, Link->Y);
+					fyre->Step = 500; fyre->Angular = true;
+					fyre->Damage = 20; fyre->UseSprite(210); fyre->AutoRotate = true;
+					fyre->Weapon = LW_SWORD;
+					int angle;
+					if(i == 12 || i == 60){
+						angle = Angle(Link->X, Link->Y, gd->Data[3], gd->Data[4]);
+					}
+					else if(i == 24|| i == 72){
+						angle = Angle(Link->X, Link->Y, gd->Data[5], gd->Data[6]);
+					}
+					else if(i == 36|| i == 84){
+						angle = Angle(Link->X, Link->Y, gd->Data[7], gd->Data[8]);
+					}
+					else if(i == 48|| i == 96){ 
+						angle = Angle(Link->X, Link->Y, gd->Data[1], gd->Data[2]);
+					}
+					Link->Dir = AngleDir4(angle);
+					fyre->Angle = DegtoRad(angle);
+				}
+				Waitframe();
+			}
+			Link->Action=LA_NONE;
+		}
+    }
+}
+
+generic script airStrike{
+	void run(int id){
+			this->DataSize = 9;
+			
+			int i;
+			int cursorX;
+			int cursorY;
+			
+			this->Data[3] = 0; this->Data[4] = 0;
+			this->Data[5] = 0; this->Data[6] = 0;
+			this->Data[7] = 0; this->Data[8] = 0;
+			
+			if(Link->Dir == DIR_UP){
+				cursorX = Link->X;
+				cursorY = Link->Y-16;
+			}
+			else if(Link->Dir == DIR_DOWN){
+				cursorX = Link->X;
+				cursorY = Link->Y+16;
+			}
+			else if(Link->Dir == DIR_LEFT){
+				cursorX = Link->X-16;
+				cursorY = Link->Y;
+			}
+			else if(Link->Dir == DIR_RIGHT){
+				cursorX = Link->X+16;
+				cursorY = Link->Y;
+			}
+			if(cursorX < 0){cursorX = 0;}
+			if(cursorX > 240){cursorX = 240;}
+			if(cursorY < 0){cursorY = 0;}
+			if(cursorY > 160){cursorY = 160;}
+			
+			Game->PlaySound(70);
+			int flashbgColor1 = 19; int flashbgColor2 = 20;
+			
+			if(id == 1){
+				flashbgColor1 = 0xA4; flashbgColor2 = 0xA5;
+			}
+			
+			for(i = 0; i<40; i++){
+				Screen->Rectangle(6, 0, 0, 256, 176, flashbgColor1, 1, 0, 0, 0, true, OP_TRANS);
+				FastCombo(6,cursorX,cursorY,16559,8,OP_OPAQUE);
+				Waitframe();
+			}
+			
+			i = 0;
+			int sBombPal = 8;
+			int numShots = 0;
+			// Selection
+			while(true){
+				i += 1;
+				if(i % 30 == 0){
+					Game->PlaySound(5);
+				}
+				Screen->Rectangle(6, 0, 0, 256, 176, flashbgColor2, 1, 0, 0, 0, true, OP_TRANS);
+				if(id == 0){
+					FastTile(6,0,120,81727,8,OP_OPAQUE);
+					FastTile(6,0,136,81500,7,OP_OPAQUE);
+					FastTile(6,0,152,81501,sBombPal,OP_OPAQUE);
+					FastTile(6,16,120,81728,8,OP_OPAQUE);
+					FastTile(6,16,136,81502,7,OP_OPAQUE);
+					FastTile(6,16,152,81502,sBombPal,OP_OPAQUE);
+					FastTile(6,32,120,81729,8,OP_OPAQUE);
+					FastTile(6,32,136,81503,7,OP_OPAQUE);
+					FastTile(6,32,152,81504,sBombPal,OP_OPAQUE);
+					
+					FastTile(6,48,136,81722,8,OP_OPAQUE);
+				}
+				else if(id == 1){
+					FastTile(6,0,144,81727,8,OP_OPAQUE);
+					FastTile(6,16,144,81728,8,OP_OPAQUE);
+					FastTile(6,32,144,81729,8,OP_OPAQUE);
+					FastTile(6,0,136,81721,8,OP_OPAQUE);
+					FastTile(6,16,136,81722,8,OP_OPAQUE);
+				}
+				
+				if(id == 0){
+					if(numShots == 0){FastTile(6,64,136,81726,8,OP_OPAQUE);}
+					else if(numShots == 1){FastTile(6,64,136,81725,8,OP_OPAQUE);}
+					else if(numShots == 2){FastTile(6,64,136,81724,8,OP_OPAQUE);}
+					else if(numShots == 3){FastTile(6,64,136,81723,8,OP_OPAQUE);}
+				}
+				else{
+					if(numShots == 0){FastTile(6,32,136,81726,8,OP_OPAQUE);}
+					else if(numShots == 1){FastTile(6,32,136,81725,8,OP_OPAQUE);}
+					else if(numShots == 2){FastTile(6,32,136,81724,8,OP_OPAQUE);}
+					else if(numShots == 3){FastTile(6,32,136,81723,8,OP_OPAQUE);}
+				}
+				
+				if(numShots >= 1){
+					FastCombo(6,this->Data[3],this->Data[4],17003,11,OP_OPAQUE);
+				}
+				if(numShots >= 2){
+					FastCombo(6,this->Data[5],this->Data[6],17003,11,OP_OPAQUE);
+				}
+				if(numShots >= 3){
+					FastCombo(6,this->Data[7],this->Data[8],17003,11,OP_OPAQUE);
+				}
+				
+				FastCombo(6,cursorX,cursorY,16991,8,OP_OPAQUE);
+				if((Link->InputUp)&&(cursorY >= 0)){cursorY -= 2;}
+				if((Link->InputDown)&&(cursorY <= 160)){cursorY += 2;}
+				if((Link->InputLeft)&&(cursorX >= 0)){cursorX -= 2;}
+				if((Link->InputRight)&&(cursorX <= 240)){cursorX += 2;}
+				
+				//Cancel
+				if(Link->PressL||Link->PressR){
+					this->Data[0] = -1;
+					break;
+				}
+				
+				if(Link->PressA||Link->PressEx1||Link->PressEx2||(Link->PressB&&id==1)){	//Call Regular Bomb
+					if(id == 1){ //Aim Shot
+						numShots += 1;
+						if(numShots < 4){Game->PlaySound(94);}
+						if(numShots == 1){
+							this->Data[3] = cursorX; this->Data[4] = cursorY;
+						}
+						else if(numShots == 2){
+							this->Data[5] = cursorX; this->Data[6] = cursorY;
+						}
+						else if(numShots == 3){
+							this->Data[7] = cursorX; this->Data[8] = cursorY;
+						}
+						else{
+							Game->DCounter[1] -= 8;
+							this->Data[0] = 3;
+							break;
+						}
+					}
+					else if(Game->Counter[2] < 4){
+						Game->PlaySound(68);
+					}
+					else{	//Call Bomb
+						numShots += 1; sBombPal = 11;
+						if(numShots < 4){Game->PlaySound(94);}
+						if(numShots == 1){
+							this->Data[3] = cursorX; this->Data[4] = cursorY;
+						}
+						else if(numShots == 2){
+							this->Data[5] = cursorX; this->Data[6] = cursorY;
+						}
+						else if(numShots == 3){
+							this->Data[7] = cursorX; this->Data[8] = cursorY;
+						}
+						else{
+							Game->Counter[2] -= 4;
+							this->Data[0] = 1;
+							break;
+						}
+					}
+				}
+				if(Link->PressB&&id==0&&numShots==0){	//Call Super Bomb
+					if(Game->Counter[6] < 1){
+						Game->PlaySound(68);
+					}
+					else{
+						Game->Counter[6] -= 1;
+						this->Data[0] = 2;
+						break;
+					}
+				}
+				Waitframe();
+			}
+			
+			this->Data[1] = cursorX;
+			this->Data[2] = cursorY;
+			
+			
+	}
+}
+
+//	RunGenericScriptFrz(CheckGenericScript("MyScript"));
+// 	RunGenericScriptFrz(CheckGenericScript("MyScript"), {arg1, arg2, arg3});

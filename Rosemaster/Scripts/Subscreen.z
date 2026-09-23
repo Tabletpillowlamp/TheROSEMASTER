@@ -1,0 +1,887 @@
+subscreendata script subscreenGeneral
+{
+	using namespace Bestiary;
+	void run(int objPage, int notLink, int bstPage)
+	{
+		BestiaryPage bestiary = new BestiaryPage(this, bstPage);
+		int lastPage = -1;
+		int lastSelection = -1;
+		
+		setUpObjective1(this,objPage);
+		setUpObjective2(this,objPage);
+		setQuestItems(this,objPage);
+
+		while(true){
+			
+			bestiary->Update(bstPage);
+			
+			// Get the currently selected page and widget
+			subscreenpage p = this->Pages[this->CurPage];
+			subscreenwidget w = p->Widgets[p->CursorPos];
+			
+			if(notLink > 0){
+				subscreenpage fPage = this->Pages[0];
+				subscreenwidget Por = fPage->GetWidget("CharPortrait");
+				switch(notLink){
+					case 2: //Ciela
+						if(Game->Counter[11] >= 8){
+							Por->Tile[0] = 81744;
+						}
+						break;
+					case 3: //Aurelia
+						if(Game->Counter[11] >= 7){
+							Por->Tile[0] = 81804;
+						}
+						break;
+					case 4: //Ingrid
+						if(Game->Counter[11] >= 8){
+							Por->Tile[0] = 81812;
+						}
+						break;
+				}
+			}
+			
+			// If the page or widget has changed, update
+			if(lastPage!=this->CurPage||lastSelection!=p->CursorPos){
+				lastPage = this->CurPage;
+				lastSelection = p->CursorPos;
+				
+				subscreenwidget helptext = p->GetWidget("ShieldInfo");
+				subscreenwidget settingstext = p->GetWidget("SettingsInfo");
+				
+				//Concert Ticket
+				
+				subscreenwidget overlaptext = p->GetWidget("OverlapLabelText");
+				int overlapPos = 35;
+				if(notLink > 0){overlapPos = 15;}
+				if(p->CursorPos == overlapPos && Link->Item[139]){
+					overlaptext->SetText("Concert Ticket");
+				}
+				else{
+					overlaptext->SetText("");
+				}
+				
+				if(settingstext){
+					switch(p->CursorPos){
+						case 0:
+							settingstext->SetText("Modifies damage dealt from enemies.                Easy: 0.5x Damage  For those who play for the story.               Normal: 1x Damage  The default mode.             Hard: 2x Damage  For those who want a great challenge.");
+							break;
+						case 1:
+							settingstext->SetText("Displays the exact damage numbers dealt by the player and the enemies.                 Also displays health recovered and boss HP.");
+							break;
+						case 2:
+							settingstext->SetText("Toggle this to slow down screenwide color flashing effects.                 Eases gameplay to photosensitive epilepsy.");
+							break;
+						case 3:
+							settingstext->SetText("When you lose all your health during a boss battle. You have the option to retry immediately with all your health and magic refilled, as well as rupees, bombs, arrows, bombchus, and bottles returning to their original state before the fight.");
+							break;
+						case 4:
+							settingstext->SetText("Save the game.");
+							break;
+						case 5:
+							settingstext->SetText("Ends your game and brings up an endgame menu.                  You can also end the game by pressing the F6 button.");
+							break;
+					}
+				}
+				
+				if(helptext){
+					switch(p->CursorPos){
+						case 0: //No shield
+							if(Link->Item[135]){helptext->SetText("Link's default state. He carries nothing but pure courage.");}else{helptext->SetText("");}
+							break;
+						case 1: //Small Shield
+							if(Link->Item[93]){helptext->SetText("This small blue shield can block rocks and arrows.");}else{helptext->SetText("");}
+							break;
+						case 2: //Moogle Costume
+							if(Link->Item[210]){helptext->SetText("This costume can block rocks and arrows, isn't that neat, kupo?");}else{helptext->SetText("");}
+							break;
+						case 3: //Chocobo Costume
+							if(Link->Item[213]){helptext->SetText("This cute little costume allows you to move faster and can block fireballs.");}else{helptext->SetText("");}
+							break;
+						case 4: //Baby Costume
+							if(Link->Item[212]){helptext->SetText("You become a baby! But you do take more damage and move slower...");}else{helptext->SetText("");}
+							break;
+						case 5: //Linkle Costume
+							if(Link->Item[211]){helptext->SetText("Become a legend. You can move faster and shoot faster arrows.");}else{helptext->SetText("");}
+							break;
+						case 6: //Knight's Armor
+							if(Link->Item[136]){helptext->SetText("Elignitan armor, sacrifice speed for a 1.5x power & defense boost.");}else{helptext->SetText("");}
+							break;
+						case 7: //Big Shield
+							if(Link->Item[8]){helptext->SetText("A more powerful shield that can additionally block fireballs.");}else{helptext->SetText("");}
+							break;
+						case 8: //Mirror Shield
+							if(Link->Item[37]){helptext->SetText("A brilliant shield that can reflect magic and fireballs.");}else{helptext->SetText("");}
+							break;
+						case 9: //Business Suit
+							if(Link->Item[187]){helptext->SetText("Wear this snappy suit to replace health damage with... rupees?");}else{helptext->SetText("");}
+							break;
+						case 10: //Ninja Gear
+							if(Link->Item[168]){helptext->SetText("Become small and nimble, and move very fast.");}else{helptext->SetText("");}
+							break;
+						case 11: //Lana Outfit
+							if(Link->Item[239]){helptext->SetText("Shoot out a powerful ring of magic by pressing the L button.");}else{helptext->SetText("");}
+							break;
+						case 12: //Omega Tank
+							if(Link->Item[240]){helptext->SetText("Become 1.5x more resistant and shoot linear beams by pressing L.");}else{helptext->SetText("");}
+							break;
+						case 13: //Classic Mode
+							if(Link->Item[103]){helptext->SetText("It's dangerous to go alone! Press L for a surprise!");}else{helptext->SetText("");}
+							break;
+						case 14: //Black Dragon
+							if(Link->Item[12]){helptext->SetText("Force of Ebony. Press L to create a small earthquake!");}else{helptext->SetText("");}
+							break;
+						case 15: //Purple Dragon
+							if(Link->Item[105]){helptext->SetText("Force of Violet. Press L to shoot a bubble breath!");}else{helptext->SetText("");}
+							break;
+						case 16: //Orange Dragon
+							if(Link->Item[65]){helptext->SetText("Force of Gamboge. Press L to summon healing items!");}else{helptext->SetText("");}
+							break;
+						case 17: //Green Dragon
+							if(Link->Item[63]){helptext->SetText("Force of Emerald. Press L to activate a random effect!");}else{helptext->SetText("");}
+							break;
+						case 18: //Blue Dragon
+							if(Link->Item[26]){helptext->SetText("Force of Azure. Press L to gain a power boost!");}else{helptext->SetText("");}
+							break;
+						case 19: //Silver Dragon
+							if(Link->Item[118]){helptext->SetText("Force of Ivory. Press L to fully heal and end game!");}else{helptext->SetText("");}
+							break;
+						case 20: //Red Dragon
+							if(Link->Item[90]){helptext->SetText("Force of Crimson. Press L to fill the screen with fire!");}else{helptext->SetText("");}
+							break;
+					}
+				}
+			}
+			
+			Waitframe();
+		}
+	}
+	
+	void setUpObjective1(subscreendata this,int pageNum){
+		subscreenpage page = this->Pages[pageNum];
+		subscreenwidget oT = page->GetWidget("Objective1");
+		
+		int prC = Game->Counter[11]; int prE = Game->Counter[34];
+		int prP1 = Game->Counter[12]; int prP2 = Game->Counter[15];
+		
+		// Post Game Objectives
+		if(Link->Item[30]){
+			int dDefeated = Game->Counter[33];
+			
+			if(Link->Item[255]){
+				oT->SetText(" ");
+			}
+			else if(!Link->Item[106]){
+				oT->SetText("Light up and explore the Power Plant.");
+			}
+			else if(!Link->Item[64]){
+				oT->SetText("A powerful foe awaits you in the underground of District 3...");
+			}
+			else if(dDefeated < 7){
+				oT->SetText("Defeat the Seven Legendary Dragons.");
+			}
+			else if(!Link->Item[243]){
+				oT->SetText("Uncover the secrets of the Skyward Tree in District 4 Red Ward.");
+			}
+			else if(prP1 < 50){
+				oT->SetText("Go to the Hospital in District 2.");
+			}
+			else if(prP1 < 54){
+				oT->SetText("Heal the patient at the Hospital in District 2.");
+			}
+			else if(prP1 < 55){
+				oT->SetText("Meet up with Miss Muerte at her house in District 3.");
+			}
+			else if(!Link->Item[254]){
+				oT->SetText("Beat the game with the Purple Glory Squad Card Activated.");
+			}
+			else if(!Link->Item[241]||!Link->Item[242]||!Link->Item[243]||!Link->Item[253]||!Link->Item[254]){
+				oT->SetText("");
+			}
+			else{
+				oT->SetText("Head back to the Astral Tower...");
+			}
+		}
+		else{
+			switch(prE){	// E Progress Switch
+				case 0:
+					if(prP1 >= 2){
+						oT->SetText("Bring Cain to Ingrid's office in the Capital.");
+					}
+					else if(prC >= 1){
+						oT->SetText("Talk to the criminal in the Elignita Prison.");
+					}
+					else if(prP1 >= 1){
+						oT->SetText("Exit the Hero's Cave.");
+					}
+					else{
+						oT->SetText("Reach the end of the Hero's Cave.");
+					}
+					break;
+				case 1:
+					oT->SetText("Go to Elignita Field and find a way to get to the Forbidden Isle.");
+					break;
+				case 2:
+					if(prP1 >= 3){
+						oT->SetText("Shop at Seth's Shop for the item that can open the Forbidden Isle.");
+					}
+					else{
+						oT->SetText("Save Seth from the moblins!");
+					}
+					break;
+				case 3:
+					if(prC >= 2){
+						oT->SetText("Check in with Lotz at the foster home.");
+					}
+					else{
+						oT->SetText("Reach the end of the Forbidden Isle!");
+					}	
+					break;
+				case 4:
+					if(prP1 >= 5){
+						oT->SetText("Head to Ord Desert east of Elignita Field.");
+					}
+					else{
+						oT->SetText("Go to the Elignitan-Hyrule Border Building east of Elignita Field.");
+					}
+					break;
+				case 5:
+					oT->SetText("Explore and find your way through the Ord Pub.");
+					break;
+				case 6:
+					if(prP1 >= 8){
+						oT->SetText("Head to the Forest of Despair and explore the area.");
+					}
+					else if(prP1 >= 7){
+						oT->SetText("Exit the Elignita Capital.");
+					}
+					else if(prC >= 3){
+						oT->SetText("Check in with Lotz in the Elignitan Capital.");
+					}
+					else{
+						oT->SetText("Head to the Ancient Maze and then reach the end of the dungeon!");
+					}
+					break;
+				case 7:
+					oT->SetText("Find your way out of this unknown place...");
+					break;
+				case 8:
+					oT->SetText("Continue exploring the Forest of Despair with your new sword!");
+					break;
+				case 9:
+					if(prC >= 4){
+						oT->SetText("Reach the end of this place...");
+					}
+					else{
+						oT->SetText("Head to the Theatre of Lust and then reach the end of the dungeon!");
+					}
+					break;
+				case 10:
+					oT->SetText("Find a way to get flippers so you can go to Death Mountain.");
+					break;
+				case 11:
+					if(prP1 >= 11){
+						oT->SetText("Meet up with Cain in the Elignitan Graveyard.");
+					}
+					else{
+						oT->SetText("Check with Cain in Hinnow Village.");
+					}
+					break;
+				case 12:
+					if(prP1 >= 12){
+						oT->SetText("Get the flippers from Seth's Shop and then reach Death Mountain.");
+					}
+					else{
+						oT->SetText("Explore and reach the end of Yenny's Grave.");
+					}
+					break;
+				case 13:
+					if(prP1 >= 15){
+						oT->SetText("Go back and talk to Ciela in the foster home.");
+					}
+					else if(prC >= 5){
+						oT->SetText("Talk to Ingrid in her office in the Capital.");
+					}
+					else if(prP1 >= 13){
+						oT->SetText("Scale the Tower of Fiends and face off against Abaddon!");
+					}
+					else{
+						oT->SetText("Climb through Death Mountain until you reach Rito Village.");
+					}
+					break;
+				case 14:
+					if(prP1 >= 16){
+						oT->SetText("Explore Death Mountain Peak to refresh Ciela's healing magic.");
+					}
+					else{
+						oT->SetText("Head to Death Mountain Peak north of Rito Village.");
+					}
+					break;
+				case 15:
+					if(prP1 >= 17){
+						oT->SetText("Reach the end of Death Mountain Peak.");
+					}
+					else{
+						oT->SetText("Get out of the Frost Cave and save Link!");
+					}
+					break;
+				case 16:
+					if(prC >= 6){
+						oT->SetText("Explore the Hyrulean Airship.");
+					}
+					else{
+						oT->SetText("Uncover the secrets of the Moon!");
+					}
+					break;
+				case 17:
+					oT->SetText("Chaos!! Head outside to check out what's happening!");
+					break;
+				case 18:
+					oT->SetText("Head back the Capitol Building to check on Ingrid.");
+					break;
+				case 19:
+					oT->SetText("Use the Capitol Station to get as far as you can from the destruction!");
+					break;
+				case 20:
+					oT->SetText("Reach the end of the train to escape the ambush!");
+					break;
+				case 21:
+					if(prC >= 7){
+						if(Link->Item[107]){
+							oT->SetText("Find a safe haven in Hinnow Village...");
+						}
+						else if(Link->Item[225]){
+							oT->SetText("Survive the trip to the Eastern State.");
+						}
+						else if(Link->Item[216]){
+							oT->SetText("Find a safe haven in the Hyrulean Outpost.");
+						}
+						else if(Link->Item[120]&&Link->Item[230]){
+							oT->SetText("Search for an eastern building that will lead you to District 4.");
+						}
+						else if(Link->Item[120]){
+							oT->SetText("Explore this place...");
+						}
+						else if(Link->Item[170]&&Link->Item[231]){
+							oT->SetText("Explore the Hyrulean Outlands.");
+						}
+						else if(Link->Item[170]){
+							oT->SetText("Find a way to save Link!");
+						}
+					}
+					else if(prP1 >= 19){
+						oT->SetText("Defeat Chancellor Rusl.");
+					}
+					else{
+						oT->SetText("Continue escaping from the destruction.");
+					}
+					break;
+				case 22:
+					oT->SetText("Head outside to Grassland.");
+					break;
+				case 23:
+					if(Link->Item[149]){
+						oT->SetText("Head to District 4 and explore the city.");
+					}
+					else if(prP1 >= 22){
+						oT->SetText("Head to the meeting room in the west wing of Hyrule Castle");
+					}
+					else if(prP1 >= 21){
+						oT->SetText("Head to Hyrule Castle in the Royal District.");
+					}
+					else if(prP1 >= 20){
+						oT->SetText("Head to the District 1 Market west of Grass Land.");
+					}
+					else{
+						oT->SetText("Follow Medley north of her house.");
+					}
+					break;
+				case 24:
+					if(prP2 >= 1){
+						oT->SetText("Head to the ship in the south- eastern part of the Hyrulean Outlands.");
+					}
+					else{
+						oT->SetText("Head to the Library in the Green Ward and find a secret.");
+					}
+					break;
+				case 25:
+					oT->SetText("Trek through the Eastern State in order to reach the Winterfall Kremlin.");
+					break;
+				case 26:
+					oT->SetText("Reach Kalin's Office using Winterfall Kremlin's secret entrance!");
+					break;
+				case 27:
+					oT->SetText("Head to the Cryochamber atop the Winterfall Kremlin.");
+					break;
+				case 28:
+					oT->SetText("Head to Kalin's Office to confront Belphegor!");
+					break;
+				case 29:
+					if(prP2 >= 3){
+						oT->SetText("Find your way out of this unknown place...");
+					}
+					else if(prP2 >= 2){
+						oT->SetText("Go to the Hyrulean Prison in the Outlands.");
+					}
+					else{
+						oT->SetText("Check in with Kalin in his office.");
+					}
+					break;
+				case 30:
+					if(prP2 >= 4){
+						oT->SetText("Go to the end of the Ancient Maze in Ord Desert to open the Sealed Realm.");
+					}
+					else{
+						oT->SetText("Head to the Library in District 4 Green Ward and find the other sage there.");
+					}
+					break;
+				case 31:
+					oT->SetText("Find Rauru in this vast desert...");
+					break;
+				case 32:
+					oT->SetText("Search for the path to the Sealed Realm.");
+					break;
+				case 33:
+					if (prP2 >= 6){
+						oT->SetText("Follow Saria to the Lost Woods from District 4 Yellow Ward.");
+					}
+					else if(prP2 >= 5){
+						oT->SetText("Meet up with Saria at the entrance of the Diner of Courage.");
+					}
+					else if(Link->Item[119]){
+						oT->SetText("Get out of the Sealed Realm!");
+					}
+					else{
+						oT->SetText("Trek through the Sealed Realm in order to find the Ascalon!");
+					}
+					break;
+				case 34:
+					if (prP2 >= 8){
+						oT->SetText("Go to the Forest Temple.");
+					}
+					else if(prP2 >= 7){
+						oT->SetText("Trek your way through the Lost Woods and find the path to the Forest Temple.");
+					}
+					else{
+						oT->SetText("Give Mido the Kokiri Sword and Deku Shield so he can let you pass through.");
+					}
+					break;
+				case 35:
+					if (prP2 >= 10){
+						oT->SetText("Use the elevator in the Forest Temple and meet up with Saria.");
+					}
+					else{
+						oT->SetText("Light up the Magic Flames to activate the elevator in the Forest Temple.");
+					}
+					break;
+				case 36:
+					if (prP1 >= 42){
+						oT->SetText("Go to the portal in the Diner of Courage to face off Abaddon!");
+					}
+					else if (Link->Item[14]){
+						oT->SetText("Head back to the Diner of Courage.");
+					}
+					else if (prP2 >= 13){
+						oT->SetText("");
+					}
+					else if (prP2 >= 12){
+						oT->SetText("Find the source of the sage's energy in the Lost Woods.");
+					}
+					else if (prP2 >= 11){
+						oT->SetText("Follow Rauru and Saria to the third floor of the Forest Temple.");
+					}
+					else{
+						oT->SetText("Save Link and Saria from Prince Scott!");
+					}
+					break;
+				case 37:
+					if(prC >= 13){
+						oT->SetText("Go to Lotz's Estate in the Royal District and take him down!");
+					}
+					else if (prP1 >= 43){
+						oT->SetText("Check in with Ciela on the second floor in the Diner of Courage.");
+					}
+					else{
+						oT->SetText("Defeat Abaddon from within!");
+					}
+					break;
+			}
+		}
+	}
+
+	void setUpObjective2(subscreendata this,int pageNum){
+		subscreenpage page = this->Pages[pageNum];
+		subscreenwidget oT = page->GetWidget("Objective2");
+		
+		int prC = Game->Counter[11]; int prE = Game->Counter[35]; int prP = Game->Counter[12];
+		
+		// Post Game Objectives
+		if(Link->Item[30]){
+			int sealCol = Game->Counter[36];
+			
+			if(!Link->Item[241]){
+				oT->SetText("Uncover the secrets of the Astral Tower in District 4 Red Ward.");
+			}
+			else if(sealCol < 12){
+				oT->SetText("Obtain all twelve weapons of the Sealed Ruins.");
+			}
+			else if(!Link->Item[242]){
+				oT->SetText("Defeat the enemies in all the floors of the Dread Tower.");
+			}
+			else if(!Link->Item[253]){
+				oT->SetText("Clear 150 waves of enemies in the Starlight Express.");
+			}
+			else{
+				oT->SetText("");
+			}
+		}
+		else{
+			switch(prE){	// E Progress Switch
+				case 0:
+					if(prP >= 24){
+						oT->SetText("Go to the Hospital in District 2.");
+					}
+					else if(Link->Item[149] && Game->Counter[11] >= 8){
+						oT->SetText("Return to Elignita Field and check out the Outpost.");
+					}
+					else{
+						oT->SetText("");
+					}
+					break;
+				case 1:
+					if(prP >= 25){
+						oT->SetText("Head to the Diner of Courage in District 4, Blue Ward.");
+					}
+					else{
+						oT->SetText("Go to the Malo Tower in District 2.");
+					}
+					break;
+				case 2:
+					if(Link->Item[52]){
+						oT->SetText("Head towards Hyrulewood north of District 3.");
+					}
+					else if(prP >= 26){
+						oT->SetText("Defeat the CFO of the Malo Corp.");
+					}
+					else{
+						oT->SetText("Head back to the Malo Tower in District 2.");
+					}
+					break;
+				case 3:
+					oT->SetText("Head to Malo's Theatre in Hyrulewood.");
+					break;
+				case 4:
+					oT->SetText("Watch Malo's masterpiece movie, The Art of the Rupee, in his theatre!");
+					break;
+				case 5:
+					oT->SetText("Go to Cain's House in Hyrulewood.");
+					break;
+				case 6:
+					if(prP >= 28){
+						oT->SetText("Meet up with Malo in the Ark of Avarice.");
+					}
+					else{
+						oT->SetText("Find a way to board the Ark of Avarice east of Hyrulewood.");
+					}
+					break;
+				case 7:
+					oT->SetText("Head to the basement floor of the Ark of Avarice.");
+					break;
+				case 8:
+					if(prP >= 29){
+						oT->SetText("Head back to the Malo Board Room in the Ark of Avarice.");
+					}
+					else{
+						oT->SetText("Get rid of Ankle to boost shareholder value.");
+					}
+					break;
+				case 9:
+					if(prP >= 30){
+						oT->SetText("Head back to the Malo Board Room in the Ark of Avarice.");
+					}
+					else{
+						oT->SetText("Explore the Ark of Avarice in order to eliminate more shareholders.");
+					}
+					break;
+				case 10:
+					if(prP >= 31){
+						oT->SetText("Head back to the Malo Board Room in the Ark of Avarice.");
+					}
+					else{
+						oT->SetText("Explore the Ark of Avarice in order to eliminate more shareholders.");
+					}
+					break;
+				case 11:
+					if(prP >= 39){
+						oT->SetText("Go explore the Great Palace and complete the trial to become a hero!");
+					}
+					else if(prP >= 38){
+						oT->SetText("Go back to Grass Land and talk to Medley.");
+					}
+					else if(prP >= 37){
+						oT->SetText("Head back to the Diner of Courage.");
+					}
+					else if(prP >= 36){
+						oT->SetText("Find Impa in the Sheikah Temple.");
+					}
+					else if(prP >= 34){
+						oT->SetText("Head to the Sheikah Temple North of Grass Land.");
+					}
+					else if(prP >= 33){
+						oT->SetText("Check on Cain in the Hospital in District 2.");
+					}
+					else if(prP >= 32){
+						oT->SetText("Head back to the Malo Board Room in the Ark of Avarice.");
+					}
+					else{
+						oT->SetText("Go to room that was just remodelled in the Ark of Avarice.");
+					}
+					break;
+				case 12:
+					if(prP >= 41){
+						oT->SetText("");
+					}
+					else if(prP >= 40){
+						oT->SetText("Finish the trial in the Great Palace to become a hero!");
+					}
+					else{
+						oT->SetText("Uncover the secret journal in Gwonam's Study in the Great Palace.");
+					}
+					break;
+			}
+		}
+	}
+	
+	void setQuestItems(subscreendata this,int pageNum){
+		subscreenpage page = this->Pages[pageNum];
+		subscreenwidget roseOrange = page->GetWidget("Rose1");	//Orange
+		subscreenwidget roseBlue = page->GetWidget("Rose2");	//Blue
+		subscreenwidget roseRed = page->GetWidget("Rose3");	//Red
+		subscreenwidget rosePink = page->GetWidget("Rose4");	//Pink
+		subscreenwidget rosePurple = page->GetWidget("Rose5");	//Purple
+		subscreenwidget gt1 = page->GetWidget("GodPartT1");
+		subscreenwidget gt2 = page->GetWidget("GodPartT2");
+		
+		int prC = Game->Counter[11];
+		int prP = Game->Counter[12];
+		int prE = Game->Counter[34];
+		
+		int rOrange = 81560; int rBlue = 81561; int rRed = 81562; int rPink = 81563;
+		int rPurple = 81564; int rFused = 81565; int rNA = 81566;
+		
+		// God Parts
+		if(Link->Item[241]||Link->Item[242]||Link->Item[243]||Link->Item[253]||Link->Item[254]){
+			gt1->SetText("GOD");
+			gt2->SetText("PARTS");
+		}
+		
+		//======
+		// Roses
+		//======
+		if(Link->Item[225]||Link->Item[107]){ //Ingrid
+			rosePink->Tile[0]   = rPink;
+			rosePurple->Tile[0] = rPurple;
+		}
+		else if(Link->Item[170]||Link->Item[216]||Link->Item[199]||Link->Item[112]||Link->Item[120]){ //Cain, Ciela, Aurelia
+			roseOrange->Tile[0] = rNA;
+			roseBlue->Tile[0]   = rNA;
+			roseRed->Tile[0]    = rNA;
+			rosePink->Tile[0]   = rNA;
+			rosePurple->Tile[0] = rNA;
+		}
+		else if(prP >= 43){
+			roseRed->Tile[0]    = rFused;
+			roseOrange->Tile[0] = rNA; roseBlue->Tile[0]   = rNA;
+			rosePink->Tile[0]   = rNA; rosePurple->Tile[0] = rNA;
+		}
+		else if( prC >= 8 ){
+			if(!Link->Item[149] || prE == 28){
+				roseRed->Tile[0]   = 81567;
+			}
+			else{
+				roseRed->Tile[0]   = rRed;
+			}
+			roseOrange->Tile[0] = 81567; roseBlue->Tile[0]   = 81567;
+			rosePink->Tile[0]   = 81567; rosePurple->Tile[0] = 81567;
+		}
+		else{
+			switch(prC){
+				case 0:
+					if(prP >= 1){
+						roseRed->Tile[0] = rRed;
+					}
+					break;
+				case 1:
+					roseRed->Tile[0]    = rRed;
+					break;
+				case 2:
+					roseRed->Tile[0]    = rRed;
+					roseOrange->Tile[0] = rOrange;
+					break;
+				case 3:
+					roseRed->Tile[0]    = rRed;
+					roseOrange->Tile[0] = rOrange;
+					roseBlue->Tile[0] 	= rBlue;
+					break;
+				case 4:
+					roseRed->Tile[0]    = 81567;
+					roseOrange->Tile[0] = 81567;
+					roseBlue->Tile[0] 	= 81567;
+					rosePink->Tile[0]   = rPink;
+					break;
+				case 5:
+					roseRed->Tile[0]    = 81567;
+					roseOrange->Tile[0] = 81567;
+					roseBlue->Tile[0] 	= 81567;
+					rosePink->Tile[0]   = rPink;
+					rosePurple->Tile[0] = rPurple;
+					break;
+				case 6:
+					roseRed->Tile[0]    = 81567;
+					roseOrange->Tile[0] = 81567;
+					roseBlue->Tile[0] 	= 81567;
+					rosePink->Tile[0]   = rPink;
+					rosePurple->Tile[0] = rPurple;
+					break;
+			}
+		}
+	}
+}
+
+generic script settingsToggle{
+	
+	 void run(int id){
+		 
+			Game->PlaySound(91);
+			
+			switch(id){
+				case 0: //Difficulty Mode
+					if(Link->Item[167]){ //Easy to Normal
+						Link->Item[167] = false; Link->Item[41] = false;
+						Game->Counter[37] = 2;
+					}
+					else if(Link->Item[111]){ 
+						Link->Item[111] = false;
+						
+						if(Link->Item[203]){	//Easy Mode Disabled
+							Game->Counter[37] = 2;
+						}
+						else{ //Hard to Easy
+							Link->Item[167] = true; Link->Item[41] = true;
+							Game->Counter[37] = 1;
+						}
+					}
+					else{ //Normal to Hard
+						Link->Item[111] = true; Link->Item[41] = false;
+						Game->Counter[37] = 4;
+					}
+					break;
+				case 1: //Damage Numbers
+					if(Link->Item[46]){
+						Link->Item[46] = false;
+					}
+					else{
+						Link->Item[46] = true;
+					}
+					break;
+				case 2: //Slow Flashing
+					if(Link->Item[47]){
+						Link->Item[47] = false;
+					}
+					else{
+						Link->Item[47] = true;
+					}
+					break;
+				case 3: //Boss Retry
+					if(Link->Item[146]){
+						Link->Item[146] = false;
+					}
+					else{
+						Link->Item[146] = true;
+					}
+					break;
+				case 4: //Save
+					int bColor1 = 0x84;
+					int bColor2 = 0x88;
+					int bColor3 = 0x73;
+					int bColor4 = 0x75;
+					
+					for(int i = 0; i < 50; i++){
+						Screen->Rectangle(6, 0, -60, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+						if(i%2 == 0){
+							Screen->Rectangle(6, 86, 2, 160, 34, bColor1, 1, 0, 0, 0, true, OP_OPAQUE);
+						}
+						else{
+							Screen->Rectangle(6, 86, 2, 160, 34, bColor2, 1, 0, 0, 0, true, OP_OPAQUE);
+						}
+						Screen->Rectangle(6, 88, 4, 158, 32, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+						Screen->DrawString(6, 105, 11, 1, 0x89, -1, 0, "Saving...", OP_OPAQUE);
+						Screen->DrawString(6, 104, 10, 1, 1, -1, 0, "Saving...", OP_OPAQUE);
+						Waitframe();
+					}
+					Game->PlaySound(20);
+					Game->Save();
+					for(int i = 0; i < 40; i++){
+						Screen->Rectangle(6, 0, -60, 256, 276, 15, 1, 0, 0, 0, true, OP_TRANS);
+						if(i%2 == 0){
+							Screen->Rectangle(6, 86, 2, 160, 34, bColor3, 1, 0, 0, 0, true, OP_OPAQUE);
+						}
+						else{
+							Screen->Rectangle(6, 86, 2, 160, 34, bColor4, 1, 0, 0, 0, true, OP_OPAQUE);
+						}
+						Screen->Rectangle(6, 88, 4, 158, 32, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+						Screen->DrawString(6, 109, 11, 1, 0xA9, -1, 0, "Saved!", OP_OPAQUE);
+						Screen->DrawString(6, 108, 10, 1, 1, -1, 0, "Saved!", OP_OPAQUE);
+						Waitframe();
+					}
+					while(true){
+						Screen->Rectangle(6, 0, -60, 256, 276, 15, 1, 0, 0, 0, true, OP_TRANS);
+						Screen->Rectangle(6, 86, 2, 160, 34, bColor3, 1, 0, 0, 0, true, OP_OPAQUE);
+						Screen->Rectangle(6, 88, 4, 158, 32, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+						Screen->DrawString(6, 109, 11, 1, 0xA9, -1, 0, "Saved!", OP_OPAQUE);
+						Screen->DrawString(6, 108, 10, 1, 1, -1, 0, "Saved!", OP_OPAQUE);
+						if(Link->PressA||Link->PressB||Link->PressEx1||Link->PressEx2){
+							break;
+						}
+						Waitframe();
+					}
+					break;
+				case 5: //End Game
+					int pos = 0;
+					int selectedColor = 0x88;
+					int selNo = 1;
+					int selYes = 1;
+					while(true){
+						Screen->Rectangle(6, 0, -60, 256, 276, 15, 1, 0, 0, 0, true, OP_TRANS);
+						Screen->Rectangle(6, 86, -14, 180, 34, 0xB3, 1, 0, 0, 0, true, OP_OPAQUE);
+						Screen->Rectangle(6, 88, -12, 178, 32, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+						Screen->DrawString(6, 114, -5, 1, 0xB9, -1, 0, "End Game?", OP_OPAQUE);
+						Screen->DrawString(6, 113, -6, 1, 1, -1, 0, "End Game?", OP_OPAQUE);
+						if(pos==0){
+							selNo = selectedColor; selYes = 1;
+						}
+						else{
+							selNo = 1; selYes = selectedColor;
+						}
+						Screen->DrawString(6, 129, 10, 2, selYes, -1, 0, "Yes", OP_OPAQUE);
+						Screen->DrawString(6, 129, 18, 2, selNo, -1, 0, "No", OP_OPAQUE);
+						
+						if(Link->PressB||(Link->PressA&&pos==0)){
+							Game->PlaySound(94);
+							break;
+						}
+						if(Link->PressUp||Link->PressDown){
+							if(pos == 0){ pos = 1; }
+							else{ pos = 0; }
+							Game->PlaySound(5);
+						}
+						if(Link->PressA||Link->PressEx1||Link->PressEx2||Link->PressStart){
+							if(pos==1){Game->Continue();}
+						}
+						
+						Waitframe();
+					}
+					break;
+			}
+	 }
+}

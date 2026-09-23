@@ -1,0 +1,157 @@
+namespace StringWrapping
+{
+    class WrappedString
+    {
+        char32 StringBuf[1];
+        int Font;
+        int MaxW;
+        int W,H;
+        int LineRanges[0];
+        int LinePadding;
+
+        Substring Substrings[0];
+
+        WrappedString(int font, char32 str, int maxW, int padding=0)
+        {
+            Init(font, str, maxW, padding);
+        }
+        ~WrappedString()
+        {
+            ClearSubstrings();
+        }
+
+        void Init(int font, char32 str, int maxW, int padding)
+        {
+            Font = font;
+            MaxW = maxW;
+            ResizeArray(StringBuf, SizeOfArray(str));
+            strcpy(StringBuf, str);
+            GetSpacing(MaxW);
+            if(padding)
+            LinePadding = padding;
+        }
+
+        void GetSpacing(int maxW)
+        {
+            ResizeArray(LineRanges, 0);
+            int numLines;
+            int lineWidth;
+            int lineStart, wordStart;
+            bool wasWord;
+
+            int sz = SizeOfArray(StringBuf);
+            for(int i=0; i<sz; ++i)
+            {
+                char32 c = StringBuf[i];
+                bool isWord = !IsWhitespace(c);
+                if(isWord&&!wasWord)
+                {
+                    wordStart = i;
+                }
+                else if(!isWord&&wasWord)
+                {
+                    wordStart = i;
+                    if(lineWidth>W)
+                        W = lineWidth;
+                }
+                wasWord = isWord;
+                lineWidth += Text->CharWidth(c, Font);
+
+                if(c=='\n'||c==0||(lineWidth>=maxW&&lineStart!=wordStart))
+                {
+                    if(c==0)
+                        ;
+                    else if(c!='\n')
+                        i = wordStart;
+                    else
+                        ++i;
+                    ++numLines;
+                    lineWidth = 0;
+                    while(StringBuf[i]==' ')
+                        ++i;
+                    lineStart = i;
+                    ArrayPushBack(LineRanges, i);
+                    wasWord = false;
+                    if(c!=0)
+                        --i;
+                }
+            }
+            H = numLines*Text->FontHeight(Font)+(numLines-1)*LinePadding;
+            GetSubstrings();
+        }
+
+        bool IsWhitespace(char32 c)
+        {
+            switch(c)
+            {
+                case ' ':
+                case '\t':
+                case '\n':
+                case 0:
+                    return true;
+            }
+            return false;
+        }
+
+        void ClearSubstrings()
+        {
+            int sz = SizeOfArray(Substrings);
+            for(int i=0; i<sz; ++i)
+            {
+                delete Substrings[i];
+            }
+            ResizeArray(Substrings, 0);
+        }
+
+        void GetSubstrings()
+        {
+            ClearSubstrings();
+            char32 buf[0];
+            int curLine;
+            int sz = SizeOfArray(StringBuf);
+            for(int i=0; i<sz; ++i)
+            {
+                if(i==LineRanges[curLine])
+                {
+                    ArrayPushBack(buf, 0);
+                    Substring ss = new Substring(buf);
+                    ArrayPushBack(Substrings, ss);
+                    ResizeArray(buf, 0);
+                    ++curLine;
+                    if(i>=sz)
+                        break;
+                }
+                if(StringBuf[i]!='\n')
+                    ArrayPushBack(buf, StringBuf[i]);
+            }
+        }
+
+        void Draw(bitmap b, int layer, int x, int y, int c, int c_bg, int format, int op, int shadowStyle=0, int c_shadow=0)
+        {
+            int sz = SizeOfArray(Substrings);
+            int textY = y;
+            for(int i=0; i<sz; ++i)
+            {
+                if(Substrings[i]->Value[0])
+                {
+                    if(b)
+                        b->DrawString(layer, x, textY, Font, c, c_bg, format, Substrings[i]->Value, op, shadowStyle, c_shadow);
+                    else
+                        Screen->DrawString(layer, x, textY, Font, c, c_bg, format, Substrings[i]->Value, op, shadowStyle, c_shadow);
+                }
+                textY += Text->FontHeight(Font)+LinePadding;
+            }
+        }
+    }
+
+    class Substring
+    {
+        char32 Value[0];
+
+        Substring(char32 str)
+        {
+            ResizeArray(Value, SizeOfArray(str));
+            strcpy(Value, str);
+        }
+    }
+}

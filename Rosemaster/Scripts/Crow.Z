@@ -1,0 +1,79 @@
+// LttP-style crow. Doesn't behave exactly the same, but pretty close.
+// Old script, half-updated to new ghost.zh format.
+
+const int NPC_CROW1             = 39;
+const int NPC_CROW2             = 258;
+
+ffc script Crow
+{
+    void run(int level2)
+    {
+        npc ghost;
+        
+        if(level2==0)
+            ghost=Ghost_InitWait2(this, NPC_CROW1, false, GHF_NO_FALL|GHF_IGNORE_ALL_TERRAIN);
+        else
+            ghost=Ghost_InitWait2(this, NPC_CROW2, false, GHF_NO_FALL|GHF_IGNORE_ALL_TERRAIN);
+        int baseCombo=Ghost_Data;
+        Ghost_SpawnAnimationPuff(this, ghost);
+        
+        // Until Link gets close enough, just sit in one spot and watch him
+        while(Distance(Link->X, Link->Y, Ghost_X, Ghost_Y)>56)
+        {
+            if(Link->X>Ghost_X)
+                Ghost_Data=baseCombo+1;
+            else
+                Ghost_Data=baseCombo;
+            Ghost_Waitframe(this, ghost, true, true);
+        }
+        
+        float targetAngle;
+        float targetXVel;
+        float targetYVel;
+        float xVel=0;
+        float yVel=0;
+        
+        Ghost_SetFlag(GHF_KNOCKBACK_4WAY);
+        Ghost_Data+=2;
+        Game->PlaySound(97);
+        
+        // Fly at Link
+        for(int i=0; true; i++)
+        {
+            if(xVel>0)
+                Ghost_Data=baseCombo+3;
+            else
+                Ghost_Data=baseCombo+2;
+            
+            Ghost_X+=xVel;
+            Ghost_Y+=yVel;
+            
+            Ghost_Waitframe(this, ghost, true, true);
+            
+            if(Ghost_GotHit())
+            {
+                xVel/=2;
+                yVel/=2;
+            }
+            
+            // For the first five seconds, try to turn to move toward Link;
+            // after that, just keep flying the same direction
+            if(i<300)
+            {
+                targetAngle=ArcTan(Link->X-Ghost_X, Link->Y-Ghost_Y);
+                targetXVel=2*RadianCos(targetAngle);
+                targetYVel=2*RadianSin(targetAngle);
+            }
+            
+            if(targetXVel<xVel)
+                xVel=Max(xVel-0.03, targetXVel);
+            else
+                xVel=Min(xVel+0.03, targetXVel);
+            
+            if(targetYVel<yVel)
+                yVel=Max(yVel-0.03, targetYVel);
+            else
+                yVel=Min(yVel+0.03, targetYVel);
+        }
+    }
+}

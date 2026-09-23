@@ -1,0 +1,98 @@
+audio    W         kcm_stream.c:652  _al_kcm_refill_stream            [   0.72410] Out of buffers
+display  E           wgl_disp.c:1167 wgl_unset_current_display        [  44.60772] Unable unset the current context! The handle is invalid.
+st'
+Last saved in version: 2.55.0 Alpha 120
+Created with ZC Module: modules/classic.zmod
+
+Developr Signoff by: Build_Script
+Compiled with: MSVC, (ID: 1)
+Compiler Version: 1937, (19,37,32825,0)
+Project ID: ZQuest Classic
+Editor Built at date and time: 11-11-2023 at @ 20:11:15 UTC
+
+Reading Header...okay.
+Reading ZInfo - Internal...okay.
+Reading Rules...okay.
+Reading Strings...okay.
+Reading Doors...okay.
+Reading DMaps...okay.
+Reading Misc. Data...okay.
+Misc Colours section version: 4
+Reading Misc. Colors...okay.
+Reading Game Icons...okay.
+Reading Items...okay.
+Reading Weapons...okay.
+Reading Maps...okay.
+Reading Combos...okay.
+Reading Combo Aliases...okay.
+Reading Color Data...okay.
+Registering blank tiles
+Reading Tiles...okay.
+Reading Tunes...okay.
+Reading Cheat Codes...okay.
+Reading Init. Data...okay.
+Guy CVersion is: 4
+Reading Custom Guy Data...okay.
+Reading Custom Player Sprite Data...okay.
+Reading Custom Subscreen Data...okay.
+Loaded scripts last compiled in ZScript version: 22
+Reading FF Script Data...okay.
+Reading SFX Data...okay.
+Reading Item Drop Sets...okay.
+Reading Favorite Combos...okay.
+Done.
+Time to load qst: 1084 ms
+Full path string is: include/;headers/;scripts/;
+Include path 0: include/
+Include path 1: headers/
+Include path 2: scripts/
+c:\Users\XavNg\Desktop\ZZC\GlorySquad.qst...
+
+Decrypting...okay.
+Opening...okay.
+
+[QUEST METADATA]
+Loading module quest 1
+Loading 'c:\Users\XavNg\Desktop\ZZC\GlorySquad.qst'
+Last saved in version: 2.50.3 
+Project ID: ZQuest Classic
+
+Reading Header...okay.
+Reading Rules...okay.
+Reading Strings...okay.
+Reading Doors...okay.
+Reading DMaps...okay.
+Reading Misc. Data...okay.
+Misc Colours section version: 2
+Reading Misc. Colors...okay.
+Reading Game Icons...okay.
+Reading Items...okay.
+Reading Weapons...okay.
+Reading Maps...okay.
+Reading Combos...okay.
+Reading Combo Aliases...okay.
+Reading Color Data...okay.
+Registering blank tiles
+Reading Tiles...okay.
+Reading Tunes...okay.
+Reading Cheat Codes...okay.
+Reading Init. Data...okay.
+Guy CVersion is: 3
+Reading Custom Guy Data...okay.
+Reading Custom Player Sprite Data...okay.
+Reading Custom Subscreen Data...okay.
+Loaded scripts last compiled in ZScript version: 6
+Reading FF Script Data...okay.
+Reading SFX Data...okay.
+Reading Item Drop Sets...okay.
+Reading Favorite Combos...okay.
+Done.
+Time to load qst: 884 ms
+Removing timers. 
+Cleaning sfx. 
+Cleaning script buffer. 
+Cleaning qst buffers. 
+Cleaning midis. 
+Cleaning undotilebuf. 
+Cleaning datafiles. 
+Cleaning bitmaps...... OK. 

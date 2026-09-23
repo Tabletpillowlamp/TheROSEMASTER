@@ -1,0 +1,220 @@
+namespace Eyegore2
+{
+	enum Animations
+	{
+		ANIM_EYECLOSED,
+		ANIM_EYEOPENING,
+		ANIM_EYEOPEN,
+		ANIM_EYECLOSING,
+		ANIM_WALK
+	};
+	
+	const int TIL_INVISIBLE = 34;
+	
+	// D0: Distance from Link the enemy activates
+	// D1: Time the enemy spends walking
+	// D2: Delay before waking up again
+	// D3: How many frames  before each turn
+	// D4: If 1, the enemy will try not to get stuck on corners as much
+	npc script EyegoreNPC
+	{
+		using namespace NPCAnim;
+		void run(int activeDist, int walkTime, int cooldownTime, int turnFreq, int turnCorner)
+		{
+			Waitspawn(this);
+			
+			if(!activeDist)
+				activeDist = 32;
+			if(!walkTime)
+				walkTime = 128;
+			if(!cooldownTime)
+				cooldownTime = 128;
+			if(!turnFreq)
+				turnFreq = Floor(16/(this->Step/100));
+				
+			AnimHandler aptr = new AnimHandler(this);
+			
+			aptr->SetHitbox(2, 2, {8, 8, 6, 6}, true);
+			aptr->SetMovementHitbox({16, 0, 8, 8});
+			this->Y -= 8;
+			
+			aptr->AddAnim(ANIM_EYECLOSED, 0, 1, 16, 0);
+			aptr->AddAnim(ANIM_EYEOPENING, 0, 3, 16, 0);
+			aptr->AddAnim(ANIM_EYEOPEN, 4, 1, 16, 0);
+			aptr->AddAnim(ANIM_EYECLOSING, 0, 3, 16, ADF_REVERSE);
+			aptr->AddAnim(ANIM_WALK, 40, 4, 16, ADF_4WAY|ADF_FLIPRIGHT|ADF_VERTICAL);
+		
+			int defs[MAX_DEFENSE];
+			for(int i=0; i<MAX_DEFENSE; ++i)
+			{
+				defs[i] = this->Defense[i];
+				this->Defense[i] = NPCDT_BLOCK;
+			}
+			int cooldown;
+			bool wallWalk;
+			while(true)
+			{
+				while(LargeDistance(this->X+8, this->Y+16, Link->X, Link->Y, 10)>activeDist||cooldown)
+				{
+					if(cooldown)
+						--cooldown;
+					EyegoreWaitframe(this);
+				}
+				EyegoreWaitframe(this, 16);
+				aptr->PlayAnim(ANIM_EYEOPENING);
+				while(!aptr->AnimFinished())
+					EyegoreWaitframe(this);
+				aptr->PlayAnim(ANIM_EYEOPEN);
+				EyegoreWaitframe(this, 16);
+				aptr->PlayAnim(ANIM_WALK);
+				FaceLink(this);
+				for(int i=0; i<MAX_DEFENSE; ++i)
+					this->Defense[i] = defs[i];
+				int turnCounter = 0;
+				for(int i=0; i<walkTime; ++i)
+				{
+					if(LargeDistance(this->X+8, this->Y+16, Link->X, Link->Y, 10)>4)
+					{
+						if(turnCounter>0)
+							--turnCounter;
+						else
+						{
+							this->Dir = EyegoreLinkDir(this);
+							wallWalk = false;
+							if(turnCorner)
+							{
+								if(!EyegoreCanMove(this, this->Dir, false))
+								{
+									if(this->Dir<DIR_LEFT)
+									{
+										if(this->X+8<Link->X)
+											this->Dir = DIR_RIGHT;
+										else if(this->X+8>Link->X)
+											this->Dir = DIR_LEFT;
+										else
+											this->Dir = Choose(DIR_LEFT, DIR_RIGHT);
+									}
+									else
+									{
+										if(this->Y+16<Link->Y)
+											this->Dir = DIR_DOWN;
+										else if(this->Y+16>Link->Y)
+											this->Dir = DIR_UP;
+										else
+											this->Dir = Choose(DIR_UP, DIR_DOWN);
+									}
+									wallWalk = true;
+								}
+							}
+							turnCounter = turnFreq;
+						}
+					}
+					int step = this->Step/100;
+					if(wallWalk)
+					{
+						int dirLink = EyegoreLinkDir(this);
+						if(EyegoreCanMove(this, dirLink, true))
+						{
+							this->Dir = dirLink;
+						}
+					}
+					EyegoreMoveXY(this, DirX(this->Dir)*step, DirY(this->Dir)*step);
+					EyegoreWaitframe(this);
+				}
+				for(int i=0; i<MAX_DEFENSE; ++i)
+					this->Defense[i] = NPCDT_BLOCK;
+				aptr->PlayAnim(ANIM_EYECLOSING);
+				while(!aptr->AnimFinished())
+					EyegoreWaitframe(this);
+				aptr->PlayAnim(ANIM_EYECLOSED);
+				EyegoreWaitframe(this, 16);
+				cooldown = cooldownTime;
+			}
+		}
+		bool EyegoreCanMove(npc this, int dir, bool updatePos)
+		{
+			AnimHandler aptr = GetAnimHandler(this);
+			
+			aptr->SetHitbox(2, 2, {16, 0, 8, 8});
+			
+			bool ret = this->CanMove(dir, 1, SPW_NONE);
+			if(!ret)
+			{
+				int oldX = this->X;
+				int oldY = this->Y;
+				if(dir<DIR_LEFT)
+				{
+					this->X = Floor(this->X+4/8)*8;
+					if(this->CanMove(dir, 1, SPW_NONE))
+					{
+						ret = this->CanMove(dir, 1, SPW_NONE);
+						if(updatePos)
+							oldX = this->X;
+					}
+				}
+				else
+				{
+					this->Y = Floor(this->Y+4/8)*8;
+					if(this->CanMove(dir, 1, SPW_NONE))
+					{
+						ret = this->CanMove(dir, 1, SPW_NONE);
+						if(updatePos)
+							oldY = this->Y;
+					}
+				}
+				this->X = oldX;
+				this->Y = oldY;
+			}
+			return ret;
+		}
+		void EyegoreMoveXY(npc this, int vx, int vy)
+		{
+			AnimHandler aptr = GetAnimHandler(this);
+			
+			aptr->SetHitbox(2, 2, {16, 0, 8, 8});
+			EyegoreCanMove(this, this->Dir, true);
+			this->MoveXY(vx, vy, SPW_NONE);
+		}
+		int EyegoreLinkDir(npc this)
+		{
+			return AngleDir4(Angle(this->X+8, this->Y+16, Link->X, Link->Y));
+		}
+		void EyegoreHitbox(npc this)
+		{
+			AnimHandler aptr = GetAnimHandler(this);
+			
+			if(aptr->GetCurAnim()==ANIM_WALK&&this->Dir>=DIR_DOWN)
+				aptr->SetHitbox(2, 2, {8, 8, 9, 9});
+			else
+				aptr->SetHitbox(2, 2, {8, 8, 8, 8});
+			aptr->SetMovementHitbox({16, 0, 8, 8});
+			MakeSecondHitbox(this, aptr);
+		}
+		void MakeSecondHitbox(npc this, AnimHandler aptr)
+		{
+			int w = 20;
+			if(aptr->GetCurAnim()==ANIM_WALK&&this->Dir>DIR_DOWN)
+				w = 14;
+			eweapon e = CreateEWeaponAt(EW_SCRIPT10, this->X+8, this->Y+16);
+			e->HitXOffset = 8-w/2;
+			e->HitYOffset = -8;
+			e->HitWidth = w;
+			e->HitHeight = 22;
+			e->ScriptTile = TIL_INVISIBLE;
+			e->Damage = this->Damage;
+			e->Unblockable = UNBLOCK_ALL;
+			e->Timeout = 2;
+		}
+		void EyegoreWaitframe(npc this, int frames=1)
+		{
+			for(int i=0; i<frames; ++i)
+			{
+				this->Slide();
+				EyegoreHitbox(this);
+				if(this->HP<=0)
+					this->Y += 8;
+				Waitframe(this);
+			}
+		}
+	}
+}

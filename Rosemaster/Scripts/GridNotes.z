@@ -1,0 +1,266 @@
+
+// Constants
+const int GRID_TILE			= 86580; 	// Blank Grid Tile
+const int TITLE_TILE 		= 86640; 	// Title Tile
+const int CURSOR_TILE		= 86320; 	// Cursor Tile
+const int CLEAR_MENU_TILE	= 86680; 	// Clear Menu Tile
+
+const int GRID_SIZE_X	= 14;		// Size of Grid X
+const int GRID_SIZE_Y	= 8;		// Size of Grid Y
+
+const int SM_SIZE_X		= 9;		// Size of Select Menu X
+const int SM_SIZE_Y		= 5;		// Size of Select Menu Y
+
+const int CLEAR_SIZE_X	= 6;		// Size of Clear Menu X
+const int CLEAR_SIZE_Y	= 2;		// Size of Clear Menu Y
+
+const int TITLE_SIZE_X	= 10;		// Size of Title X
+const int TITLE_SIZE_Y	= 2;		// Size of Title Y
+
+const int GRID_X		= 16;		// X position of top-left corner of grid
+const int GRID_Y		= 32;		// Y position of top-left corner of grid
+const int SEL_MENU_X	= 56;		// X position of top-left corner of Selection Menu.
+const int SEL_MENU_Y	= 56;		// Y position of top-left corner of Selection Menu.
+const int CLEAR_MENU_X	= 80;		// X position of top-left corner of Clear Menu.
+const int CLEAR_MENU_Y	= 112;		// Y position of top-left corner of Clear Menu.
+
+const int TITLE_X		= 48;		// X position of top-left corner of the title
+const int TITLE_Y		= 0;		// Y position of top-left corner of the title
+
+const int SFX_MOVE		= 5;		// Cursor SFX
+const int SFX_OPEN		= 99;		// Open SFX
+const int SFX_SEL1		= 91;		// Select 1 SFX
+const int SFX_SEL2		= 94;		// Select 2 SFX
+
+generic script GridNotes
+{
+	void run()
+	{
+		
+		// Initialize Data
+		this->DataSize = 116;
+		
+		int curPos1  	= 0; 	// Position of the cursor in the main grid.
+		int curPos2  	= 1;	// Position of the cursor in the select grid.
+		int menuSelect 	= 2;	// Select menu window active? (0 - No, 1 - Yes)
+		int menuClear	= 3;	// Clear menu window active? (0 - No, 1 - Yes)
+		int gridStart	= 4;	// Start of the Grid Data (4: First block, 115: Last Block) 
+		
+		// Initialize other things
+		int clearSelect	= 0;	// Confirmation for clearing entire grid. (0 - No, 1 - Yes)
+		int clearYesSel	= 0;	// Number of tiles to skip for yes confirmation.
+		
+		int i1 = 0; int i2 = 0; int i3 = 0; int i4 = 0;
+		int i5 = 0; int i6 = 0; int i7 = 0; int i8 = 0;
+		
+		// Play Sound
+		Game->PlaySound(SFX_OPEN);
+		
+		// Set Data
+		this->Data[menuSelect] = 0;
+		this->Data[menuClear]  = 0;
+		
+		// Main Menu Loop
+		while(true){
+			Screen->Rectangle(6, 0, 0, 256, 176, 0x0F, 1, 0, 0, 0, true, OP_TRANS);
+			
+			// Draw Title
+			for(i1 = 0; i1 < TITLE_SIZE_Y; i1++){
+				for(i2 = 0; i2 < TITLE_SIZE_X; i2++){
+					FastTile(6, TITLE_X+(i2*16), TITLE_Y+(i1*16), TITLE_TILE+(i1*20)+i2, 8, OP_OPAQUE);
+				}			
+			}
+			
+			// Draw Grid
+			for(i1 = 0; i1 < GRID_SIZE_Y; i1++){
+				for(i2 = 0; i2 < GRID_SIZE_X; i2++){
+					FastTile(6, GRID_X+(i2*16), GRID_Y+(i1*16), GRID_TILE+this->Data[gridStart+(i1*GRID_SIZE_X)+i2], 8, OP_OPAQUE);
+				}			
+			}
+			
+			// Draw Cursor 1
+			FastTile(6, GRID_X+(16*(this->Data[curPos1]%GRID_SIZE_X)), GRID_Y+(16*Floor(this->Data[curPos1]/GRID_SIZE_X)), CURSOR_TILE, 8, OP_OPAQUE);
+			
+			// Select Menu
+			if(this->Data[menuSelect]){
+				Screen->Rectangle(6, 0, 0, 256, 176, 0x0F, 1, 0, 0, 0, true, OP_TRANS);
+				// Draw Select Menu
+				for(i1 = 0; i1 < SM_SIZE_Y; i1++){
+					for(i2 = 0; i2 < SM_SIZE_X; i2++){
+						FastTile(6, SEL_MENU_X+(i2*16), SEL_MENU_Y+(i1*16), GRID_TILE+(i1*SM_SIZE_X)+i2, 8, OP_OPAQUE);
+					}
+				}
+				// Draw Cursor 2
+				FastTile(6, SEL_MENU_X+(16*(this->Data[curPos2]%SM_SIZE_X)), SEL_MENU_Y+(16*Floor(this->Data[curPos2]/SM_SIZE_X)), CURSOR_TILE, 8, OP_OPAQUE);
+			}
+			
+			// Clear Menu
+			if(this->Data[menuClear]){
+				Screen->Rectangle(6, 0, 0, 256, 176, 0x0F, 1, 0, 0, 0, true, OP_TRANS);
+				// Cursor Code
+				clearYesSel=clearSelect==0?0:6;
+				// Draw Clear
+				for(i1 = 0; i1 < CLEAR_SIZE_Y; i1++){
+					for(i2 = 0; i2 < CLEAR_SIZE_X; i2++){
+						FastTile(6, CLEAR_MENU_X+(i2*16), CLEAR_MENU_Y+(i1*16), CLEAR_MENU_TILE+clearYesSel+(i1*20)+i2, 8, OP_OPAQUE);
+					}
+				}
+			}
+			
+			
+			// ====================
+			// Control
+			// ====================
+			
+			if(Link->PressUp){
+				if(!this->Data[menuClear]){Game->PlaySound(SFX_MOVE);}
+				if(this->Data[menuSelect]){
+					this->Data[curPos2]=this->Data[curPos2]<9?this->Data[curPos2]+36:this->Data[curPos2]-9;
+				}
+				else if(!this->Data[menuClear]){
+					this->Data[curPos1]=this->Data[curPos1]<14?this->Data[curPos1]+98:this->Data[curPos1]-14;
+				}
+			}
+			
+			if(Link->PressDown){
+				if(!this->Data[menuClear]){Game->PlaySound(SFX_MOVE);}
+				if(this->Data[menuSelect]){
+					this->Data[curPos2]=this->Data[curPos2]>35?this->Data[curPos2]-36:this->Data[curPos2]+9;
+				}
+				else if(!this->Data[menuClear]){
+					this->Data[curPos1]=this->Data[curPos1]>97?this->Data[curPos1]-98:this->Data[curPos1]+14;
+				}
+			}
+			
+			if(Link->PressLeft){
+				Game->PlaySound(SFX_MOVE);
+				if(this->Data[menuSelect]){
+					this->Data[curPos2]=this->Data[curPos2]%9==0?this->Data[curPos2]+8:this->Data[curPos2]-1;
+				}
+				else if(this->Data[menuClear]){
+					clearSelect=clearSelect==0?1:0;
+				}
+				else{
+					this->Data[curPos1]=this->Data[curPos1]%14==0?this->Data[curPos1]+13:this->Data[curPos1]-1;
+				}
+			}
+			
+			if(Link->PressRight){
+				Game->PlaySound(SFX_MOVE);
+				if(this->Data[menuSelect]){
+					this->Data[curPos2]=this->Data[curPos2]%9==8?this->Data[curPos2]-8:this->Data[curPos2]+1;
+				}
+				else if(this->Data[menuClear]){
+					clearSelect=clearSelect==0?1:0;
+				}
+				else{
+					this->Data[curPos1]=this->Data[curPos1]%14==13?this->Data[curPos1]-13:this->Data[curPos1]+1;
+				}
+			}
+			
+			if(Link->PressA||Link->PressStart){
+				if(!this->Data[menuClear]){Game->PlaySound(SFX_SEL1);}
+				if(this->Data[menuSelect]){
+					this->Data[gridStart+this->Data[curPos1]] = this->Data[curPos2];
+					this->Data[menuSelect] = 0;
+				}
+				else if(this->Data[menuClear]){
+					if(clearSelect == 0){
+						Game->PlaySound(SFX_MOVE);
+					}
+					else{
+						Game->PlaySound(SFX_SEL2); // Clear
+						for(i1 = gridStart; i1 < gridStart+112; i1++){
+							this->Data[i1] = 0;
+						}
+					}
+					this->Data[menuClear] = 0;
+				}
+				else{
+					if(this->Data[gridStart+this->Data[curPos1]] != 0){
+						this->Data[curPos2] = this->Data[gridStart+this->Data[curPos1]];
+					}
+					this->Data[menuSelect] = 1;
+				}
+			}
+			
+			if(Link->PressEx1||Link->PressL){
+				if(!this->Data[menuSelect]&&!this->Data[menuClear]){
+					Game->PlaySound(SFX_MOVE);
+					this->Data[gridStart+this->Data[curPos1]]=this->Data[gridStart+this->Data[curPos1]]==0?44:this->Data[gridStart+this->Data[curPos1]]-1;
+				}
+			}
+			
+			if(Link->PressEx2||Link->PressR){
+				if(!this->Data[menuSelect]&&!this->Data[menuClear]){
+					Game->PlaySound(SFX_MOVE);
+					this->Data[gridStart+this->Data[curPos1]]=this->Data[gridStart+this->Data[curPos1]]==44?0:this->Data[gridStart+this->Data[curPos1]]+1;
+				}
+			}
+			
+			if(Link->PressMap){
+				if(this->Data[menuSelect]){
+					Game->PlaySound(SFX_SEL2);
+					this->Data[gridStart+this->Data[curPos1]] = 0;
+					this->Data[menuSelect] = 0;
+				}
+				else if(this->Data[menuClear]){
+					if(clearSelect == 0){
+						Game->PlaySound(SFX_MOVE);
+					}
+					else{
+						Game->PlaySound(SFX_SEL2); // Clear
+						for(i1 = gridStart; i1 < gridStart+112; i1++){
+							this->Data[i1] = 0;
+						}
+					}
+					this->Data[menuClear] = 0;
+				}
+				else{
+					Game->PlaySound(SFX_SEL1);
+					this->Data[menuClear] = 1;
+					clearSelect = 0;
+				}
+			}
+			
+			if(Link->PressEx4){
+				if(!this->Data[menuSelect]&&!this->Data[menuClear]){
+					Game->PlaySound(SFX_SEL2);
+					this->Data[gridStart+this->Data[curPos1]] = 0;
+				}
+				else if(this->Data[menuClear]){
+					if(clearSelect == 0){
+						Game->PlaySound(SFX_MOVE);
+					}
+					else{
+						Game->PlaySound(SFX_SEL2); // Clear
+						for(i1 = gridStart; i1 < gridStart+112; i1++){
+							this->Data[i1] = 0;
+						}
+					}
+					this->Data[menuClear] = 0;
+				}
+			}
+			
+			if(Link->PressB||Link->PressEx3){
+				if(this->Data[menuSelect]){
+					Game->PlaySound(SFX_SEL2);
+					this->Data[menuSelect] = 0;
+				}
+				else if(this->Data[menuClear]){
+					Game->PlaySound(SFX_SEL2);
+					this->Data[menuClear] = 0;
+				}
+				else{
+					Game->PlaySound(SFX_OPEN);
+					break;
+				}
+			}
+			
+			// ====================
+			Waitframe();
+		}
+		
+	}
+	
+}

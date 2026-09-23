@@ -1,0 +1,133 @@
+CONFIG SFX_GOOMBA_BOUNCE = 95;
+
+npc script TurboGoomba
+{
+    enum Animations
+    {
+        ANIM_WALK,
+        ANIM_TUMBLE
+    };
+    using namespace NPCAnim;
+    using namespace NPCAnim::Utility;
+    using namespace GhostBasedMovement;
+    void run(int angerHPPercentage, int angerStepMult, int fireballSprite)
+    {
+        AnimHandler aptr = new AnimHandler(this);
+        aptr->AddAnim(ANIM_WALK, 0, 2, 8, ADF_2WAYLR|ADF_FLIPRIGHT);
+        aptr->AddAnim(ANIM_TUMBLE, 2, 4, 4, 0);
+
+        aptr->SetFlags(AHF_NORMAL);
+
+        Waitspawn(this);
+
+        int counter = -1;
+        int initHP = this->HP;
+        int animSpeed = 1;
+        bool angy;
+        int bounceCooldown = 120;
+        while(true)
+        {
+            counter = ConstWalk4(this, counter);
+            if(!angy&&this->HP<initHP*angerHPPercentage)
+            {
+                angy = true;
+                this->Step *= angerStepMult;
+                animSpeed *= angerStepMult;
+                aptr->PlayAnim(ANIM_WALK);
+                aptr->SetAnimSpeedMultiplier(animSpeed);
+                Audio->PlaySound(SFX_JUMP);
+                this->Jump = 1.8;
+                while(this->Jump>0||this->Z>0)
+                {
+                    Waitframe(this);
+                }
+            }
+            if(angy)
+            {
+                if(this->HitBy[HIT_BY_LWEAPON_PTR])
+                {
+                    aptr->PlayAnim(ANIM_TUMBLE);
+                    aptr->SetAnimSpeedMultiplier(animSpeed);
+                    Waitframe(this, 32);
+                    for(int i=0; i<32; ++i)
+                    {
+                        for(int j=0; j<2; ++j)
+                        {
+                            eweapon e = FireEWeaponDegAngle(EW_FIREBALL, this->X, this->Y, i*Lerp(8, 32, i/31)+180*j, 500, this->WeaponDamage, fireballSprite, SFX_FIREBALL);
+                        }
+                        Waitframe(this, 4);
+                    }
+                    aptr->PlayAnim(ANIM_WALK);
+                    aptr->SetAnimSpeedMultiplier(animSpeed);
+                }
+                if(bounceCooldown)
+                    --bounceCooldown;
+                else if(Rand(16)==0)
+                {
+                    bounceCooldown = 180;
+                    for(int i=0; i<32; ++i)
+                    {
+                        FaceLink(this);
+                        this->MoveAtAngle(AngleLink(this), 1.2);
+                        Waitframe(this);
+                    }
+                    int bounces = 8;
+                    int ang = AngleLink(this);
+                    int vX = VectorX(1, ang);
+                    int vY = VectorY(1, ang);
+                    aptr->PlayAnim(ANIM_TUMBLE);
+                    aptr->SetAnimSpeedMultiplier(animSpeed);
+                    int quakeFrames;
+                    int bounceDelay;
+                    while(bounces>0)
+                    {
+                        bool bounced;
+                        if(bounceDelay)
+                            --bounceDelay;
+                        else
+                        {
+                            if((vX<0&&!this->CanMove(DIR_LEFT, 1))||(vX>0&&!this->CanMove(DIR_RIGHT, 1)))
+                            {
+                                Audio->PlaySound(SFX_GOOMBA_BOUNCE);
+                                vX = -vX;
+                                --bounces;
+                                Waitframe(this, 4);
+                                bounced = true;
+                                bounceDelay = 8;
+                            }
+                            if((vY<0&&!this->CanMove(DIR_UP, 1))||(vY>0&&!this->CanMove(DIR_DOWN, 1)))
+                            {
+                                Audio->PlaySound(SFX_GOOMBA_BOUNCE);
+                                vY = -vY;
+                                --bounces;
+                                Waitframe(this, 4);
+                                bounced = true;
+                                bounceDelay = 8;
+                            }
+                        }
+                        if(bounced)
+                        {
+                            Game->PlaySound(SFX_BOMB);
+                            Screen->Quake = 20;
+                            quakeFrames = 20;
+                            eweapon e = FireEWeaponDegAngle(EW_FIREBALL, this->X, this->Y, AngleLink(this), 300, this->WeaponDamage, fireballSprite, SFX_FIREBALL);
+                        }
+                        if(quakeFrames)
+                        {
+                            --quakeFrames;
+                            Link->PressA = false; Link->InputA = false;
+                            Link->PressB = false; Link->InputB = false;
+                            Link->PressEx1 = false; Link->InputEx1 = false;
+                            Link->PressEx2 = false; Link->InputEx2 = false;
+                        }
+                        this->MoveXY(this->Step/100*vX, this->Step/100*vY);
+                        Waitframe(this);
+                    }
+                    aptr->PlayAnim(ANIM_WALK);
+                    aptr->SetAnimSpeedMultiplier(animSpeed);
+                }
+            }
+            Waitframe(this);
+        }
+    }
+}

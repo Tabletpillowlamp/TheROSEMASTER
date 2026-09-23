@@ -1,0 +1,1402 @@
+ffc script StarlightExpress{
+	void run(int genID){
+		
+		if(genID == 0){
+		
+		int pos = 16;
+		int wave = 17;
+		int rng;
+		int best = 47;
+		int id1 = 16; int id2 = 96;
+		
+		//Summon Enemies
+		/*
+		Waves 001 - 019: Group 1
+		Waves 020 - 029: Group 1, Group 2
+		Waves 030 - 059: Group 2, Group 3
+		Waves 060 - 079: Group 3, Group 4
+		Waves 080 - 099: Group 4, Group 5
+		Waves 100 - 119: Group 5, Group 6
+		Waves 120 - 139: Group 6, Group 7
+		Waves 140 - 179: Group 6, Group 7, Group 8
+		Waves 180 - 219: Group 7, Group 8
+		Waves 220 - 269: Group R1 (5 weak, 1 strong)
+		Waves 270 - 319: Group R2 (4 weak, 2 strong)
+		Waves 320 - 399: Group R3 (3 weak, 2 strong, 1 Very Strong)
+		Waves 400+     : Group R4 (2 weak, 2 strong, 2 Very Strong)
+		*/
+		
+		//Roll RNG
+		if( Game->Counter[wave] < 20 ){ rng = Rand(1,20); }
+		else if( Game->Counter[wave] >= 20 && Game->Counter[wave] < 30 ){ rng = Rand(1,50); }
+		else if( Game->Counter[wave] >= 30 && Game->Counter[wave] < 60 ){ rng = Rand(21,70); }
+		else if( Game->Counter[wave] >= 60 && Game->Counter[wave] < 80 ){ rng = Rand(51,90); }
+		else if( Game->Counter[wave] >= 80 && Game->Counter[wave] < 100 ){ rng = Rand(71,120); }
+		else if( Game->Counter[wave] >= 100 && Game->Counter[wave] < 120 ){ rng = Rand(91,180); }
+		else if( Game->Counter[wave] >= 120 && Game->Counter[wave] < 140 ){ rng = Rand(121,250); }
+		else if( Game->Counter[wave] >= 140 && Game->Counter[wave] < 180 ){ rng = Rand(121,300); }
+		else if( Game->Counter[wave] >= 180 && Game->Counter[wave] < 220 ){ rng = Rand(181,300); }
+		//RNG Battles
+		else if( Game->Counter[wave] >= 220 && Game->Counter[wave] < 270 ){ rng = 301; }
+		else if( Game->Counter[wave] >= 270 && Game->Counter[wave] < 320 ){ rng = 302; }
+		else if( Game->Counter[wave] >= 320 && Game->Counter[wave] < 400 ){ rng = 303; }
+		else { rng = 304; }
+		
+		int safeLock = 0;
+		
+		//Reroll RNG if same as previous 20
+		while( safeLock < 30 &&
+			  (rng == Game->Counter[48] || rng == Game->Counter[49] || rng == Game->Counter[50] ||
+			   rng == Game->Counter[51] || rng == Game->Counter[52] || rng == Game->Counter[53] ||
+			   rng == Game->Counter[54] || rng == Game->Counter[55] || rng == Game->Counter[56] ||
+			   rng == Game->Counter[57] || rng == Game->Counter[58] || rng == Game->Counter[59] ||
+			   rng == Game->Counter[60] || rng == Game->Counter[61] || rng == Game->Counter[62] ||
+			   rng == Game->Counter[63] || rng == Game->Counter[64] || rng == Game->Counter[65] ||
+			   rng == Game->Counter[66] || rng == Game->Counter[67]) ){
+				   
+				if( Game->Counter[wave] < 20 ){ rng = Rand(1,20); }
+				else if( Game->Counter[wave] >= 20 && Game->Counter[wave] < 30 ){ rng = Rand(1,50); }
+				else if( Game->Counter[wave] >= 30 && Game->Counter[wave] < 60 ){ rng = Rand(21,70); }
+				else if( Game->Counter[wave] >= 60 && Game->Counter[wave] < 80 ){ rng = Rand(51,90); }
+				else if( Game->Counter[wave] >= 80 && Game->Counter[wave] < 100 ){ rng = Rand(71,120); }
+				else if( Game->Counter[wave] >= 100 && Game->Counter[wave] < 120 ){ rng = Rand(91,180); }
+				else if( Game->Counter[wave] >= 120 && Game->Counter[wave] < 140 ){ rng = Rand(121,250); }
+				else if( Game->Counter[wave] >= 140 && Game->Counter[wave] < 180 ){ rng = Rand(121,300); }
+				else if( Game->Counter[wave] >= 180 && Game->Counter[wave] < 220 ){ rng = Rand(181,300); }
+				//RNG Battles
+				else if( Game->Counter[wave] >= 220 && Game->Counter[wave] < 270 ){ rng = 301; }
+				else if( Game->Counter[wave] >= 270 && Game->Counter[wave] < 320 ){ rng = 302; }
+				else if( Game->Counter[wave] >= 320 && Game->Counter[wave] < 400 ){ rng = 303; }
+				else { rng = 304; }
+				
+				//printf("Rolling");
+				safeLock++;
+				if(safeLock >= 30){
+					printf("WARNING: Rolled too much Check Code");	
+				}
+			   }
+			   
+		//Weak Enemies Table
+		int enemyList1[] = {  90, 187, 139, 479,  42, 373, 314, 136, 333, 371,
+							 396,  81,  51, 338, 391, 496, 159, 343, 323, 243,
+							  57,  99,  94, 444, 415,  91, 461, 466, 414, 310,
+							 367,  82, 206, 289, 290, 288, 291, 142, 153, 354,
+							 363,  35,  72 };
+		//Strong Enemies Table
+		int enemyList2[] = {  240, 365, 328, 350, 423,  31, 346, 497, 455, 495,
+							  487, 488, 121, 408, 294, 111, 494, 392, 405, 413,
+							  135, 478, 464, 227, 277, 476, 489, 490, 457, 477,
+							  421, 475, 446, 447, 474, 256,  66, 473, 456 };
+		//Very Strong Enemies Table
+		int enemyList3[] = {  277, 490, 356, 475, 497, 495, 478, 413, 488, 494,
+							  423, 31 };
+						   
+		//Roll Random Enemy
+		int rr1; int rr2; int rr3;
+		int rr4; int rr5; int rr6;
+		
+		if(rng == 301){
+			rr1 = Rand(0,38); rr2 = Rand(0,42); rr3 = Rand(0,42);
+			rr4 = Rand(0,42); rr5 = Rand(0,42); rr6 = Rand(0,42);
+		}
+		else if(rng == 302){
+			rr1 = Rand(0,38); rr2 = Rand(0,38); rr3 = Rand(0,42);
+			rr4 = Rand(0,42); rr5 = Rand(0,42); rr6 = Rand(0,42);
+		}
+		else if(rng == 303){
+			rr1 = Rand(0,11); rr2 = Rand(0,38); rr3 = Rand(0,38);
+			rr4 = Rand(0,42); rr5 = Rand(0,42); rr6 = Rand(0,42);
+		}
+		else if(rng == 304){
+			rr1 = Rand(0,11); rr2 = Rand(0,11); rr3 = Rand(0,38);
+			rr4 = Rand(0,38); rr5 = Rand(0,42); rr6 = Rand(0,42);
+		}
+		
+		//Summon Enemies
+		//==============
+		
+		switch(rng){
+			
+			// Group 1 (1-20)
+			
+			case 1: // Octorock L3 (8)
+				CreateNPCAt(139, 120, 48); CreateNPCAt(139, 144, 48);
+				CreateNPCAt(139, 168, 48); CreateNPCAt(139, 192, 48);
+				CreateNPCAt(139, 120, 144); CreateNPCAt(139, 144, 144);
+				CreateNPCAt(139, 168, 144); CreateNPCAt(139, 192, 144);
+				break;
+			case 2: // Gleeok 6 Heads 
+				CreateNPCAt(64, 120, 48); CreateNPCAt(64, 120, 48);
+				break;
+			case 3: // Keese L2 (4), Tektite L3 (4)
+				CreateNPCAt(40, 120, 56); CreateNPCAt(42, 144, 56);
+				CreateNPCAt(40, 168, 56); CreateNPCAt(42, 192, 56);
+				CreateNPCAt(42, 120, 136); CreateNPCAt(40, 144, 136);
+				CreateNPCAt(42, 168, 136); CreateNPCAt(40, 192, 136);
+				break;
+			case 4: // Stalfos L3 (4), Stink Beetle L1 (4)
+				CreateNPCAt(120, 120, 56); CreateNPCAt(364, 144, 56);
+				CreateNPCAt(120, 168, 56); CreateNPCAt(364, 192, 56);
+				CreateNPCAt(364, 120, 136); CreateNPCAt(120, 144, 136);
+				CreateNPCAt(364, 168, 136); CreateNPCAt(120, 192, 136);
+				break;
+			case 5: // Luciby L1 (3), Keese Master L2 (1)
+				CreateNPCAt(191, 168, 88); CreateNPCAt(263, 168, 136);
+				CreateNPCAt(263, 144, 56); CreateNPCAt(263, 192, 56);
+				break;
+			case 6: // Goriya L3 (2), Goriya L2 (6)
+				CreateNPCAt(46, 120, 48); CreateNPCAt(46, 144, 48);
+				CreateNPCAt(46, 168, 48); CreateNPCAt(245, 192, 48);
+				CreateNPCAt(46, 120, 144); CreateNPCAt(46, 144, 144);
+				CreateNPCAt(46, 168, 144); CreateNPCAt(245, 192, 144);
+				break;
+			case 7: // Bari L1 (2), Bari L2 (2), Bari L3 (2), Bari L4 (2)
+				CreateNPCAt(181, 120, 48); CreateNPCAt(182, 144, 48);
+				CreateNPCAt(264, 168, 48); CreateNPCAt(314, 192, 48);
+				CreateNPCAt(181, 120, 144); CreateNPCAt(182, 144, 144);
+				CreateNPCAt(264, 168, 144); CreateNPCAt(314, 192, 144);
+				break;
+			case 8: // Popo L3 (1), Popo L2 (2)
+				CreateNPCAt(187, 176, 88); CreateNPCAt(186, 176, 56); CreateNPCAt(186, 176, 120);
+				break;
+			case 9: // Stalfos L3 (4), Eyegore L2 (2)
+				CreateNPCAt(120, 136, 56); CreateNPCAt(120, 160, 56); CreateNPCAt(197, 184, 56);
+				CreateNPCAt(120, 136, 136); CreateNPCAt(120, 160, 136); CreateNPCAt(197, 184, 136);
+				break;
+			case 10: // Hardhat Beetle L3 (3), Zombie L1 (6)
+				CreateNPCAt(334, 176, 88); CreateNPCAt(334, 176, 56); CreateNPCAt(334, 176, 120);
+				CreateNPCAt(229, 56, 56); CreateNPCAt(229, 56, 56); CreateNPCAt(229, 56, 56);
+				CreateNPCAt(229, 56, 56); CreateNPCAt(229, 56, 56); CreateNPCAt(229, 56, 56);
+				break;
+			case 11: // Hyu L1 (2), Hyu L2 (2)
+				CreateNPCAt(279, 144, 56); CreateNPCAt(292, 184, 56);
+				CreateNPCAt(279, 144, 136); CreateNPCAt(292, 184, 136);
+				break;
+			case 12: // Zazak L1 (3), Muerte Doll L1 (1)
+				CreateNPCAt(398, 168, 88); CreateNPCAt(318, 168, 136);
+				CreateNPCAt(318, 144, 56); CreateNPCAt(318, 192, 56);
+				break;
+			case 13: // Hyrulean Soldier L1 (4), Hyrulean Soldier L2 (4)
+				CreateNPCAt(206, 120, 48); CreateNPCAt(206, 144, 48);
+				CreateNPCAt(289, 168, 48); CreateNPCAt(289, 192, 48);
+				CreateNPCAt(206, 120, 144); CreateNPCAt(206, 144, 144);
+				CreateNPCAt(289, 168, 144); CreateNPCAt(289, 192, 144);
+				break;
+			case 14: // Manhandala L1
+				CreateNPCAt(61, 160, 96);
+				break;
+			case 15: // Slugga L1 (4), Slugga L2 (2), Zirro L1 (2)
+				CreateNPCAt(162, 120, 48); CreateNPCAt(162, 144, 48);
+				CreateNPCAt(166, 168, 48); CreateNPCAt(309, 192, 48);
+				CreateNPCAt(162, 120, 144); CreateNPCAt(162, 144, 144);
+				CreateNPCAt(166, 168, 144); CreateNPCAt(309, 192, 144);
+				break;
+			case 16: // Wosu (8)
+				CreateNPCAt(35, 120, 48); CreateNPCAt(35, 144, 48);
+				CreateNPCAt(35, 168, 48); CreateNPCAt(35, 192, 48);
+				CreateNPCAt(35, 120, 144); CreateNPCAt(35, 144, 144);
+				CreateNPCAt(35, 168, 144); CreateNPCAt(35, 192, 144);
+				break;
+			case 17: // Wizzrobe L2 (4), Wizzrobe L3 (2), Wizzrobe L5 (2)
+				CreateNPCAt(243, 120, 48); CreateNPCAt(243, 144, 48);
+				CreateNPCAt(57, 168, 48); CreateNPCAt(99, 192, 48);
+				CreateNPCAt(243, 120, 144); CreateNPCAt(243, 144, 144);
+				CreateNPCAt(57, 168, 144); CreateNPCAt(99, 192, 144);
+				break;
+			case 18: // Ice Kodongo L2 (2), Critter L2 (4)
+				CreateNPCAt(367, 136, 56); CreateNPCAt(367, 160, 56); CreateNPCAt(343, 184, 56);
+				CreateNPCAt(367, 136, 136); CreateNPCAt(367, 160, 136); CreateNPCAt(343, 184, 136);
+				break;
+			case 19: // Hokkubokku L2 (1), Hokkubokku L1 (2)
+				CreateNPCAt(345, 176, 88); CreateNPCAt(261, 176, 56); CreateNPCAt(261, 176, 120);
+				break;
+			case 20: // Vire L2 (2), Vire L1 (2)
+				CreateNPCAt(52, 144, 56); CreateNPCAt(336, 184, 56);
+				CreateNPCAt(52, 144, 136); CreateNPCAt(336, 184, 136);
+				break;
+				
+			// Group 2 (21-50)
+			
+			case 21: // Moldorm L2
+				CreateNPCAt(255, 160, 96);
+				break;
+			case 22: // Nut Cracker, Uncle Sam
+				CreateNPCAt(212, 144, 88); CreateNPCAt(70, 176, 88);
+				break;
+			case 23: // Darknut L2 (2), Dodongo (1)
+				CreateNPCAt(60, 176, 88); CreateNPCAt(50, 176, 56); CreateNPCAt(50, 176, 120);
+				break;
+			case 24: // Lady Mandrake L1 (2), Keese L2 (4)
+				CreateNPCAt(40, 136, 56); CreateNPCAt(122, 160, 56); CreateNPCAt(40, 184, 56);
+				CreateNPCAt(40, 136, 136); CreateNPCAt(122, 160, 136); CreateNPCAt(40, 184, 136);
+				break;
+			case 25: // Luciby L1 (7), Luciby L2 (1)
+				CreateNPCAt(263, 120, 48); CreateNPCAt(263, 144, 48);
+				CreateNPCAt(263, 168, 48); CreateNPCAt(310, 192, 48);
+				CreateNPCAt(263, 120, 144); CreateNPCAt(263, 144, 144);
+				CreateNPCAt(263, 168, 144); CreateNPCAt(310, 192, 144);
+				break;
+			case 26: // Pols Voice L1 (6), Pols Voice L2 (2)
+				CreateNPCAt(55, 120, 48); CreateNPCAt(55, 144, 48);
+				CreateNPCAt(55, 168, 48); CreateNPCAt(414, 192, 48);
+				CreateNPCAt(55, 120, 144); CreateNPCAt(55, 144, 144);
+				CreateNPCAt(55, 168, 144); CreateNPCAt(414, 192, 144);
+				break;
+			case 27: // Anti-Kirby, Keese Master L2
+				CreateNPCAt(328, 168, 64); CreateNPCAt(191, 168, 128);
+				break;
+			case 28: // Hyu L3 (1), Hyu L2 (2)
+				CreateNPCAt(82, 176, 88); CreateNPCAt(292, 176, 56); CreateNPCAt(292, 176, 120);
+				break;
+			case 29: // Hyrulean Soldier L3 (4)
+				CreateNPCAt(290, 144, 56); CreateNPCAt(290, 184, 56);
+				CreateNPCAt(290, 144, 136); CreateNPCAt(290, 184, 136);
+				break;
+			case 30: // Fire Gleeok 2 Heads
+				CreateNPCAt(63, 120, 48);
+				break;
+			case 31: // Hinox L1 (3)
+				CreateNPCAt(319, 176, 88); CreateNPCAt(319, 176, 56); CreateNPCAt(319, 176, 120);
+				break;
+			case 32: // Giant Rabbit, Killer Rabbit
+				CreateNPCAt(202, 120, 88); CreateNPCAt(275, 120, 88);
+				break;
+			case 33: // Luciby L2 (2)
+				CreateNPCAt(310, 168, 64); CreateNPCAt(310, 168, 128);
+				break;
+			case 34: // Pikit L1 (6), Pikit L2 (2)
+				CreateNPCAt(316, 120, 48); CreateNPCAt(316, 144, 48);
+				CreateNPCAt(316, 168, 48); CreateNPCAt(142, 192, 48);
+				CreateNPCAt(316, 120, 144); CreateNPCAt(316, 144, 144);
+				CreateNPCAt(316, 168, 144); CreateNPCAt(142, 192, 144);
+				break;
+			case 35: // Aquamentus L1, Aquamentus L2
+				CreateNPCAt(205, 168, 64); CreateNPCAt(510, 168, 128);
+				break;
+			case 36: // Plazmy (3)
+				CreateNPCAt(371, 176, 88); CreateNPCAt(371, 176, 56); CreateNPCAt(371, 176, 120);
+				break;
+			case 37: // Zombie L2 (2), Flare L2 (2)
+				CreateNPCAt(338, 176, 64); CreateNPCAt(338, 176, 128); 
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				break;
+			case 38: // Lady Mandrake L2 (1), Peahat (4)
+				CreateNPCAt(359, 144, 96);
+				CreateNPCAt(32, 112, 64); CreateNPCAt(32, 176, 64);
+				CreateNPCAt(32, 112, 128); CreateNPCAt(32, 176, 128);
+				break;
+			case 39: // Rope L3 (4)
+				CreateNPCAt(373, 144, 56); CreateNPCAt(373, 184, 56);
+				CreateNPCAt(373, 144, 136); CreateNPCAt(373, 184, 136);
+				break;
+			case 40: // Rope L2 (6), Rope L3 (2)
+				CreateNPCAt(80, 120, 48); CreateNPCAt(80, 144, 48);
+				CreateNPCAt(80, 168, 48); CreateNPCAt(373, 192, 48);
+				CreateNPCAt(80, 120, 144); CreateNPCAt(80, 144, 144);
+				CreateNPCAt(80, 168, 144); CreateNPCAt(373, 192, 144);
+				break;
+			case 41: // Evil Knight L2 (2), Moldorm L1 (3)
+				CreateNPCAt(59, 120, 96); CreateNPCAt(59, 120, 96); CreateNPCAt(59, 120, 96);
+				CreateNPCAt(332, 176, 64); CreateNPCAt(332, 176, 128);
+				break;
+			case 42: // Lynel L1 (1), Hardhat Beetle L3 (2)
+				CreateNPCAt(30, 160, 96); CreateNPCAt(334, 176, 64); CreateNPCAt(334, 176, 128);
+				break;
+			case 43: // Snapdragon L2 (2)
+				CreateNPCAt(363, 176, 64); CreateNPCAt(363, 176, 128);
+				break;
+			case 44: // Armarry L1 (1), Hyrulean Soldier L3 (2)
+				CreateNPCAt(372, 160, 96); CreateNPCAt(290, 176, 64); CreateNPCAt(290, 176, 128);
+				break;
+			case 45: // Wizzrobe L5 (5)
+				CreateNPCAt(99, 144, 56); CreateNPCAt(99, 184, 56);
+				CreateNPCAt(99, 144, 136); CreateNPCAt(99, 184, 136); CreateNPCAt(99, 160, 96);
+				break;
+			case 46: // Darknut L3 (1), Darknut L2 (2)
+				CreateNPCAt(159, 160, 96); CreateNPCAt(50, 176, 64); CreateNPCAt(50, 176, 128);
+				break;
+			case 47: // Tektite L3 (2), Hokkubokku L1 (1), Hokkubokku L2 (1)
+				CreateNPCAt(42, 144, 56); CreateNPCAt(261, 184, 56);
+				CreateNPCAt(42, 144, 136); CreateNPCAt(345, 184, 136);
+				break;
+			case 48: // Nut Cracker (1), Witch L1 (2)
+				CreateNPCAt(212, 160, 96); CreateNPCAt(360, 176, 64); CreateNPCAt(360, 176, 128);
+				break;
+			case 49: // Zazak L1 (4), Slugga L2 (2)
+				CreateNPCAt(318, 136, 56); CreateNPCAt(318, 160, 56); CreateNPCAt(166, 184, 56);
+				CreateNPCAt(318, 136, 136); CreateNPCAt(318, 160, 136); CreateNPCAt(166, 184, 136);
+				break;
+			case 50: // Ropa L2 (4)
+				CreateNPCAt(189, 144, 56); CreateNPCAt(189, 184, 56);
+				CreateNPCAt(189, 144, 136); CreateNPCAt(189, 184, 136);
+				break;
+				
+			// Group 3 (51-70)
+			
+			case 51: // Muerte Doll L1 (2), Witch L1 (2)
+				CreateNPCAt(360, 144, 56); CreateNPCAt(398, 184, 56);
+				CreateNPCAt(360, 144, 136); CreateNPCAt(398, 184, 136);
+				break;
+			case 52: // Fokkeru L1 (1), Wosu (4)
+				CreateNPCAt(35, 144, 56); CreateNPCAt(35, 184, 56);
+				CreateNPCAt(35, 144, 136); CreateNPCAt(35, 184, 136); CreateNPCAt(161, 160, 96);
+				break;
+			case 53: // Luciby L2 (2), Luciby L1 (2)
+				CreateNPCAt(263, 144, 56); CreateNPCAt(310, 184, 56);
+				CreateNPCAt(310, 144, 136); CreateNPCAt(263, 184, 136);
+				break;
+			case 54: // Fokka L1 (1), Wosu (2)
+				CreateNPCAt(227, 160, 96); CreateNPCAt(35, 176, 64); CreateNPCAt(35, 176, 128);
+				break;
+			case 55: // Lakitu (2)
+				CreateNPCAt(91, 168, 64); CreateNPCAt(92, 168, 128);
+				break;
+			case 56: // Soldier Spirit L1 (2), Soldier Spirit L2 (2)
+				CreateNPCAt(72, 144, 56); CreateNPCAt(364, 184, 56);
+				CreateNPCAt(72, 144, 136); CreateNPCAt(364, 184, 136);
+				break;
+			case 57: // Hardhat Beetle L3 (2), Hardhat Beetle (L4) (1)
+				CreateNPCAt(496, 160, 96); CreateNPCAt(334, 176, 64); CreateNPCAt(334, 176, 128);
+				break;
+			case 58: // Uncle Sam (2), Star (5)
+				CreateNPCAt(396, 136, 48); CreateNPCAt(396, 136, 72); CreateNPCAt(396, 136, 96);
+				CreateNPCAt(396, 136, 120); CreateNPCAt(396, 136, 144);
+				CreateNPCAt(70, 176, 64); CreateNPCAt(70, 176, 128);
+				break;
+			case 59: // Tin Man L1
+				CreateNPCAt(457, 160, 96);
+				break;
+			case 60: // Witch L2 (1), Witch L1 (2)
+				CreateNPCAt(383, 160, 96); CreateNPCAt(360, 176, 64); CreateNPCAt(360, 176, 128);
+				break;
+			case 61: // Hokkubokku L2, Hokkubokku L3
+				CreateNPCAt(345, 176, 64); CreateNPCAt(346, 176, 128);
+				break;
+			case 62: // Stink Beetle L2 (4)
+				CreateNPCAt(415, 144, 56); CreateNPCAt(415, 184, 56);
+				CreateNPCAt(415, 144, 136); CreateNPCAt(415, 184, 136);
+				break;
+			case 63: // Eternal Nightmare (4)
+				CreateNPCAt(77, 144, 56); CreateNPCAt(77, 184, 56);
+				CreateNPCAt(77, 144, 136); CreateNPCAt(77, 184, 136);
+				break;
+			case 64: // Wakata L2 (3), Terrorpin L1 (3)
+				CreateNPCAt(214, 136, 56); CreateNPCAt(357, 160, 56); CreateNPCAt(214, 184, 56);
+				CreateNPCAt(357, 136, 136); CreateNPCAt(214, 160, 136); CreateNPCAt(357, 184, 136);
+				break;
+			case 65: // Witch L2 (2)
+				CreateNPCAt(383, 176, 64); CreateNPCAt(383, 176, 128);
+				break;
+			case 66: // Hyu L3 (3)
+				CreateNPCAt(82, 176, 64); CreateNPCAt(82, 176, 128);
+				break;
+			case 67: // Muerte Doll L2 (1), Terrorpin L1 (2)
+				CreateNPCAt(405, 160, 96); CreateNPCAt(357, 176, 64); CreateNPCAt(357, 176, 128);
+				break;
+			case 68: // Kaguya L1 (2), Pols Voice (5)
+				CreateNPCAt(55, 136, 48); CreateNPCAt(55, 136, 72); CreateNPCAt(55, 136, 96);
+				CreateNPCAt(55, 136, 120); CreateNPCAt(55, 136, 144);
+				CreateNPCAt(300, 176, 64); CreateNPCAt(300, 176, 128);
+				break;
+			case 69: // Darknut L3 (2)
+				CreateNPCAt(159, 176, 64); CreateNPCAt(159, 176, 128);
+				break;
+			case 70: // Lady Mandrake L2 (1), Snapdragon L1 (2)
+				CreateNPCAt(359, 160, 96); CreateNPCAt(313, 176, 64); CreateNPCAt(313, 176, 128);
+				break;
+			
+			// Group 4 (71-90)
+			
+			case 71: // Fokka L1, Fokkeru L1
+				CreateNPCAt(161, 136, 96); CreateNPCAt(227, 176, 96);
+				break;
+			case 72: // Wolfos (2)
+				CreateNPCAt(81, 176, 64); CreateNPCAt(81, 176, 128);
+				break;
+			case 73: // Satellite Dish (2), Wizzrobe L6 (2)
+				CreateNPCAt(94, 144, 56); CreateNPCAt(466, 184, 56);
+				CreateNPCAt(94, 144, 136); CreateNPCAt(466, 184, 136);
+				break;
+			case 74: // Chinese Dragon L2 (1), Keese L3 (4)
+				CreateNPCAt(509, 160, 96);
+				CreateNPCAt(90, 144, 56); CreateNPCAt(90, 184, 56);
+				CreateNPCAt(90, 144, 136); CreateNPCAt(90, 184, 136);
+				break;
+			case 75: // Fire Kodongo L1 (2), Fire Kodongo L2 (2), Ice Kodongo L1 (2), Ice Kodongo L2 (2)
+				CreateNPCAt(138, 120, 48); CreateNPCAt(259, 144, 48);
+				CreateNPCAt(343, 168, 48); CreateNPCAt(323, 192, 48);
+				CreateNPCAt(138, 120, 144); CreateNPCAt(259, 144, 144);
+				CreateNPCAt(343, 168, 144); CreateNPCAt(323, 192, 144);
+				break;
+			case 76: // Ropa L3 (1), Ropa L2 (2)
+				CreateNPCAt(190, 176, 96); CreateNPCAt(189, 176, 64); CreateNPCAt(189, 176, 128);
+				break;
+			case 77: // Aquamentus L2 (1), Keese L3 (4)
+				CreateNPCAt(510, 160, 96);
+				CreateNPCAt(90, 144, 56); CreateNPCAt(90, 184, 56);
+				CreateNPCAt(90, 144, 136); CreateNPCAt(90, 184, 136);
+				break;
+			case 78: // Nut Cracker (3)
+				CreateNPCAt(212, 128, 56); CreateNPCAt(212, 152, 88); CreateNPCAt(212, 184, 120);
+				break;
+			case 79: // Wonder Egg L1, Satellite Dish L1
+				CreateNPCAt(446, 176, 64); CreateNPCAt(466, 176, 128);
+				break;
+			case 80: // Meteor Pillar L1
+				CreateNPCAt(457, 120, 96);
+				break;
+			case 81: // Zazak L2 (2)
+				CreateNPCAt(294, 176, 64); CreateNPCAt(294, 176, 128);
+				break;
+			case 82: // Muerte Doll L2 (1), Slugga L3 (2), Hardhat Beetle L3 (1)
+				CreateNPCAt(405, 176, 96); CreateNPCAt(334, 144, 96);
+				CreateNPCAt(444, 144, 56); CreateNPCAt(444, 144, 136);
+				break;
+			case 83: // Aquamentus L2 (1), Aquamentus L1 (2)
+				CreateNPCAt(510, 176, 96); CreateNPCAt(205, 176, 56); CreateNPCAt(205, 176, 136);
+				break;
+			case 84: // Snapdragon L2 (4)
+				CreateNPCAt(363, 144, 56); CreateNPCAt(363, 184, 56);
+				CreateNPCAt(363, 144, 136); CreateNPCAt(363, 184, 136);
+				break;
+			case 85: // Armarry L1 (2)
+				CreateNPCAt(372, 176, 64); CreateNPCAt(372, 176, 128);
+				break;
+			case 86: // Keesemaster L2 (1), Bari L4 (2)
+				CreateNPCAt(191, 176, 96); CreateNPCAt(314, 176, 56); CreateNPCAt(314, 176, 136);
+				break;
+			case 87: // Stalfos L3 (6)
+				CreateNPCAt(120, 136, 56); CreateNPCAt(120, 160, 56); CreateNPCAt(120, 184, 56);
+				CreateNPCAt(120, 136, 136); CreateNPCAt(120, 160, 136); CreateNPCAt(120, 184, 136);
+				break;
+			case 88: // Tank L2 (1), Eyegore L3 (3)
+				CreateNPCAt(365, 136, 96); CreateNPCAt(240, 174, 96);
+				CreateNPCAt(240, 174, 56); CreateNPCAt(240, 174, 136);
+				break;
+			case 89: // Rope L3 (4), Hardhat Beetle L3 (2), Zirro L2 (2)
+				CreateNPCAt(373, 120, 48); CreateNPCAt(373, 144, 48);
+				CreateNPCAt(334, 168, 48); CreateNPCAt(153, 192, 48);
+				CreateNPCAt(373, 120, 144); CreateNPCAt(373, 144, 144);
+				CreateNPCAt(334, 168, 144); CreateNPCAt(153, 192, 144);
+				break;
+			case 90: // Damngun L1, Satellite Dish L1
+				CreateNPCAt(135, 136, 96); CreateNPCAt(466, 184, 96);
+				break;
+			
+			// Group 5 (90-120)
+			
+			case 91: // Licorice Duo L1
+				CreateNPCAt(421, 144, 96);
+				break;
+			case 92: // Mirranjo L1, Valkyrie L1
+				CreateNPCAt(424, 176, 64); CreateNPCAt(489, 176, 128);
+				break;
+			case 93: // Fokkeru L2, Fokkeru L1
+				CreateNPCAt(161, 176, 64); CreateNPCAt(464, 176, 128);
+				break;
+			case 94: // Shadgoon (8)
+				CreateNPCAt(51, 120, 48); CreateNPCAt(51, 144, 48);
+				CreateNPCAt(51, 168, 48); CreateNPCAt(51, 192, 48);
+				CreateNPCAt(51, 120, 144); CreateNPCAt(51, 144, 144);
+				CreateNPCAt(51, 168, 144); CreateNPCAt(51, 192, 144);
+				break;
+			case 95: // Manhandala L1 (2), Fokkeru L2 (1)
+				CreateNPCAt(464, 160, 96);
+				CreateNPCAt(61, 160, 64); CreateNPCAt(61, 160, 128);
+				break;
+			case 96: // Aquamentus L2 (2)
+				CreateNPCAt(510, 176, 64); CreateNPCAt(510, 176, 128);
+				break;
+			case 97: // Lady Mandrake L2 (2)
+				CreateNPCAt(359, 176, 64); CreateNPCAt(359, 176, 120);
+				break;
+			case 98: // Hinox L2 (1), Hinox L1 (2)
+				CreateNPCAt(121, 176, 96); CreateNPCAt(319, 176, 56); CreateNPCAt(319, 176, 136);
+				break;
+			case 99: // Zazak L2 (3)
+				CreateNPCAt(294, 176, 96); CreateNPCAt(294, 176, 56); CreateNPCAt(294, 176, 136);
+				break;
+			case 100: // Hyrulean Soldier L4 (2), Hyrulean Soldier L5 (2)
+				CreateNPCAt(291, 144, 56); CreateNPCAt(288, 184, 56);
+				CreateNPCAt(291, 144, 136); CreateNPCAt(288, 184, 136);
+				break;
+			case 101: // Evil Knight L2 (4)
+				CreateNPCAt(332, 144, 56); CreateNPCAt(332, 184, 56);
+				CreateNPCAt(332, 144, 136); CreateNPCAt(332, 184, 136);
+				break;
+			case 102: // Hardhat Beetle L3 (2), Hardhat Beetle L4 (2)
+				CreateNPCAt(496, 144, 56); CreateNPCAt(334, 184, 56);
+				CreateNPCAt(496, 144, 136); CreateNPCAt(334, 184, 136);
+				break;
+			case 103: // Lady Mandrake L3
+				CreateNPCAt(495, 136, 96);
+				break;
+			case 104: // Armarry L2 (1), Star (3)
+				CreateNPCAt(392, 144, 96); CreateNPCAt(396, 176, 96);
+				CreateNPCAt(396, 176, 64); CreateNPCAt(396, 176, 128);
+				break;
+			case 105: // Satellite Dish L1 (5)
+				CreateNPCAt(466, 160, 96); CreateNPCAt(466, 176, 96); CreateNPCAt(466, 192, 96);
+				CreateNPCAt(466, 176, 72); CreateNPCAt(466, 176, 120);
+				break;
+			case 106: // Fokka L1 (2)
+				CreateNPCAt(227, 176, 64); CreateNPCAt(227, 176, 128);
+				break;
+			case 107: // Witch L2 (2), Luciby L2 (1)
+				CreateNPCAt(310, 176, 96); CreateNPCAt(383, 176, 56); CreateNPCAt(383, 176, 136);
+				break;
+			case 108: // Patra
+				CreateNPCAt(66, 136, 96);
+				break;
+			case 109: // Fire Gleeok 4 Heads
+				CreateNPCAt(110, 120, 56); CreateNPCAt(110, 120, 56);
+				break;
+			case 110: // Zazak L2 (1), Flare L2 (3)
+				CreateNPCAt(294, 176, 96); CreateNPCAt(338, 144, 96);
+				CreateNPCAt(338, 144, 64); CreateNPCAt(338, 144, 128);
+				break;
+			case 111: // Snapdragon L3
+				CreateNPCAt(111, 144, 96);
+				break;
+			case 112: // Wizzrobe L5 (4), Wizzrobe L6 (4)
+				CreateNPCAt(99, 120, 48); CreateNPCAt(94, 144, 48);
+				CreateNPCAt(94, 168, 48); CreateNPCAt(99, 192, 48);
+				CreateNPCAt(94, 120, 144); CreateNPCAt(99, 144, 144);
+				CreateNPCAt(99, 168, 144); CreateNPCAt(94, 192, 144);
+				break;
+			case 113: // Hokkubokku L3 (2)
+				CreateNPCAt(346, 176, 64); CreateNPCAt(346, 176, 128);
+				break;
+			case 114: // Slugga L3 (6)
+				CreateNPCAt(444, 136, 56); CreateNPCAt(444, 160, 56); CreateNPCAt(444, 184, 56);
+				CreateNPCAt(444, 136, 136); CreateNPCAt(444, 160, 136); CreateNPCAt(444, 184, 136);
+				break;
+			case 115: // Zombie L2 (6)
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				break;
+			case 116: // Fire Gleeok 2 Heads, Wonder Egg L2
+				CreateNPCAt(110, 120, 56); CreateNPCAt(447, 120, 96); 
+				break;
+			case 117: // Valkyrie L1 (2), Luciby L1 (1)
+				CreateNPCAt(263, 176, 96); CreateNPCAt(424, 176, 56); CreateNPCAt(424, 176, 136);
+				break;
+			case 118: // Luciby L1, Luciby L2, Luciby L3
+				CreateNPCAt(263, 176, 96); CreateNPCAt(310, 176, 56); CreateNPCAt(408, 176, 136);
+				break;
+			case 119: // Pols Voice L2 (4), Bari L4 (2), Hardhat Beetle L3 (1), Hardhat Beetle (L4) (1)
+				CreateNPCAt(414, 120, 48); CreateNPCAt(414, 144, 48);
+				CreateNPCAt(314, 168, 48); CreateNPCAt(496, 192, 48);
+				CreateNPCAt(414, 120, 144); CreateNPCAt(414, 144, 144);
+				CreateNPCAt(314, 168, 144); CreateNPCAt(334, 192, 144);
+				break;
+			case 120: // Lynel L1 (1), Tank L2 (2)
+				CreateNPCAt(30, 176, 96); CreateNPCAt(365, 176, 56); CreateNPCAt(365, 176, 120);
+				break;
+
+			// Group 6 (121-180)
+			
+			case 121: // Terrorpin L2 (2), Terrorpin L1 (2)
+				CreateNPCAt(391, 144, 56); CreateNPCAt(357, 184, 56);
+				CreateNPCAt(391, 144, 136); CreateNPCAt(357, 184, 136);
+				break;
+			case 122: // Keese Master L3
+				CreateNPCAt(423, 144, 96);
+				break;
+			case 123: // Luciby L3 (2)
+				CreateNPCAt(408, 176, 64); CreateNPCAt(408, 176, 128);
+				break;
+			case 124: // Wakata L3 (2), Wakata L2 (4)
+				CreateNPCAt(214, 136, 56); CreateNPCAt(214, 160, 56); CreateNPCAt(333, 184, 56);
+				CreateNPCAt(214, 136, 136); CreateNPCAt(214, 160, 136); CreateNPCAt(333, 184, 136);
+				break;
+			case 125: // Witch L1, Witch L3
+				CreateNPCAt(494, 176, 64); CreateNPCAt(360, 176, 128);
+				break;
+			case 126: // DIE Fighter L1 (1), Popo L3 (3)
+				CreateNPCAt(474, 176, 96); CreateNPCAt(187, 144, 96);
+				CreateNPCAt(187, 144, 64); CreateNPCAt(187, 144, 128);
+				break;
+			case 127: // Popo L3 (2), Stalfos L4 (2)
+				CreateNPCAt(479, 144, 56); CreateNPCAt(187, 184, 56);
+				CreateNPCAt(479, 144, 136); CreateNPCAt(187, 184, 136);
+				break;
+			case 128: // Darknut L3 (4)
+				CreateNPCAt(159, 144, 56); CreateNPCAt(159, 184, 56);
+				CreateNPCAt(159, 144, 136); CreateNPCAt(159, 184, 136);
+				break;
+			case 129: // Tin Man L1, Snapdragon L2
+				CreateNPCAt(363, 176, 64); CreateNPCAt(457, 176, 128);
+				break;
+			case 130: // Meteor Pillar L1, Fokkeru L1
+				CreateNPCAt(161, 160, 96); CreateNPCAt(487, 120, 96);
+				break;
+			case 131: // Muerte Doll L2 (2)
+				CreateNPCAt(405, 176, 64); CreateNPCAt(405, 176, 128);
+				break;
+			case 132: // Mothula L1
+				CreateNPCAt(339, 136, 96);
+				break;
+			case 133: // Chinese Dragon L2, Wolfos
+				CreateNPCAt(81, 128, 56); CreateNPCAt(509, 168, 96);
+				break;
+			case 134: // Valkyrie L1, Valkyrie L2
+				CreateNPCAt(476, 176, 64); CreateNPCAt(424, 176, 128);
+				break;
+			case 135: // Licorice Duo L1 (1), Satellite Dish L1 (2)
+				CreateNPCAt(421, 176, 96); CreateNPCAt(466, 176, 56); CreateNPCAt(466, 176, 136);
+				break;
+			case 136: // Goriya L4 (4)
+				CreateNPCAt(136, 144, 56); CreateNPCAt(136, 184, 56);
+				CreateNPCAt(136, 144, 136); CreateNPCAt(136, 184, 136);
+				break;
+			case 137: // Kaguya L2, Kaguya L1
+				CreateNPCAt(300, 176, 64); CreateNPCAt(350, 176, 128);
+				break;
+			case 138: // Terrorpin L2 (3)
+				CreateNPCAt(391, 176, 96); CreateNPCAt(391, 176, 56); CreateNPCAt(391, 176, 136);
+				break;
+			case 139: // DIE Fighter L1, Hyrulean Soldier L4 (2)
+				CreateNPCAt(474, 176, 96); CreateNPCAt(288, 176, 56); CreateNPCAt(288, 176, 136);
+				break;
+			case 140: // Keese Master L3, Keese Master L1
+				CreateNPCAt(423, 176, 64); CreateNPCAt(283, 176, 128);
+				break;
+			case 141: // Wakata L3 (6)
+				CreateNPCAt(333, 136, 56); CreateNPCAt(333, 160, 56); CreateNPCAt(333, 184, 56);
+				CreateNPCAt(333, 136, 136); CreateNPCAt(333, 160, 136); CreateNPCAt(333, 184, 136);
+				break;
+			case 142: // Hyu L4 (2)
+				CreateNPCAt(455, 176, 56); CreateNPCAt(455, 176, 136);
+				break;
+			case 143: // Evil Knight L2 (2), Satellite Dish L1 (1), Satellite Dish L2 (1)
+				CreateNPCAt(332, 144, 56); CreateNPCAt(332, 184, 56);
+				CreateNPCAt(466, 144, 136); CreateNPCAt(473, 184, 136);
+				break;
+			case 144: // Fokkeru L2, Fokka L1
+				CreateNPCAt(464, 176, 56); CreateNPCAt(227, 176, 136);
+				break;
+			case 145: // Manhandala L2, Manhandala L1
+				CreateNPCAt(456, 176, 56); CreateNPCAt(61, 176, 136);
+				break;
+			case 146: // Mirranjo L1, Hinox L2
+				CreateNPCAt(489, 176, 56); CreateNPCAt(121, 176, 136);
+				break;
+			case 147: // Aquamentus L2 (1), Snapdragon L2 (3)
+				CreateNPCAt(510, 176, 96); CreateNPCAt(363, 144, 96);
+				CreateNPCAt(363, 144, 64); CreateNPCAt(363, 144, 128);
+				break;
+			case 148: // Muerte Doll L2, Valkyrie L1, Lady Mandrake L2
+				CreateNPCAt(359, 176, 96); CreateNPCAt(424, 176, 56); CreateNPCAt(405, 176, 136);
+				break;
+			case 149: // Slugga L3 (3), Witch L3 (1)
+				CreateNPCAt(494, 176, 96); CreateNPCAt(444, 144, 96);
+				CreateNPCAt(444, 144, 64); CreateNPCAt(444, 144, 128);
+				break;
+			case 150: // Tin Man L2
+				CreateNPCAt(477, 146, 96);
+				break;
+			case 151: // Hard Beetle L4 (4)
+				CreateNPCAt(496, 144, 56); CreateNPCAt(496, 184, 56);
+				CreateNPCAt(496, 144, 136); CreateNPCAt(496, 184, 136);
+				break;
+			case 152: // Evil Knight L1, Evil Knight L2, Evil Knight L3
+				CreateNPCAt(238, 176, 96); CreateNPCAt(332, 176, 56); CreateNPCAt(497, 176, 136);
+				break;
+			case 153: // Wizzrobe L6 (6)
+				CreateNPCAt(94, 136, 56); CreateNPCAt(94, 160, 56); CreateNPCAt(94, 184, 56);
+				CreateNPCAt(94, 136, 136); CreateNPCAt(94, 160, 136); CreateNPCAt(94, 184, 136);
+				break;
+			case 154: // Damngun L1 (1), Lakitu (2)
+				CreateNPCAt(135, 144, 96); CreateNPCAt(92, 184, 56); CreateNPCAt(91, 184, 136);
+				break;
+			case 155: // Wolfos (2), Tank L2 (1)
+				CreateNPCAt(365, 176, 96); CreateNPCAt(81, 176, 56); CreateNPCAt(81, 176, 136);
+				break;
+			case 156: // Moldorm L2 (2), Moldorm L1 (2)
+				CreateNPCAt(59, 120, 96); CreateNPCAt(255, 120, 96); 
+				CreateNPCAt(59, 120, 96); CreateNPCAt(255, 120, 96); 
+				break;
+			case 157: // Lynel L1 (2), Hokkubokku L3 (2)
+				CreateNPCAt(40, 144, 56); CreateNPCAt(346, 184, 56);
+				CreateNPCAt(40, 144, 136); CreateNPCAt(346, 184, 136);
+				break;
+			case 158: // Kaguya L2 (1), Darknut L2 (2), Zazak L1 (1), Zazak L2 (1)
+				CreateNPCAt(350, 160, 96); CreateNPCAt(50, 136, 56); CreateNPCAt(50, 136, 136);
+				CreateNPCAt(318, 184, 56); CreateNPCAt(294, 184, 136);
+				break;
+			case 159: // Wonder Egg L1, Wonder Egg L2
+				CreateNPCAt(446, 176, 56); CreateNPCAt(447, 176, 136);
+				break;
+			case 160: // Satellite Dish L2 (2)
+				CreateNPCAt(473, 176, 56); CreateNPCAt(473, 176, 136);
+				break;
+			case 161: // Witch L2 (3)
+				CreateNPCAt(383, 176, 96); CreateNPCAt(383, 176, 56); CreateNPCAt(383, 176, 136);
+				break;
+			case 162: // God Among Hares
+				CreateNPCAt(384, 176, 96);
+				break;
+			case 163: // Armarry L2 (1), Plazmy (2)
+				CreateNPCAt(392, 176, 96); CreateNPCAt(371, 176, 56); CreateNPCAt(371, 176, 136);
+				break;
+			case 164: // Lady Mandrake L3, Satellite Dish L1 
+				CreateNPCAt(495, 144, 96); CreateNPCAt(466, 184, 96); 
+				break;
+			case 165: // Moldorm L2, Ropa L3, Ropa L2
+				CreateNPCAt(255, 160, 96); CreateNPCAt(190, 184, 56);  CreateNPCAt(189, 184, 136);
+				break;
+			case 166: // Fokka L1 (1), Zirro L1 (1), Zirro L2 (2)
+				CreateNPCAt(227, 176, 96); CreateNPCAt(309, 144, 96);
+				CreateNPCAt(153, 144, 64); CreateNPCAt(153, 144, 128);
+				break;
+			case 167: // Wizzrobe L5 (3), Evil Knight L2 (3)
+				CreateNPCAt(99, 136, 56); CreateNPCAt(332, 160, 56); CreateNPCAt(99, 184, 56);
+				CreateNPCAt(332, 136, 136); CreateNPCAt(99, 160, 136); CreateNPCAt(332, 184, 136);
+				break;
+			case 168: // Luciby L3 (1), Wolfos (2)
+				CreateNPCAt(408, 176, 96); CreateNPCAt(81, 176, 56); CreateNPCAt(81, 176, 136);
+				break;
+			case 169: // Fokka L1 (1), Lynel L1 (2)
+				CreateNPCAt(227, 176, 96); CreateNPCAt(30, 176, 56); CreateNPCAt(30, 176, 136);
+				break;
+			case 170: // Lynel L2
+				CreateNPCAt(31, 176, 96);
+				break;
+			case 171: // Pikit L2 (4), Stink Beetle L2 (2), Bari L4 (2)
+				CreateNPCAt(142, 120, 48); CreateNPCAt(142, 144, 48);
+				CreateNPCAt(415, 168, 48); CreateNPCAt(314, 192, 48);
+				CreateNPCAt(314, 120, 144); CreateNPCAt(415, 144, 144);
+				CreateNPCAt(142, 168, 144); CreateNPCAt(142, 192, 144);
+				break;
+			case 172: // Wakata L3 (2), Slugga L3 (4)
+				CreateNPCAt(333, 136, 56); CreateNPCAt(444, 160, 56); CreateNPCAt(444, 184, 56);
+				CreateNPCAt(333, 136, 136); CreateNPCAt(444, 160, 136); CreateNPCAt(444, 184, 136);
+				break;
+			case 173: // Hyrulean Soldier L5 (2), Darknut L4 (2)
+				CreateNPCAt(159, 144, 56); CreateNPCAt(159, 184, 56);
+				CreateNPCAt(291, 144, 136); CreateNPCAt(291, 184, 136);
+				break;
+			case 174: // Patra (1), Goriya L4 (2)
+				CreateNPCAt(66, 136, 96); CreateNPCAt(136, 176, 56); CreateNPCAt(136, 176, 136);
+				break;
+			case 175: // Leever L3 (4), Keese Master L3
+				CreateNPCAt(423, 136, 96); CreateNPCAt(137, 56, 56); CreateNPCAt(137, 56, 56);
+				CreateNPCAt(137, 56, 56); CreateNPCAt(137, 56, 56);
+				break;
+			case 176: // Snapdragon L3, Zazak L2
+				CreateNPCAt(294, 176, 56); CreateNPCAt(111, 176, 136);
+				break;
+			case 177: // Muerte Doll L1 (2), Fokkeru L2
+				CreateNPCAt(464, 136, 96); CreateNPCAt(398, 176, 56); CreateNPCAt(398, 176, 136);
+				break;
+			case 178: // Zirro L2 (6)
+				CreateNPCAt(153, 136, 56); CreateNPCAt(153, 160, 56); CreateNPCAt(153, 184, 56);
+				CreateNPCAt(153, 136, 136); CreateNPCAt(153, 160, 136); CreateNPCAt(153, 184, 136);
+				break;
+			case 179: // Hyrulean Soldier L3 (2), Hyrulean Soldier L4 (2), Zazak L2 (1)
+				CreateNPCAt(294, 160, 96); CreateNPCAt(290, 136, 56); CreateNPCAt(288, 136, 136);
+				CreateNPCAt(288, 184, 56); CreateNPCAt(290, 184, 136);
+				break;
+			case 180: // Wonder Egg L1 (1), Wosu (4)
+				CreateNPCAt(446, 160, 96); CreateNPCAt(35, 136, 56); CreateNPCAt(35, 136, 136);
+				CreateNPCAt(35, 184, 56); CreateNPCAt(35, 184, 136);
+				break;
+
+			// Group 7 (181-250)
+			
+			case 181: // Terrorpin L2 (4)
+				CreateNPCAt(391, 144, 56); CreateNPCAt(391, 184, 56);
+				CreateNPCAt(391, 144, 136); CreateNPCAt(391, 184, 136);
+				break;
+			case 182: // Mirranjo L2
+				CreateNPCAt(490, 136, 96);
+				break;
+			case 183: // Slugga L2 (4), Evil Knight L2 (1), Evil Knight L3 (1)
+				CreateNPCAt(166, 136, 56); CreateNPCAt(166, 160, 56); CreateNPCAt(497, 184, 56);
+				CreateNPCAt(166, 136, 136); CreateNPCAt(166, 160, 136); CreateNPCAt(332, 184, 136);
+				break;
+			case 184: // Evil Knight L3, Hardhat Beetle L4, Stalfos L4
+				CreateNPCAt(496, 136, 96); CreateNPCAt(497, 176, 56); CreateNPCAt(479, 176, 136);
+				break;
+			case 185: // Hokkubokku L3 (2), Lynel L1 (1), Zombie L2 (4)
+				CreateNPCAt(30, 136, 96); CreateNPCAt(346, 176, 56); CreateNPCAt(346, 176, 136);
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				break;
+			case 186: // Meteor Pillar L1, Fokka L1
+				CreateNPCAt(487, 120, 96); CreateNPCAt(227, 184, 96);
+				break;
+			case 187: // DIE Fighter L1, Licorice Duo L1
+				CreateNPCAt(421, 184, 56); CreateNPCAt(474, 184, 136);
+				break;
+			case 188: // Darknut L3 (3), Fire Gleeok 2 Heads
+				CreateNPCAt(159, 176, 96); CreateNPCAt(159, 176, 56); CreateNPCAt(159, 176, 136);
+				CreateNPCAt(110, 120, 56);
+				break;
+			case 189: // Lynel L2, Luciby L3
+				CreateNPCAt(31, 184, 56); CreateNPCAt(408, 184, 136);
+				break;
+			case 190: // Chinese Dragon L2 (2)
+				CreateNPCAt(509, 160, 64); CreateNPCAt(509, 160, 128);
+				break;
+			case 191: // Meteor Pillar L2
+				CreateNPCAt(488, 120, 96);
+				break;
+			case 192: // Snapdragon L1 (5), Snapdragon L2 (2), Snapdragon L3 (1)
+				CreateNPCAt(313, 136, 56); CreateNPCAt(313, 136, 96); CreateNPCAt(313, 136, 136);
+				CreateNPCAt(313, 128, 72); CreateNPCAt(313, 128, 120);
+				CreateNPCAt(111, 168, 96); CreateNPCAt(363, 168, 64); CreateNPCAt(363, 168, 128);
+				break;
+			case 193: // Luciby L1 (5), Luciby L2 (2), Luciby L3 (1)
+				CreateNPCAt(263, 136, 56); CreateNPCAt(263, 136, 96); CreateNPCAt(263, 136, 136);
+				CreateNPCAt(263, 128, 72); CreateNPCAt(263, 128, 120);
+				CreateNPCAt(408, 168, 96); CreateNPCAt(310, 168, 64); CreateNPCAt(310, 168, 128);
+				break;
+			case 194: // Hardhat Beetle L3 (5), Darknut L3 (2), Evil Knight L3 (1)
+				CreateNPCAt(334, 136, 56); CreateNPCAt(334, 136, 96); CreateNPCAt(334, 136, 136);
+				CreateNPCAt(334, 128, 72); CreateNPCAt(334, 128, 120);
+				CreateNPCAt(497, 168, 96); CreateNPCAt(159, 168, 64); CreateNPCAt(159, 168, 128);
+				break;
+			case 195: // Fokkeru L2 (2), Fokkeru L1 (1)
+				CreateNPCAt(161, 176, 96); CreateNPCAt(464, 176, 56); CreateNPCAt(464, 176, 136);
+				break;
+			case 196: // Tank L2 (4)
+				CreateNPCAt(365, 144, 64); CreateNPCAt(365, 184, 64);
+				CreateNPCAt(365, 144, 128); CreateNPCAt(365, 184, 120);
+				break;
+			case 197: // Keese Master L3, Tin Man L1
+				CreateNPCAt(423, 184, 56); CreateNPCAt(457, 184, 136);
+				break;
+			case 198: // Manhandala L2 (2)
+				CreateNPCAt(456, 184, 56); CreateNPCAt(456, 184, 136);
+				break;
+			case 199: // DIE Fighter L1 (2)
+				CreateNPCAt(474, 184, 56); CreateNPCAt(474, 184, 136);
+				break;
+			case 200: // Satellite Dish L1 (4), Satellite Dish L2 (1)
+				CreateNPCAt(466, 160, 96); CreateNPCAt(473, 176, 96); CreateNPCAt(466, 192, 96);
+				CreateNPCAt(466, 176, 72); CreateNPCAt(466, 176, 120); 
+				break;
+			case 201: // Muerte Doll L2, Tin Man L2
+				CreateNPCAt(477, 184, 56); CreateNPCAt(405, 184, 136);
+				break;
+			case 202: // Muerte Doll L3
+				CreateNPCAt(413, 136, 96);
+				break;
+			case 203: // Lady Mandrake L3 (1), Lakitu (2)
+				CreateNPCAt(495, 176, 96); CreateNPCAt(91, 176, 56); CreateNPCAt(91, 176, 136);
+				break;
+			case 204: // Witch L3 (1), Witch L2 (2)
+				CreateNPCAt(494, 176, 96); CreateNPCAt(383, 176, 56); CreateNPCAt(383, 176, 136);
+				break;
+			case 205: // Plazmy (2), Hinox L2 (1), Zazak L2 (1)
+				CreateNPCAt(371, 144, 64); CreateNPCAt(294, 184, 64);
+				CreateNPCAt(371, 144, 128); CreateNPCAt(121, 184, 128);
+				break;
+			case 206: // Fire Gleeok 2 Heads, Mothula L1
+				CreateNPCAt(110, 120, 56); CreateNPCAt(339, 136, 96);
+				break;
+			case 207: // Mirranjo L1 (2), Satellite Dish L1 (1)
+				CreateNPCAt(466, 176, 96); CreateNPCAt(489, 176, 56); CreateNPCAt(489, 176, 136);
+				break;
+			case 208: // Pols Voice L2 (8)
+				CreateNPCAt(414, 120, 48); CreateNPCAt(414, 144, 48);
+				CreateNPCAt(414, 168, 48); CreateNPCAt(414, 192, 48);
+				CreateNPCAt(414, 120, 144); CreateNPCAt(414, 144, 144);
+				CreateNPCAt(414, 168, 144); CreateNPCAt(414, 192, 144);
+				break;
+			case 209: // Dark Aurelia
+				CreateNPCAt(299, 136, 96);
+				break;
+			case 210: // The Power Walrus
+				CreateNPCAt(276, 136, 96);
+				break;
+			case 211: // Terrorpin L2 (2), Lynel L1 (2)
+				CreateNPCAt(391, 144, 56); CreateNPCAt(30, 184, 56);
+				CreateNPCAt(391, 144, 136); CreateNPCAt(30, 184, 136);
+				break;
+			case 212: // Fokka L2
+				CreateNPCAt(277, 136, 96);
+				break;
+			case 213: // Meteor Pillar L1 (2)
+				CreateNPCAt(487, 120, 96); CreateNPCAt(487, 160, 96);
+				break;
+			case 214: // Armarry L2 (1), Armarry L1 (2)
+				CreateNPCAt(392, 176, 96); CreateNPCAt(372, 176, 56); CreateNPCAt(372, 176, 136);
+				break;
+			case 215: // Nut Cracker (5)
+				CreateNPCAt(212, 160, 96); CreateNPCAt(212, 136, 56); CreateNPCAt(212, 136, 136);
+				CreateNPCAt(212, 184, 56); CreateNPCAt(212, 184, 136);
+				break;
+			case 216: // Licorice Duo L1, Satellite Dish L1, Satellite Dish L2
+				CreateNPCAt(421, 176, 96); CreateNPCAt(466, 176, 56); CreateNPCAt(473, 176, 136);
+				break;
+			case 217: // Hyrulean Soldier L4 (2), Hyrulean Soldier L5 (2), Hokkubokku L3 (2)
+				CreateNPCAt(291, 136, 56); CreateNPCAt(288, 160, 56); CreateNPCAt(346, 184, 56);
+				CreateNPCAt(291, 136, 136); CreateNPCAt(288, 160, 136); CreateNPCAt(346, 184, 136);
+				break;
+			case 218: // Chinese Dragon L2, Wonder Egg L2
+				CreateNPCAt(509, 168, 96); CreateNPCAt(447, 136, 96);
+				break;
+			case 219: // Patra, Lady Mandrake L2
+				CreateNPCAt(359, 136, 96); CreateNPCAt(66, 148, 96);
+				break;
+			case 220: // Killer Rabbit (4)
+				CreateNPCAt(275, 120, 96); CreateNPCAt(275, 120, 96);
+				CreateNPCAt(275, 120, 96); CreateNPCAt(275, 120, 96);
+				break;
+			case 221: // Witch L3 (1), Stink Beetle L2 (2)
+				CreateNPCAt(494, 176, 96); CreateNPCAt(415, 176, 56); CreateNPCAt(415, 176, 136);
+				break;
+			case 222: // Valkyrie L1, Valkyrie L2
+				CreateNPCAt(424, 184, 56); CreateNPCAt(476, 184, 136);
+				break;
+			case 223: // Fire Kodongo L2 (3), Ice Kodongo L2 (3)
+				CreateNPCAt(323, 136, 56); CreateNPCAt(323, 160, 56); CreateNPCAt(323, 184, 56);
+				CreateNPCAt(343, 136, 136); CreateNPCAt(343, 160, 136); CreateNPCAt(343, 184, 136);
+				break;
+			case 224: // Wakata L3 (4), Goriya L4 (2)
+				CreateNPCAt(333, 136, 56); CreateNPCAt(333, 160, 56); CreateNPCAt(136, 184, 56);
+				CreateNPCAt(333, 136, 136); CreateNPCAt(333, 160, 136); CreateNPCAt(136, 184, 136);
+				break;
+			case 225: // Zazak L2, Satellite Dish L2, Bari L4
+				CreateNPCAt(473, 176, 96); CreateNPCAt(294, 176, 56); CreateNPCAt(314, 176, 136);
+				break;
+			case 226: // Anti-Kirby (1), Lady Mandrake L2 (1), Snapdragon L2 (2)
+				CreateNPCAt(363, 144, 56); CreateNPCAt(328, 184, 56);
+				CreateNPCAt(363, 144, 136); CreateNPCAt(359, 184, 120);
+				break;
+			case 227: // Wonder Egg L1, Kaguya L2, Darknut L3
+				CreateNPCAt(350, 176, 96); CreateNPCAt(159, 176, 56); CreateNPCAt(446, 176, 136);
+				break;
+			case 228: // Hyu L4 (2), Hyu L3 (1)
+				CreateNPCAt(82, 176, 96); CreateNPCAt(455, 176, 56); CreateNPCAt(455, 176, 136);
+				break;
+			case 229: // Dove (6)
+				CreateNPCAt(461, 136, 56); CreateNPCAt(461, 160, 56); CreateNPCAt(461, 184, 56);
+				CreateNPCAt(461, 136, 136); CreateNPCAt(461, 160, 136); CreateNPCAt(461, 184, 136);
+				break;
+			case 230: // Wakata L3 (2), Rope L3 (2), Valkyrie L1 (1)
+				CreateNPCAt(424, 160, 96); CreateNPCAt(373, 136, 56); CreateNPCAt(373, 136, 136);
+				CreateNPCAt(333, 184, 56); CreateNPCAt(333, 184, 136);
+				break;
+			case 231: // Fokka L1 (3)
+				CreateNPCAt(227, 176, 96); CreateNPCAt(227, 176, 56); CreateNPCAt(227, 176, 136);
+				break;
+			case 232: // Damngun L1 (2)
+				CreateNPCAt(335, 160, 56); CreateNPCAt(135, 160, 136);
+				break;
+			case 233: // Meteor Pillar L1, Satellite Dish L1 (2)
+				CreateNPCAt(487, 120, 96); CreateNPCAt(466, 184, 56); CreateNPCAt(466, 184, 136);
+				break;
+			case 234: // Hyrulean Soldier L4 (4), Wizzrobe L6 (4)
+				CreateNPCAt(288, 120, 48); CreateNPCAt(288, 144, 48);
+				CreateNPCAt(94, 168, 48); CreateNPCAt(94, 192, 48);
+				CreateNPCAt(288, 120, 144); CreateNPCAt(288, 144, 144);
+				CreateNPCAt(94, 168, 144); CreateNPCAt(94, 192, 144);
+				break;
+			case 235: // Evil Knight L3 (2)
+				CreateNPCAt(497, 184, 56); CreateNPCAt(497, 184, 136);
+				break;
+			case 236: // Witch L2 (3), Zombie L2 (4)
+				CreateNPCAt(383, 120, 96); CreateNPCAt(383, 184, 56); CreateNPCAt(383, 184, 136);
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				break;
+			case 237: // Wonder Egg L1, Wonder Egg L2, DIE Fighter
+				CreateNPCAt(474, 120, 96); CreateNPCAt(447, 184, 56); CreateNPCAt(446, 184, 136);
+				break;
+			case 238: // Lynel L2 (1), Zirro L2 (2)
+				CreateNPCAt(31, 120, 96); CreateNPCAt(153, 184, 56); CreateNPCAt(153, 184, 136);
+				break;
+			case 239: // Wolfos (4)
+				CreateNPCAt(81, 144, 56); CreateNPCAt(81, 184, 56);
+				CreateNPCAt(81, 144, 136); CreateNPCAt(81, 184, 136);
+				break;
+			case 240: // Luciby L3 (2), Critter L2 (4)
+				CreateNPCAt(408, 176, 72); CreateNPCAt(408, 176, 112);
+				CreateNPCAt(367, 144, 48); CreateNPCAt(367, 144, 80);
+				CreateNPCAt(367, 144, 112); CreateNPCAt(367, 144, 144);
+				break;
+			case 241: // Fire Gleeok 4 Heads, Aquamentus L2
+				CreateNPCAt(110, 120, 56); CreateNPCAt(110, 120, 56); CreateNPCAt(510, 160, 96);
+				break;
+			case 242: // Ropa L2 (4), Zazak L2 (1), Ropa L3 (1), Bari L4 (2)
+				CreateNPCAt(189, 120, 48); CreateNPCAt(189, 144, 48);
+				CreateNPCAt(314, 168, 48); CreateNPCAt(294, 192, 48);
+				CreateNPCAt(189, 120, 144); CreateNPCAt(189, 144, 144);
+				CreateNPCAt(314, 168, 144); CreateNPCAt(190, 192, 144);
+				break;
+			case 243: // Goriya L4 (2), Hardhat Beetle L4 (2)
+				CreateNPCAt(496, 144, 56); CreateNPCAt(496, 184, 56);
+				CreateNPCAt(136, 144, 136); CreateNPCAt(136, 184, 136);
+				break;
+			case 244: // Kaguya L2 (1), Valkyrie L2 (1)
+				CreateNPCAt(476, 184, 56); CreateNPCAt(350, 184, 136);
+				break;
+			case 245: // Uncle Sam (2), Fokka L1 (1)
+				CreateNPCAt(70, 128, 56); CreateNPCAt(227, 152, 88); CreateNPCAt(70, 184, 120);
+				break;
+			case 246: // God Among Hares (2)
+				CreateNPCAt(384, 184, 56); CreateNPCAt(384, 184, 136);
+				break;
+			case 247: // Pikit L2 (2), Meteor Pillar L2 (1)
+				CreateNPCAt(488, 120, 96); CreateNPCAt(142, 187, 56); CreateNPCAt(142, 187, 136); 
+				break;
+			case 248: // Aquamentus L2 (2), Chinese Dragon L2 (1)
+				CreateNPCAt(509, 136, 96); CreateNPCAt(510, 176, 64); CreateNPCAt(510, 176, 128); 
+				break;
+			case 249: // Snapdragon L3 (2)
+				CreateNPCAt(111, 144, 56); CreateNPCAt(111, 144, 136); 
+				break;
+			case 250: // Fokkeru L2, Satellite Dish L2 
+				CreateNPCAt(464, 136, 96); CreateNPCAt(473, 136, 56);
+				break;
+			
+			// Group 8 (251-300)
+			
+			case 251: // Damngun L2, Satellite Dish L1
+				CreateNPCAt(478, 136, 96); CreateNPCAt(466, 136, 56);
+				break;
+			case 252: // Licorice Duo L2 (1), Dove (2)
+				CreateNPCAt(475, 170, 96); CreateNPCAt(461, 187, 56); CreateNPCAt(461, 187, 136); 
+				break;
+			case 253: // DIE Fighter L1, DIE Fighter L2
+				CreateNPCAt(474, 144, 56); CreateNPCAt(356, 144, 136); 
+				break;
+			case 254: // Mirranjo L2, Evil Knight L2
+				CreateNPCAt(490, 170, 56); CreateNPCAt(332, 170, 136); 
+				break;
+			case 255: // Mirranjo L2, Valkyrie L1
+				CreateNPCAt(490, 170, 56); CreateNPCAt(424, 170, 136); 
+				break;
+			case 256: // Licorice Duo L2, Wonder Egg L1
+				CreateNPCAt(475, 144, 56); CreateNPCAt(446, 144, 136); 
+				break;
+			case 257: // Wonder Egg L2, Tin Man L2
+				CreateNPCAt(447, 144, 56); CreateNPCAt(477, 144, 136); 
+				break;
+			case 258: // DIE Fighter L1, Satellite Dish L1
+				CreateNPCAt(474, 160, 56); CreateNPCAt(466, 160, 136); 
+				break;
+			case 259: // Fokka L1, Stalfos L4
+				CreateNPCAt(277, 160, 56); CreateNPCAt(479, 160, 136); 
+				break;
+			case 260: // Origin of Pests
+				CreateNPCAt(416, 136, 97);
+				break;
+			case 261: // Mothula L1 (2)
+				CreateNPCAt(339, 136, 56); CreateNPCAt(339, 136, 136);
+				break;
+			case 262: // Wakata L3 (6), Hardhat Beetle L4 (2)
+				CreateNPCAt(333, 120, 48); CreateNPCAt(333, 144, 48);
+				CreateNPCAt(333, 168, 48); CreateNPCAt(496, 192, 48);
+				CreateNPCAt(333, 120, 144); CreateNPCAt(333, 144, 144);
+				CreateNPCAt(333, 168, 144); CreateNPCAt(496, 192, 144);
+				break;
+			case 263: // Lynel L2, Lynel L1
+				CreateNPCAt(30, 136, 56); CreateNPCAt(31, 136, 120);
+				break;
+			case 264: // Luciby L3 (3)
+				CreateNPCAt(408, 184, 96); CreateNPCAt(408, 184, 56); CreateNPCAt(408, 184, 136);
+				break;
+			case 265: // Damngun L2 (1), Evil Knight L2 (2)
+				CreateNPCAt(478, 120, 96); CreateNPCAt(332, 184, 56); CreateNPCAt(332, 184, 136);
+				break;
+			case 266: // Licorice Duo L2, Witch L1
+				CreateNPCAt(475, 176, 56); CreateNPCAt(360, 176, 136);
+				break;
+			case 267: // Witch L2, Muerte Doll L3
+				CreateNPCAt(383, 176, 56); CreateNPCAt(413, 176, 136);
+				break;
+			case 268: // Meteor Pillar L2, DIE Fighter L1
+				CreateNPCAt(488, 120, 96); CreateNPCAt(474, 176, 136);
+				break;
+			case 269: // DIE Fighter L2, Satellite L2
+				CreateNPCAt(356, 120, 96); CreateNPCAt(473, 176, 136);
+				break;
+			case 270: // Hardhat Beetle L4 (6)
+				CreateNPCAt(496, 136, 56); CreateNPCAt(496, 160, 56); CreateNPCAt(496, 184, 56);
+				CreateNPCAt(496, 136, 136); CreateNPCAt(496, 160, 136); CreateNPCAt(496, 184, 136);
+				break;
+			case 271: // Evil Knight L3 (2), Darknut L3 (2)
+				CreateNPCAt(159, 144, 56); CreateNPCAt(159, 184, 56);
+				CreateNPCAt(497, 144, 136); CreateNPCAt(497, 184, 136);
+				break;
+			case 272: // Lady Mandrake L1, Lady Mandrake L2, Lady Mandrake L3
+				CreateNPCAt(122, 128, 56); CreateNPCAt(359, 152, 88); CreateNPCAt(495, 184, 120);
+				break;
+			case 273: // DIE Fighter L2, Wonder Egg L1
+				CreateNPCAt(356, 136, 56); CreateNPCAt(447, 136, 136);
+				break;
+			case 274: // Valkyrie L1 (1), Valkyrie L2 (2), Hyu L4 (1), Zombie L2 (2)
+				CreateNPCAt(455, 184, 96); CreateNPCAt(476, 184, 56); CreateNPCAt(424, 184, 136);
+				CreateNPCAt(252, 56, 56); CreateNPCAt(252, 56, 56);
+				break;
+			case 275: // Patra (2)
+				CreateNPCAt(66, 136, 56); CreateNPCAt(66, 136, 136);
+				break;
+			case 276: // Satellite Dish L2 (3)
+				CreateNPCAt(473, 128, 56); CreateNPCAt(473, 152, 88); CreateNPCAt(473, 184, 120);
+				break;
+			case 277: // Muerte Doll L1 (6), Muerte Doll L2 (1), Muerte Doll L3 (1)
+				CreateNPCAt(398, 120, 48); CreateNPCAt(398, 144, 48);
+				CreateNPCAt(398, 168, 48); CreateNPCAt(413, 192, 48);
+				CreateNPCAt(398, 120, 144); CreateNPCAt(398, 144, 144);
+				CreateNPCAt(398, 168, 144); CreateNPCAt(405, 192, 144);
+				break;
+			case 278: // Witch L3 (2)
+				CreateNPCAt(494, 136, 56); CreateNPCAt(494, 136, 136);
+				break;
+			case 279: // Wizzrobe L5 (3), Wizzrobe L6 (3), Hardhat Beetle L4 (2)
+				CreateNPCAt(99, 120, 48); CreateNPCAt(94, 144, 48);
+				CreateNPCAt(99, 168, 48); CreateNPCAt(496, 192, 48);
+				CreateNPCAt(94, 120, 144); CreateNPCAt(99, 144, 144);
+				CreateNPCAt(94, 168, 144); CreateNPCAt(496, 192, 144);
+				break;
+			case 280: // Zazak L2 (2), Snapdragon L3 (1)
+				CreateNPCAt(111, 120, 96); CreateNPCAt(294, 184, 56); CreateNPCAt(294, 184, 136);
+				break;
+			case 281: // Hokkubokku L3 (4)
+				CreateNPCAt(346, 144, 56); CreateNPCAt(346, 184, 56);
+				CreateNPCAt(346, 144, 136); CreateNPCAt(346, 184, 136);
+				break;
+			case 282: // Keese Master L3, Darknut L3 (2)
+				CreateNPCAt(423, 184, 96); CreateNPCAt(159, 184, 56); CreateNPCAt(159, 184, 136);
+				break;
+			case 283: // Ice Kodongo L2 (4), Fire Kodongo L2 (4)
+				CreateNPCAt(323, 120, 48); CreateNPCAt(343, 144, 48);
+				CreateNPCAt(343, 168, 48); CreateNPCAt(323, 192, 48);
+				CreateNPCAt(343, 120, 144); CreateNPCAt(323, 144, 144);
+				CreateNPCAt(323, 168, 144); CreateNPCAt(343, 192, 144);
+				break;
+			case 284: // Fokka L1 (2), Tank L2 (2)
+				CreateNPCAt(227, 144, 56); CreateNPCAt(365, 184, 56);
+				CreateNPCAt(227, 144, 120); CreateNPCAt(365, 184, 120);
+				break;
+			case 285: // Armarry L2 (2)
+				CreateNPCAt(392, 136, 56); CreateNPCAt(392, 136, 136);
+				break;
+			case 286: // Star (8)
+				CreateNPCAt(396, 120, 48); CreateNPCAt(396, 144, 48);
+				CreateNPCAt(396, 168, 48); CreateNPCAt(396, 192, 48);
+				CreateNPCAt(396, 120, 144); CreateNPCAt(396, 144, 144);
+				CreateNPCAt(396, 168, 144); CreateNPCAt(396, 192, 144);
+				break;
+			case 287: // Pols Voice L2 (4), Slugga L3 (4)
+				CreateNPCAt(444, 120, 48); CreateNPCAt(414, 144, 48);
+				CreateNPCAt(444, 168, 48); CreateNPCAt(414, 192, 48);
+				CreateNPCAt(414, 120, 144); CreateNPCAt(444, 144, 144);
+				CreateNPCAt(414, 168, 144); CreateNPCAt(444, 192, 144);
+				break;
+			case 288: // Hyrulean Soldier L3 (5), Hyrulean Soldier L4 (2), Hyrulean Soldier L5 (1)
+				CreateNPCAt(290, 136, 56); CreateNPCAt(290, 136, 96); CreateNPCAt(290, 136, 136);
+				CreateNPCAt(290, 128, 72); CreateNPCAt(290, 128, 120);
+				CreateNPCAt(291, 168, 96); CreateNPCAt(288, 168, 64); CreateNPCAt(288, 168, 128);
+				break;
+			case 289: // Wizzrobe L2 (2), Wizzrobe L3 (2), Wizzrobe L5 (2), Wizzrobe L6 (2)
+				CreateNPCAt(243, 120, 48); CreateNPCAt(57, 144, 48);
+				CreateNPCAt(99, 168, 48); CreateNPCAt(94, 192, 48);
+				CreateNPCAt(243, 120, 144); CreateNPCAt(57, 144, 144);
+				CreateNPCAt(99, 168, 144); CreateNPCAt(94, 192, 144);
+				break;
+			case 290: // Lady Mandrake L3, Fokka L1
+				CreateNPCAt(227, 136, 56); CreateNPCAt(495, 136, 136);
+				break;
+			case 291: // Goriya L4 (4), Licorice Duo L1 (1)
+				CreateNPCAt(421, 160, 96); CreateNPCAt(136, 144, 56); CreateNPCAt(136, 184, 56);
+				CreateNPCAt(136, 144, 136); CreateNPCAt(136, 184, 136); 
+				break;
+			case 292: // Luciby L2 (6)
+				CreateNPCAt(310, 136, 56); CreateNPCAt(310, 160, 56); CreateNPCAt(310, 184, 56);
+				CreateNPCAt(310, 136, 136); CreateNPCAt(310, 160, 136); CreateNPCAt(310, 184, 136);
+				break;
+			case 293: // Stalfos L4 (6)
+				CreateNPCAt(479, 136, 56); CreateNPCAt(479, 160, 56); CreateNPCAt(479, 184, 56);
+				CreateNPCAt(479, 136, 136); CreateNPCAt(479, 160, 136); CreateNPCAt(479, 184, 136);
+				break;
+			case 294: // Meteor Pillar L2, Wonder Egg L1, Wonder Egg L2
+				CreateNPCAt(488, 120, 96); CreateNPCAt(447, 170, 56); CreateNPCAt(446, 170, 136); 
+				break;
+			case 295: // Hyu L4 (3)
+				CreateNPCAt(455, 184, 96); CreateNPCAt(455, 184, 56); CreateNPCAt(455, 184, 136);
+				break;
+			case 296: // Manhandala L2 (2), Wonder Egg L2 (1)
+				CreateNPCAt(447, 184, 96); CreateNPCAt(456, 184, 56); CreateNPCAt(456, 184, 136);
+				break;
+			case 297: // Muerte Doll L2, Aquamentus L2
+				CreateNPCAt(510, 136, 56); CreateNPCAt(405, 136, 136);
+				break;
+			case 298: // Hinox L2 (2)
+				CreateNPCAt(121, 136, 56); CreateNPCAt(121, 136, 136);
+				break;
+			case 299: // Octorock L3 (8), Keese Master L2 (1), Keese Master L3 (1)
+				CreateNPCAt(139, 120, 48); CreateNPCAt(139, 144, 48);
+				CreateNPCAt(139, 168, 48); CreateNPCAt(139, 192, 48);
+				CreateNPCAt(139, 120, 144); CreateNPCAt(139, 144, 144);
+				CreateNPCAt(139, 168, 144); CreateNPCAt(139, 192, 144);
+				CreateNPCAt(191, 132, 96); CreateNPCAt(423, 180, 96);
+				break;
+			case 300: // Rope L3 (8), Valkyrie L1 (2)
+				CreateNPCAt(373, 120, 48); CreateNPCAt(373, 144, 48);
+				CreateNPCAt(373, 168, 48); CreateNPCAt(373, 192, 48);
+				CreateNPCAt(373, 120, 144); CreateNPCAt(373, 144, 144);
+				CreateNPCAt(373, 168, 144); CreateNPCAt(373, 192, 144);
+				CreateNPCAt(424, 132, 96); CreateNPCAt(424, 180, 96);
+				break;
+			
+			// RNG Groups
+			case 301: // Five Weak, One Strong
+				CreateNPCAt(enemyList2[rr1], 184, 64); CreateNPCAt(enemyList1[rr2], 184, 120);
+				CreateNPCAt(enemyList1[rr3], 152, 64); CreateNPCAt(enemyList1[rr4], 152, 120);
+				CreateNPCAt(enemyList1[rr5], 120, 64); CreateNPCAt(enemyList1[rr6], 120, 120);
+				break;
+			case 302: // Four Weak, Two Strong
+				CreateNPCAt(enemyList2[rr1], 184, 64); CreateNPCAt(enemyList2[rr2], 184, 120);
+				CreateNPCAt(enemyList1[rr3], 152, 64); CreateNPCAt(enemyList1[rr4], 152, 120);
+				CreateNPCAt(enemyList1[rr5], 120, 64); CreateNPCAt(enemyList1[rr6], 120, 120);
+				break;
+			case 303: // Three Weak, Two Strong, One Very Strong
+				CreateNPCAt(enemyList3[rr1], 184, 64); CreateNPCAt(enemyList2[rr2], 184, 120);
+				CreateNPCAt(enemyList2[rr3], 152, 64); CreateNPCAt(enemyList1[rr4], 152, 120);
+				CreateNPCAt(enemyList1[rr5], 120, 64); CreateNPCAt(enemyList1[rr6], 120, 120);
+				break;
+			case 304: // Two Weak, Two Strong, Two Very Strong
+				CreateNPCAt(enemyList3[rr1], 184, 64); CreateNPCAt(enemyList3[rr2], 184, 120);
+				CreateNPCAt(enemyList2[rr3], 152, 64); CreateNPCAt(enemyList2[rr4], 152, 120);
+				CreateNPCAt(enemyList1[rr5], 120, 64); CreateNPCAt(enemyList1[rr6], 120, 120);
+				break;
+		}
+
+		//==============
+		
+		//Move Link either until he's in position or 4 seconds have passed
+		for(int i=0; i<=240&&(Link->X!=id1||Link->Y!=id2); i++){
+			//Prevent moving around while moving Link into position
+			Link->InputStart = false; Link->PressStart = false;
+			Link->InputMap = false; Link->PressMap = false;
+			PegasusBoots::UserInterruptDash();
+			NoAction();
+			//Apply inputs that should be active
+			if(Abs(Link->X-id1)<=2){
+				Link->X = id1;
+			}
+			else{
+				if(Link->X<id1)
+					Link->InputRight = true;
+				else if(Link->X>id1)
+					Link->InputLeft = true;
+			}
+			if(Abs(Link->Y-id2)<=2){
+				Link->Y = id2;
+			}
+			else{
+				if(Link->Y<id2)
+					Link->InputDown = true;
+				else if(Link->Y>id2)
+					Link->InputUp = true;
+			}
+			Waitframe();
+		}
+		
+		//Close Door
+		Game->PlaySound(9);
+		Game->LoadTempScreen(2)->ComboD[ComboAt(0,32)] = 18029;
+		Game->LoadTempScreen(2)->ComboD[ComboAt(0,48)] = 18030;
+		Game->LoadTempScreen(2)->ComboD[ComboAt(0,64)] = 18030;
+		Game->LoadTempScreen(2)->ComboD[ComboAt(0,80)] = 18030;
+		Game->LoadTempScreen(2)->ComboD[ComboAt(0,96)] = 18031;
+		Game->LoadTempScreen(2)->ComboD[ComboAt(0,112)] = 6372;
+		Game->LoadTempScreen(5)->ComboD[ComboAt(0,32)] = 6588;
+		Game->LoadTempScreen(5)->ComboD[ComboAt(0,48)] = 6588;
+		Game->LoadTempScreen(5)->ComboD[ComboAt(0,64)] = 6588;
+		Game->LoadTempScreen(5)->ComboD[ComboAt(0,80)] = 6588;
+		Game->LoadTempScreen(5)->ComboD[ComboAt(0,96)] = 6588;
+		Game->LoadTempScreen(5)->ComboD[ComboAt(0,112)] = 6588;
+		
+		//Wait for all enemies defeated
+		while(!Screen->SecretsTriggered()){
+			Waitframe();
+		}
+		
+		//Add to Score
+		Game->Counter[wave]++;
+		if(Game->Counter[best] < Game->Counter[wave]){
+			Game->Counter[best] = Game->Counter[wave];
+		}
+		
+		//Record wave id to last 20 pool
+		if(rng <= 300){
+			int lastPos = Game->Counter[pos] + 47;
+			Game->Counter[lastPos] = rng;
+			if(Game->Counter[pos] >= 20){
+				Game->Counter[pos] = 1;
+			}
+			else{
+				Game->Counter[pos]++;
+			}
+		}
+		
+		//Cleared 150 rooms
+		if(Game->Counter[wave] == 150 && !Link->Item[253]){
+			//Close Wall
+			Game->LoadTempScreen(4)->ComboD[ComboAt(240,32)] = 18029;
+			Game->LoadTempScreen(4)->ComboD[ComboAt(240,48)] = 18030;
+			Game->LoadTempScreen(4)->ComboD[ComboAt(240,64)] = 18030;
+			Game->LoadTempScreen(4)->ComboD[ComboAt(240,80)] = 18030;
+			Game->LoadTempScreen(4)->ComboD[ComboAt(240,96)] = 18031;
+			Game->LoadTempScreen(4)->ComboD[ComboAt(240,112)] = 6372;
+			
+			//Move Link to center
+			id1 = 120; id2 = 96;
+			while(Link->X!=id1||Link->Y!=id2){
+				//Prevent moving around while moving Link into position
+				Link->InputStart = false; Link->PressStart = false;
+				Link->InputMap = false; Link->PressMap = false;
+				PegasusBoots::UserInterruptDash();
+				NoAction();
+				//Apply inputs that should be active
+				if(Abs(Link->X-id1)<=2){
+					Link->X = id1;
+				}
+				else{
+					if(Link->X<id1)
+						Link->InputRight = true;
+					else if(Link->X>id1)
+						Link->InputLeft = true;
+				}
+				if(Abs(Link->Y-id2)<=2){
+					Link->Y = id2;
+				}
+				else{
+					if(Link->Y<id2)
+						Link->InputDown = true;
+					else if(Link->Y>id2)
+						Link->InputUp = true;
+				}
+				Waitframe();
+			}
+			
+			//Warp
+			Link->WarpEx({WT_IWARP,363,32,-1,-1,WARPEFFECT_NONE,25,4});
+			
+		}
+		else{
+			Game->PlaySound(9);
+		}
+		
+		//Rewards
+		CreateItemAt(86, 120, 96);
+	
+	} //Closing gen Bracket
+		
+	else if (genID == 1){ //Reset Past Rooms
+		for(int i=48; i<=67; ++i){
+			Game->Counter[i] = 0;
+		}
+	}
+		
+		
+	}
+}

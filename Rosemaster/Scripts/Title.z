@@ -1,0 +1,24 @@
+const int CMB_AUTOWARP = 15; //ID of an Auto Side Warp A combo
+
+
+
+ffc script delayStartWarp{
+
+    void run(int delay){
+
+        for(int i = 0; i < delay; i++){
+			WaitNoAction();	
+		}
+        
+
+        while(!Link->PressStart && !Link->PressA && !Link->PressB)
+
+            WaitNoAction();
+
+            
+
+        this->Data = CMB_AUTOWARP;
+
+    }
+
+}

@@ -1,0 +1,1057 @@
+void DrawStringWrapped(int retScale, int layer, untyped target, int x, int y, int w, int font, int color, int bgcolor, int format, char32 str, int op, int shadow_type=0, int shadow_color=0)
+{
+    int pos;
+    int wordPos;
+    int linePos;
+    int curW;
+    
+    retScale[0] = 0;
+    retScale[1] = 0;
+    
+    int tempStrPos;
+    char32 tempStr[0];
+    int sz = SizeOfArray(str);
+    ResizeArray(tempStr, sz);
+    while(true)
+    {
+        tempStr[tempStrPos] = str[pos];
+        if(tempStrPos+1<sz)
+            tempStr[tempStrPos+1] = 0;
+        curW += Text->CharWidth(str[pos], FONT_Z3SMALL);
+        if(pos>0&&str[pos]!=' '&&str[pos-1]==' ')
+        {
+            wordPos = pos;
+        }
+        if(((curW>=w&&wordPos!=linePos)||str[pos]==0)&&str[pos]!=' ')
+        {
+            curW = 0;
+            
+            if(str[pos]!=0)
+            {
+                int diff = pos-wordPos;
+                tempStrPos -= diff;
+                tempStr[tempStrPos] = 0;
+            }
+            if(<untyped>target>-1)
+            {
+                if(target)
+                {
+                    bitmap b = target;
+                    b->DrawString(layer, x, y, font, color, bgcolor, format, tempStr, op, shadow_type, shadow_color);
+                }
+                else
+                    Screen->DrawString(layer, x, y+retScale[1], font, color, bgcolor, format, tempStr, op, shadow_type, shadow_color);
+            }
+            retScale[0] = Max(retScale[0], Text->StringWidth(tempStr, font));
+            retScale[1] += Text->FontHeight(font);
+            
+            if(str[pos]==0)
+                break;
+            pos = wordPos;
+            tempStrPos = 0;
+            linePos = pos;
+        }
+        else
+        {
+            ++pos;
+            ++tempStrPos;
+        }
+    }
+}
+
+const int SFX_SPELLMENU_CURSOR = 5;
+const int SFX_SPELLMENU_SELECT = 25;
+
+// Colors for the menu text
+const int C_SPELLMENU_TEXT = 0x01;
+const int C_SPELLMENU_QTEXT = 0x02;
+const int C_SPELLMENU_QTEXTSEL = 0x89;
+const int C_SPELLMENU_TEXTSEL = 0x88;
+const int C_SPELLMENU_OUTLINE = 0x0F;
+
+// Fonts for the menu
+const int FONT_SPELLMENU_CHOICES = 82;
+const int FONT_SPELLMENU_DESCRIPTION = 69;
+
+// Tile and CSet for the spellmenu frame
+const int TIL_SPELLMENU_FRAME = 81411;
+const int CS_SPELLMENU_FRAME = 10;
+// Width and height for the frame
+const int WIDTH_SPELLMENU_FRAME = 9;
+const int HEIGHT_SPELLMENU_FRAME = 10;
+// Position of the spell menu on screen
+const int XPOS_SPELLMENU = 0;
+const int YPOS_SPELLMENU = 2;
+// Position of options block within the menu
+const int XOFF_SPELLMENU_OPTIONS = 12;
+const int YOFF_SPELLMENU_OPTIONS = 10;
+const int SPACING_SPELLMENU_OPTIONS = 3;
+// Position of the description within the menu
+const int XOFF_SPELLMENU_DESCRIPTION = 8;
+const int YOFF_SPELLMENU_DESCRIPTION = 102;
+const int WIDTH_SPELLMENU_DESCRIPTION = 90;
+// Enhanced Dragon Scroll ID
+const int ENHANCED_DS_ID = 85;
+/*
+
+if(Link->Item[ENHANCED_DS_ID]){
+	
+}
+
+*/
+
+itemdata script DragonScroll
+{
+    void run()
+    {
+        genericdata gd = RunGenericScriptFrz(CheckGenericScript("SpellMenu"));
+        int result = gd->Data[0];
+        // Normally this script would do something with the resulting selection from the menu, but here we just trace what it returned.
+        printf("Result %d\n", result);
+		if (result == 0){	//Ebony Wave
+			Game->PlaySound(124);
+			if(Game->Counter[33] >= 7){ //Lv. 7
+				Link->MP -= 48 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+				RunFFCScript(56, {15, 40, 0});
+				for(int i=0; i<50; i++){
+					Link->Action=LA_NONE;
+					Link->Action=LA_ATTACKING;
+					Waitframe();
+				}
+			}
+			else if(Game->Counter[33] >= 5){ //Lv. 5, Lv. 6
+				Link->MP -= 32 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+				RunFFCScript(56, {15, 30, 0});
+				for(int i=0; i<30; i++){
+					Link->Action=LA_NONE;
+					Link->Action=LA_ATTACKING;
+					Waitframe();
+				}
+			}
+			else if(Game->Counter[33] >= 3){ //Lv. 3, Lv. 4
+				Link->MP -= 24 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+				RunFFCScript(56, {15, 30, 0});
+				for(int i=0; i<30; i++){
+					Link->Action=LA_NONE;
+					Link->Action=LA_ATTACKING;
+					Waitframe();
+				}
+			}
+			else{ //Lv. 1, Lv. 2
+				Link->MP -= 16 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+				RunFFCScript(56, {15, 20, 0});
+				for(int i=0; i<20; i++){
+					Link->Action=LA_NONE;
+					Link->Action=LA_ATTACKING;
+					Waitframe();
+				}
+			}
+			
+			Link->Action=LA_NONE;
+			int fireX = Link->X + DirX(Link->Dir) * 16;
+			int fireY = Link->Y + DirY(Link->Dir) * 16;
+			int fireDmg = 24;
+			
+			if(Link->Item[ENHANCED_DS_ID]){	//Enhanced
+				genericdata gd = Game->LoadGenericData(CheckGenericScript("EbonyWave"));
+				if(!gd->Running)
+				{
+					gd->Running = true;
+				}
+				Link->Action=LA_NONE;
+				Waitframes(40);
+			}
+			else if(Game->Counter[33] <= 1){ //Level 1
+				lweapon l = FireLWeaponDegAngle(36,fireX,fireY,DirAngle(Link->Dir),300,fireDmg,203,84);
+				l->AutoRotate = true;
+				l->Weapon = LW_SWORD;
+				Waitframes(60);
+			}
+			else if(Game->Counter[33] == 2){ //Level 2
+				fireDmg = 28;
+				lweapon l = FireLWeaponDegAngle(36,fireX,fireY,DirAngle(Link->Dir),400,fireDmg,203,84);
+				l->AutoRotate = true;
+				l->Weapon = LW_SWORD;
+				Waitframes(60);
+			}
+			else if(Game->Counter[33] == 3){ //Level 3
+				fireDmg = 32;
+				Screen->Quake = 20;
+				lweapon l = FireLWeaponDegAngle(36,fireX,fireY,DirAngle(Link->Dir),480,fireDmg,203,78);
+				l->AutoRotate = true;
+				l->Weapon = LW_SWORD;
+				Waitframes(60);
+			}
+			else if(Game->Counter[33] == 4){ //Level 4
+				fireDmg = 36;
+				Screen->Quake = 28;
+				for(int i = -1; i <= 1; i++){
+					lweapon l = FireLWeaponDegAngle(36,fireX,fireY,DirAngle(Link->Dir)+(i*15),480,fireDmg,203,78);
+					l->AutoRotate = true;
+					l->Weapon = LW_SWORD;
+				}
+				Waitframes(60);
+			}
+			else if(Game->Counter[33] == 5){ //Level 5
+				fireDmg = 44;
+				Screen->Quake = 32;
+				for(int i = -1; i <= 1; i++){
+					lweapon l = FireLWeaponDegAngle(36,fireX,fireY,DirAngle(Link->Dir)+(i*15),520,fireDmg,203,37);
+					l->AutoRotate = true;
+					l->Weapon = LW_SWORD;
+				}
+				Waitframes(60);
+			}
+			else if(Game->Counter[33] == 6){ //Level 6
+				fireDmg = 48;
+				Screen->Quake = 40;
+				for(int i = -2; i <= 2; i++){
+					lweapon l = FireLWeaponDegAngle(36,fireX,fireY,DirAngle(Link->Dir)+(i*15),520,fireDmg,203,37);
+					l->AutoRotate = true;
+					l->Weapon = LW_SWORD;
+				}
+				Waitframes(60);
+			}
+			else if(Game->Counter[33] == 7){ //Level 7
+				for(int j = 0; j < 3; j++){
+					Link->Action=LA_NONE;
+					Link->Action=LA_ATTACKING;
+					fireDmg = 36;
+					Screen->Quake = 60;
+					Game->PlaySound(95);Game->PlaySound(105);
+					RunFFCScript(56, {15, 30, 0});
+					fireX = Link->X + DirX(Link->Dir) * 16;
+					fireY = Link->Y + DirY(Link->Dir) * 16;
+					for(int i = -3; i <= 3; i++){
+						lweapon l = FireLWeaponDegAngle(36,fireX,fireY,DirAngle(Link->Dir)+(i*15),600,fireDmg,203,37);
+						l->AutoRotate = true;
+						l->Weapon = LW_SWORD;
+					}
+					Waitframes(36);
+				}
+				Link->Action=LA_NONE;
+				Waitframes(40);
+			}
+		}
+		else if (result == 1){	//Violet Decay
+			genericdata gd = Game->LoadGenericData(CheckGenericScript("VioletDecay"));
+			if(!gd->Running)
+			{
+				gd->Running = true;
+			}
+			Waitframes(60);
+			
+		}
+		else if (result == 2){	//Sunset Healing
+			genericdata gd = Game->LoadGenericData(CheckGenericScript("SunsetHealing"));
+			if(!gd->Running)
+			{
+				gd->Running = true;
+			}
+			Waitframes(60);
+		}
+		else if (result == 3){	//Emerald Egg
+			RunFFCScript(56, {19, 30, 0});
+			Game->PlaySound(124);
+			Link->MP -= 64 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+			for(int i=0; i<30; i++){
+				Link->Action=LA_NONE;
+				Link->Action=LA_ATTACKING;
+				Waitframe();
+			}
+			Link->Action=LA_NONE;
+			Game->PlaySound(21);
+			int eggX = Link->X + DirX(Link->Dir) * 20;
+			int eggY = Link->Y + DirY(Link->Dir) * 20;
+			CreateNPCAt(422, eggX, eggY);
+			if(Link->Item[ENHANCED_DS_ID]){
+				if(Link->Dir == DIR_UP || Link->Dir == DIR_DOWN){
+					CreateNPCAt(422, eggX-16, eggY);
+					CreateNPCAt(422, eggX+16, eggY);
+				}
+				else{
+					CreateNPCAt(422, eggX, eggY-16);
+					CreateNPCAt(422, eggX, eggY+16);
+				}
+			}
+		}
+		else if (result == 4){	//Azure Blast
+			genericdata gd = Game->LoadGenericData(CheckGenericScript("AzureBlast"));
+			if(!gd->Running)
+			{
+				gd->Running = true;
+			}
+			Waitframes(60);
+		}
+		else if (result == 5){	//Ivory Blessing
+			genericdata gd = Game->LoadGenericData(CheckGenericScript("IvoryBlessing"));
+			if(!gd->Running)
+			{
+				gd->Running = true;
+			}
+			Waitframes(120);
+		}
+		else if (result == 6){	//Crimson Melt
+			int meltDmg = Ceiling(Link->HP/3);
+			genericdata gd = Game->LoadGenericData(CheckGenericScript("CrimsonMeltNoDmg"));
+			
+			if(!Link->Item[ENHANCED_DS_ID] || gd->Running){
+				Link->HP = 16;
+			}
+			
+			if(Link->Item[ENHANCED_DS_ID]){	//Enhanced
+				if(!gd->Running)
+				{
+					gd->Running = true;
+				}
+			}
+			
+			npc enemys;
+			for(int i = 1; i<=Screen->NumNPCs(); i++){
+				enemys = Screen->LoadNPC(i); 
+				enemys->HP-=meltDmg; 
+			}
+			if(meltDmg == 107){
+				Game->PlaySound(37); Game->PlaySound(105);
+				RunFFCScript(56, {0x17, 60, 0});
+				Screen->Quake = 80;
+				Screen->Wavy = 20;
+				Waitframes(80);
+			}
+			else if(meltDmg >= 80){
+				Game->PlaySound(37);
+				RunFFCScript(56, {0x07, 40, 0});
+				Screen->Quake = 60;
+				Screen->Wavy = 20;
+				Waitframes(60);
+			}
+			else if(meltDmg >= 64){
+				Game->PlaySound(37);
+				RunFFCScript(56, {0x07, 30, 0});
+				Screen->Quake = 40;
+				Screen->Wavy = 15;
+				Waitframes(40);
+			}
+			else if(meltDmg >= 32){
+				Game->PlaySound(102);
+				RunFFCScript(56, {0x07, 20, 0});
+				Screen->Quake = 20;
+				Waitframes(40);
+			}
+			else{
+				Game->PlaySound(102);
+				RunFFCScript(56, {0x06, 20, 0});
+				Waitframes(40);
+			}
+			Waitframes(20);
+		}
+    }
+}
+
+generic script SpellMenu
+{
+    void run()
+    {
+        this->DataSize = 1;
+
+        // Names of the 7 spells and the cancel button go here.
+        // Spells that aren't discovered will use spellUnknownName instead.
+        int spellUnknownName[] = "???";
+        int spell1Name[] = "Ebony Wave";			//	Black Dragon
+        int spell2Name[] = "Violet Decay";			//	Purple Dragon
+        int spell3Name[] = "Gamboge Heal";			//	Orange Dragon
+        int spell4Name[] = "Emerald Egg";			//	Green Dragon
+        int spell5Name[] = "Azure Blast";			//	Blue Dragon
+        int spell6Name[] = "Ivory Blessing";		//	Silver Dragon
+        int spell7Name[] = "Crimson Melt";			//	Red Dragon
+        int cancel[] = "-Cancel-";
+
+        int spellNames[] = {spell1Name, spell2Name, spell3Name, spell4Name, spell5Name, spell6Name, spell7Name, cancel};
+        int numOptions = SizeOfArray(spellNames);
+
+        // Descriptions for the 7 spells. 
+        // Spells that aren't discovered will use spellUnknownDesc instead.
+        int spellUnknownDesc[] = "???";
+		
+		int spellCost[7];
+		spellCost[0] = 16;
+		spellCost[1] = 64;
+		spellCost[2] = 160;
+		spellCost[3] = 64;
+		spellCost[4] = 32;
+		spellCost[5] = 0;
+		spellCost[6] = 0;
+		
+		if(Game->Counter[33] >= 7){ //Lv. 7
+			spellCost[0] = 48;
+		}
+		else if(Game->Counter[33] >= 5){ //Lv. 5, Lv. 6
+			spellCost[0] = 32;
+		}
+		else if(Game->Counter[33] >= 3){ //Lv. 3, Lv. 4
+			spellCost[0] = 24;
+		}
+		
+		int spell1Desc[256];
+		int spell2Desc[256];
+		int spell3Desc[256];
+		int spell4Desc[256];
+		int spell5Desc[256];
+		int spell6Desc[256];
+		int spell7Desc[256];
+		
+		// Black
+		sprintf(spell1Desc,"Cost: %d MP  Lv. %d    ------------            Shoot a wave of magic that gets stronger the more dragons you defeat.",spellCost[0] * (Game->Generic[GEN_MAGICDRAINRATE]/2),Game->Counter[33]);
+		// Purple
+		sprintf(spell2Desc,"Cost: %d MP            ------------            Poisons all enemies on screen. They'll take passive damage for a bit.",spellCost[1] * (Game->Generic[GEN_MAGICDRAINRATE]/2));
+		// Orange
+		sprintf(spell3Desc,"Cost: %d MP            ------------            Regenerate health over a short period of time.",spellCost[2] * (Game->Generic[GEN_MAGICDRAINRATE]/2));
+		// Green
+		sprintf(spell4Desc,"Cost: %d MP            ------------            Summon an egg to break open. It may contain a useful item.",spellCost[3] * (Game->Generic[GEN_MAGICDRAINRATE]/2));
+		// Blue
+		sprintf(spell5Desc,"Cost: %d MP            ------------            Fire powerful portal beam lasers from all sides.",spellCost[4] * (Game->Generic[GEN_MAGICDRAINRATE]/2));
+		// Silver
+		sprintf(spell6Desc,"Cost: %d MP            ------------            Copy the effects of the contents in your first filled bottle once per continue.",spellCost[5] * (Game->Generic[GEN_MAGICDRAINRATE]/2));
+		// Red
+		sprintf(spell7Desc,"Cost: %d MP            ------------            Sacrifice health for a massive screenwide attack.",spellCost[6] * (Game->Generic[GEN_MAGICDRAINRATE]/2));
+		
+		
+        int spellDescriptions[] = {spell1Desc, spell2Desc, spell3Desc, spell4Desc, spell5Desc, spell6Desc, spell7Desc, NULL};
+
+        // Array of item IDs associated with each of the spells.
+        int spellItemIDs[] = {12, 105, 65, 63, 26, 118, 90};
+		
+		bool spellDisabled[8];
+		
+		//Canceling Spells
+		
+		//Cancel Purple Dragon Spell Screen
+		genericdata gd1 = Game->LoadGenericData(CheckGenericScript("VioletDecay"));
+		if(gd1->Running){
+			spellDisabled[1] = true;
+		}
+		//Cancel Orange Dragon Spell Screen
+		genericdata gd2 = Game->LoadGenericData(CheckGenericScript("SunsetHealing"));
+		if(gd2->Running){
+			spellDisabled[2] = true;
+		}
+		//Cancel Blue Dragon Spell Screen
+		genericdata gd3 = Game->LoadGenericData(CheckGenericScript("AzureBlast"));
+		if(gd3->Running){
+			spellDisabled[4] = true;
+		}
+		//Cancel White Dragon Spell Screen (Also cancel if no bottles)
+		genericdata gd4 = Game->LoadGenericData(CheckGenericScript("IvoryBlessing"));
+		if(gd4->Running||(Game->BottleState[1]==0&&Game->BottleState[2]==0&&Game->BottleState[3]==0&&Game->BottleState[4]==0)){
+			spellDisabled[5] = true;
+		}
+		//Cancel Red Dragon Spell Screen (Cancel if Link's HP is 16 or less)
+		if(Link->HP <= 16){
+			spellDisabled[6] = true;
+		}
+
+        for(int i=0; i<7; ++i)
+        {
+			if(Link->MP < spellCost[i] * ((Game->Generic[GEN_MAGICDRAINRATE]/2))){
+				spellDisabled[i] = true;
+			}
+            if(!Link->Item[spellItemIDs[i]])
+            {
+                spellNames[i] = spellUnknownName;
+                spellDescriptions[i] = spellUnknownDesc;
+            }
+        }
+
+        int retScale[2];
+		
+		Game->PlaySound(99);
+        if(this->Data[0]==-1)
+            this->Data[0] = 0;
+        while(true)
+        {
+			Screen->Rectangle(6, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+            if(Link->PressUp)
+            {
+                --this->Data[0];
+                if(this->Data[0]<0)
+                    this->Data[0] = numOptions-1;
+                Audio->PlaySound(SFX_SPELLMENU_CURSOR);
+            }
+            else if(Link->PressDown)
+            {
+                ++this->Data[0];
+                if(this->Data[0]>=numOptions)
+                    this->Data[0] = 0;
+                Audio->PlaySound(SFX_SPELLMENU_CURSOR);
+            }
+            int sel = this->Data[0];
+			int EnhancedCSetColor = 0;
+			if(Link->Item[ENHANCED_DS_ID]){
+				EnhancedCSetColor = 2;
+			}
+            Screen->DrawTile(6, XPOS_SPELLMENU, YPOS_SPELLMENU, TIL_SPELLMENU_FRAME, WIDTH_SPELLMENU_FRAME, HEIGHT_SPELLMENU_FRAME, CS_SPELLMENU_FRAME - EnhancedCSetColor, -1, -1, 0, 0, 0, 0, true, OP_OPAQUE);
+            int h = Text->FontHeight(FONT_SPELLMENU_CHOICES)+SPACING_SPELLMENU_OPTIONS;
+            for(int i=0; i<numOptions; ++i)
+            {
+                int c = i==sel?C_SPELLMENU_TEXTSEL:C_SPELLMENU_TEXT;
+				if(spellNames[i]==spellUnknownName||spellDisabled[i]) //Grayed Out Text
+					c = i==sel?C_SPELLMENU_QTEXTSEL:C_SPELLMENU_QTEXT;
+                Screen->DrawString(6, XPOS_SPELLMENU+XOFF_SPELLMENU_OPTIONS, YPOS_SPELLMENU+YOFF_SPELLMENU_OPTIONS+h*i, FONT_SPELLMENU_CHOICES, c, -1, TF_NORMAL, spellNames[i], OP_OPAQUE, SHD_OUTLINED8, C_SPELLMENU_OUTLINE);
+            }
+            if(spellDescriptions[sel])
+                DrawStringWrapped(retScale, 6, NULL, XPOS_SPELLMENU+XOFF_SPELLMENU_DESCRIPTION, YPOS_SPELLMENU+YOFF_SPELLMENU_DESCRIPTION, WIDTH_SPELLMENU_DESCRIPTION, FONT_SPELLMENU_DESCRIPTION, C_SPELLMENU_TEXT, -1, TF_NORMAL, spellDescriptions[sel], OP_OPAQUE, SHD_OUTLINED8, C_SPELLMENU_OUTLINE);
+            if(Link->PressA||Link->PressStart)
+            {
+				if(spellDisabled[sel]){
+					Game->PlaySound(68);
+				}
+                else if(spellNames[sel]==cancel)
+                {
+                    Audio->PlaySound(SFX_SPELLMENU_SELECT);
+                    this->Data[0] = -1;
+                    break;
+                }
+                else if(spellNames[sel]!=spellUnknownName)
+                {
+                    Audio->PlaySound(SFX_SPELLMENU_SELECT);
+                    break;
+                }
+            }
+			if(Link->PressB){
+				Audio->PlaySound(SFX_SPELLMENU_SELECT);
+				this->Data[0] = -1;
+				break;
+			}
+            Waitframe();
+        }
+    }
+}
+
+// Red Dragon Fire
+generic script RedDragonFire{
+	void run(){
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		Game->PlaySound(35);
+		int delay1 = 80; int delay2 = 8; int numFires = 24; int power = 32;
+		if(Link->Item[243]){
+			delay1 = 40; delay2 = 4; numFires = 30; power = 36;
+		}
+		for(int i = 1; i <= delay1; i++){
+			Link->Action=LA_NONE;
+			Link->Action=LA_ATTACKING;
+			Link->PressL = false; Link->InputL = false;
+			Waitframe();
+		}
+		RunFFCScript(56, {23, 60, 0}); 
+		Game->PlaySound(85); Screen->Quake = 60;
+		for(int i = 1; i <= numFires; i++){
+			Link->Action=LA_NONE;
+			Link->Action=LA_ATTACKING;
+			Link->PressL = false; Link->InputL = false;
+			lweapon fire = FireLWeaponDegAngle(LW_FIRE,Rand(16,224),Rand(16,144),0,0,power,35,13);
+			Waitframes(delay2);
+		}
+		for(int i = 1; i <= 20; i++){
+			Link->Action=LA_NONE;
+			Link->Action=LA_ATTACKING;
+			Link->PressL = false; Link->InputL = false;
+			Waitframe();
+		}
+		Link->Action=LA_NONE;
+	}
+}
+
+// Silver Dragon Exit
+generic script SilverDragonExit{
+	void run(){
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		Game->PlaySound(70); Game->PlayMIDI(0);
+		for(int i = 1; i <= 40; i++){
+			Game->SkipF6 = true;
+			Screen->Rectangle(6, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+			Link->Action=LA_NONE;
+			Link->Action=LA_ATTACKING;
+			Link->PressStart = false; Link->InputStart = false;
+			Link->PressMap = false; Link->InputMap = false;
+			Link->PressL = false; Link->InputL = false;
+			Link->PressR = false; Link->InputR = false;
+			NoAction();
+			Game->Suspend[susptGUYS] = true;
+			Game->Suspend[susptLINK] = true;
+			Game->Suspend[susptUPDATEFFC] = true;
+			Waitframe();
+		}
+		Game->PlaySound(SFX_JUMP);
+		Game->PlaySound(59);
+		for(int i = 1; i <= 44; i++){
+			Link->Action=LA_NONE;
+			Game->SkipF6 = true;
+			Screen->Rectangle(6, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+			Link->Z += 4;
+			Waitframe();
+		}
+		for(int i = 1; i <= 40; i++){
+			Game->SkipF6 = true;
+			Screen->Rectangle(6, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+			Waitframe();
+		}
+		Game->SkipF6 = false;
+		Link->Action=LA_NONE;
+		Game->Suspend[susptGUYS] = false;
+		Game->Suspend[susptLINK] = false;
+		Game->Suspend[susptUPDATEFFC] = false;
+		Link->HP = Link->MaxHP; Link->MP = Link->MaxMP;
+		Game->Continue();
+	}
+}
+
+// Black Dragon Spell
+generic script EbonyWave{	// Enhanced Only
+	void run()
+    {
+		this->ExitState[GENSCR_ST_CHANGE_SCREEN] = true;
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		//this->ExitState[GENSCR_EVENT_HERO_HIT_1] = true;
+		//this->ExitState[GENSCR_EVENT_HERO_HIT_2] = true;
+		
+		for(int i1 = 0; i1 > -1; i1++){
+			if(i1 % 36 == 0){
+				Link->Action=LA_NONE;
+				Link->Action=LA_ATTACKING;
+				Screen->Quake = 60;
+				Game->PlaySound(95);Game->PlaySound(105);
+				RunFFCScript(56, {15, 30, 0});
+				for(int i = -3; i <= 3; i++){
+					lweapon l = FireLWeaponDegAngle(36,Link->X + DirX(Link->Dir) * 16,Link->Y + DirY(Link->Dir) * 16,DirAngle(Link->Dir)+(i*15),600,36,203,37);
+					l->AutoRotate = true;
+					l->Weapon = LW_SWORD;
+				}
+			}
+			printf("%d\n",i1);
+			Waitframe();
+		}
+		
+	}
+}
+
+// Purple Dragon Spell
+generic script VioletDecay{
+	void run()
+    {
+		this->ExitState[GENSCR_ST_CHANGE_SCREEN] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		
+		int hitT1 = 6; int hitT2 = 6;
+		
+		if(Link->Item[ENHANCED_DS_ID]){
+			hitT1 = Rand(4,15);
+			hitT2 = Rand(4,18);
+		}
+		
+		int args[8] = {164, 30, 0};
+		Game->PlaySound(124);
+		RunFFCScript(56, args);
+		Link->MP -= 64 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+		Waitframes(30);
+		for(int i = 0; i < hitT1; i++)
+		{
+			RunFFCScript(56, args);
+			for(int j = 0; j < hitT2; j++)
+			{
+				Game->PlaySound(84);
+				for(int k = 1; k<=Screen->NumNPCs(); k++){
+					npc enemys;
+					enemys = Screen->LoadNPC(k); 
+					enemys->HP-=1; 
+					Game->PlaySound(11);
+					Waitframes(4);
+				}
+			}
+			hitT2 = Rand(4,18);
+			if(Link->Item[ENHANCED_DS_ID]){
+				Waitframes(Rand(40,70));
+			}
+			else{
+				Waitframes(Rand(70,100));
+			}
+		}
+	}
+}
+
+// Orange Dragon Spell
+generic script SunsetHealing{
+	void run()
+    {
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		
+		int args[8] = {137, 30, 0};
+		Game->PlaySound(124);
+		RunFFCScript(56, args);
+		Link->MP -= 160 * (Game->Generic[GEN_MAGICDRAINRATE]/2);	
+		
+		Waitframes(30);
+		for(int i = 0; i < 8; i++)
+		{
+			Game->PlaySound(22);
+			RunFFCScript(56, {137, 10, 0});
+			for(int j = 0; j < 4; j++)
+			{
+				Link->HP += 4;
+				Waitframes(4);
+			}
+			if(Link->Item[ENHANCED_DS_ID]){
+				Waitframes(4);
+			}
+			else{
+				Waitframes(60);
+			}
+		}
+	}
+}
+
+// Blue Dragon Spell
+generic script AzureBlast{
+	void run()
+    {
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		
+		int args[8] = {9, 30, 0};
+		Game->PlaySound(124);
+		RunFFCScript(56, args);
+		Link->MP -= 32 * (Game->Generic[GEN_MAGICDRAINRATE]/2);	
+		int timesHit = 4;
+		
+		if(Link->Item[ENHANCED_DS_ID]){
+			timesHit = 6;
+		}
+		
+		Waitframes(30);
+		for(int i = 0; i < 4; i++)
+		{
+			for(int j = 0; j < 18; j++)
+			{
+				lweapon l = FireLWeaponDegAngle(33,Link->X,Link->Y,j*20,480,16,176,110);
+			}
+			if(Link->Item[ENHANCED_DS_ID]){
+				Waitframes(40);
+			}
+			else{
+				Waitframes(60);
+			}
+		}
+	}
+}
+
+// Enhanced Red Dragon Spell
+generic script CrimsonMeltNoDmg //Enhanced only: No damage for the first time
+{
+    void run()
+    {
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		
+		while(true){
+			Waitframe();
+		}
+	}
+}
+
+// Silver Dragon Spell
+generic script IvoryBlessing
+{
+    void run()
+    {
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		
+		//Setup Bottle Effects
+		int botCheck = 1;
+		//Check for first open bottle 
+		for(int i = 1; i <= 4; i++){
+			if(Game->BottleState[botCheck] == 0){
+				botCheck += 1;
+			}
+		}
+		if(botCheck > 4){botCheck=4;}
+		int type = Game->BottleState[botCheck];
+		int k = 0;
+		Game->PlaySound(35);
+		for(int i=0; i<60; i++){
+			if(i > 10){
+				k = 1;
+			}
+			switch(type){
+				case 1: FastTile(4,Link->X,Link->Y-18,21789,8,OP_OPAQUE); break;
+				case 2: FastTile(4,Link->X,Link->Y-18,21790,8,OP_OPAQUE); break;
+				case 3: FastTile(4,Link->X,Link->Y-18,21791,8,OP_OPAQUE); break;
+				case 4: FastTile(4,Link->X,Link->Y-18,21792,8,OP_OPAQUE); break;
+				case 5: FastTile(4,Link->X,Link->Y-18,21793,8,OP_OPAQUE); break;
+				case 6: FastTile(4,Link->X,Link->Y-18,21794,8,OP_OPAQUE); break;
+				case 7: FastTile(4,Link->X,Link->Y-18,21795,8,OP_OPAQUE); break;
+				case 8: FastTile(4,Link->X,Link->Y-18,21796,8,OP_OPAQUE); break;
+				case 9: FastTile(4,Link->X,Link->Y-18,21797,8,OP_OPAQUE); break;
+				case 10: FastTile(4,Link->X,Link->Y-18,21798,8,OP_OPAQUE); break;
+				case 11: FastTile(4,Link->X,Link->Y-18,21799,8,OP_OPAQUE); break;
+			}
+			Link->Action=LA_NONE;
+			Link->Action=LA_ATTACKING;
+			if(Link->Item[ENHANCED_DS_ID] && Link->PressA && k == 1){
+				Game->PlaySound(5);
+				if(type == 11){
+					type = 1;
+				}
+				else{
+					type += 1;
+				}
+				i = 0;
+			}
+			if(Link->Item[ENHANCED_DS_ID] && Link->PressB && k == 1){
+				Game->PlaySound(5);
+				if(type == 1){
+					type = 11;
+				}
+				else{
+					type -= 1;
+				}
+				i = 0;
+			}
+			Waitframe();
+		}
+		switch(type){
+			case 1:	//Red Potion
+				Game->PlaySound(124);
+				RunFFCScript(56, {0x06, 30, 0});
+				Link->HP += 160;
+				break;
+			case 2:	//Green Potion
+				Game->PlaySound(124);
+				RunFFCScript(56, {0x13, 30, 0});
+				Link->MP = Link->MaxMP;
+				break;
+			case 3:	//Yellow Potion
+				Game->PlaySound(124);
+				RunFFCScript(56, {0x88, 30, 0});
+				Link->HP = Link->MaxHP;
+				break;
+			case 4:	//Blue Potion
+				Game->PlaySound(124);
+				RunFFCScript(56, {0x0A, 30, 0});
+				Link->HP += 160;
+				Link->MP = Link->MaxMP;
+				break;
+			case 5:	//Crystal Potion
+				Game->PlaySound(124);
+				RunFFCScript(56, {0x09, 30, 0});
+				Link->HP = Link->MaxHP;
+				Link->MP = Link->MaxMP;
+				break;
+			case 6:	//Fairy
+				Game->PlaySound(124);
+				RunFFCScript(56, {0x83, 30, 0});
+				Link->HP += Link->MaxHP/2;
+				break;
+			case 7:	//Golden Fairy
+				Game->PlaySound(124);
+				RunFFCScript(56, {0x88, 30, 0});
+				Link->HP = Link->MaxHP;
+				break;
+			case 8:	//Supplement Goop
+				Game->PlaySound(124);
+				RunFFCScript(56, {0xB9, 30, 0});
+				Game->DCounter[2] = Game->MCounter[2];
+				Game->DCounter[3] = Game->MCounter[3];
+				Game->DCounter[7] = Game->MCounter[7];
+				break;
+			case 9:	//White Potion
+				bitmap b = Game->CreateBitmap(16,16);
+				b->Own();
+				RunFFCScript(56, {9, 40, 0});
+				Game->PlaySound(124);
+				for(int i = 0; i<360; i++){
+					b->Clear(0);
+					b->FastTile(0,0,0,Link->Tile,6,OP_OPAQUE);
+					if(i%4 < 2){
+						b->ReplaceColors(0,0x01,0x01,0xFF);
+						b->Blit(SPLAYER_PLAYER_DRAW,RT_SCREEN,0,0,16,16,Link->X,Link->Y-Link->Z,16,16,0,0,0,BITDX_NORMAL,0,true);
+					}
+					FastCombo(6,240,0,15331,11,OP_OPAQUE);
+					Hero->InvFrames = 8;
+					Waitframe();
+					if (i==300){
+						RunFFCScript(56, {9, 60, 0});
+						Game->PlaySound(124);
+					}
+				}
+				break;
+			case 10: //Black Potion
+				RunFFCScript(56, {15, 60, 0});
+				Game->PlaySound(89);
+				Screen->Wavy = 15;
+				npc enemys;
+				for(int i = 1; i<=Screen->NumNPCs(); i++){
+					enemys = Screen->LoadNPC(i); 
+					enemys->HP-=64; 
+				}
+				break;
+			case 11: //Seashell Vodka
+				bitmap b = Game->CreateBitmap(16,16);
+				b->Own();
+				//====================================
+				//Copy Pasted Code from Seashell Vodka
+				//====================================
+				int args[8] = {10, 60, 0};
+				int effect1 = 0; int effect2 = 0; int effect3 = 0;
+				int effect4 = 0; int effect5 = 0; int effect6 = 0;
+				int effect7 = 0; int effect8 = 0;
+				int RNG = 0; int num = 1; int tim = 300;
+				//Seashell Check
+				if(Game->Counter[14]>=3500){num = 8;}
+				else if(Game->Counter[14]>=3000){num = 7;}
+				else if(Game->Counter[14]>=2500){num = 6;}
+				else if(Game->Counter[14]>=2000){num = 5;}
+				else if(Game->Counter[14]>=1500){num = 4;}
+				else if(Game->Counter[14]>=1000){num = 3;}
+				else if(Game->Counter[14]>=500){num = 2;}
+				//Generate Randomness
+				for(int i=0; i<num; ++i){
+					RNG = Rand(1,8);
+					while(RNG < 10){
+						if((RNG==1)&&(effect1==0)){
+							effect1 = 1;
+							RNG = 10;
+						}
+						else if((RNG==2)&&(effect2==0)){
+							effect2 = 1;
+							RNG = 10;
+						}
+						else if((RNG==3)&&(effect3==0)){
+							effect3 = 1;
+							RNG = 10;
+						}
+						else if((RNG==4)&&(effect4==0)){
+							effect4 = 1;
+							RNG = 10;
+						}
+						else if((RNG==5)&&(effect5==0)){
+							effect5 = 1;
+							RNG = 10;
+						}
+						else if((RNG==6)&&(effect6==0)){
+							effect6 = 1;
+							RNG = 10;
+						}
+						else if((RNG==7)&&(effect7==0)){
+							effect7 = 1;
+							RNG = 10;
+						}
+						else if((RNG==8)&&(effect8==0)){
+							effect8 = 1;
+							RNG = 10;
+						}
+						else{
+							RNG = Rand(1,8);
+						}
+					}
+				}
+				//Effects
+				RunFFCScript(56, args);
+				Game->PlaySound(124);
+				
+				if(effect1){
+					Player->Item[252]=true;
+				}
+				if(effect2){
+					Link->HP = Link->MaxHP;
+				}
+				if(effect3){
+					Link->MP = Link->MaxMP;
+				}
+				if(effect6){
+					Game->PlaySound(89);
+					Screen->Wavy = 15;
+					npc enemys;
+					for(int i = 1; i<=Screen->NumNPCs(); i++){
+						enemys = Screen->LoadNPC(i); //Targets those enemies.
+						enemys->HP-=32; 
+					}
+				}
+				if(effect8){
+					CreateItemAt(73, ((Link->X)-24), ((Link->Y)-24));
+					CreateItemAt(80, ((Link->X)+24), ((Link->Y)-24));
+					CreateItemAt(154, ((Link->X)-24), ((Link->Y)+24));
+					CreateItemAt(60, ((Link->X)+24), ((Link->Y)+24));
+				}
+				if(Game->Counter[14]>=4500){tim = 360;}
+				if(Game->Counter[14]>=6000){tim = 720;}
+				if(effect1||effect4||effect5||effect7){
+					for(int i = 0; i<tim; i++){
+						if(effect1){
+							FastCombo(6,240,0,15590,7,OP_OPAQUE);
+						}
+						if(effect4){
+							if(i%2){Link->HP += 1;}
+							if(effect1){
+								FastCombo(6,224,0,15556,8,OP_OPAQUE);
+							}
+							else{
+								FastCombo(6,240,0,15556,8,OP_OPAQUE);
+							}
+						}
+						if(effect7){
+							b->Clear(0);
+							b->FastTile(0,0,0,Link->Tile,6,OP_OPAQUE);
+							if(i%4 < 2){
+								b->ReplaceColors(0,0x01,0x01,0xFF);
+								b->Blit(SPLAYER_PLAYER_DRAW,RT_SCREEN,0,0,16,16,Link->X,Link->Y-Link->Z,16,16,0,0,0,BITDX_NORMAL,0,true);
+							}
+							Hero->InvFrames = 8;
+							if(effect1&&effect4){
+								FastCombo(6,208,0,15331,11,OP_OPAQUE);
+							}
+							else if(effect1||effect4){
+								FastCombo(6,224,0,15331,11,OP_OPAQUE);
+							}
+							else{
+								FastCombo(6,240,0,15331,11,OP_OPAQUE);
+							}
+						}
+						if((effect5)&&(i%60==0)){
+							for(int i; i < 15; i++){
+							Game->PlaySound(32);
+							lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+							magic->Angular = true;
+							magic->Angle = DegtoRad(i*24);
+							magic->Step = 420;
+							magic->UseSprite(183);
+							magic->Damage = 22;
+							}
+						}
+						Waitframe();
+						if (i==(tim-60)){
+							RunFFCScript(56, args);
+							Game->PlaySound(124);
+						}
+					}
+				}
+				Player->Item[252]=false;
+				//====================================
+				//End of Copy Paste
+				//====================================
+				break;
+		}
+		
+		Link->Action=LA_NONE;
+		while(true)
+		{
+			Waitframe();
+		}
+	}
+}
+
+//itemdata bottleEffect = Game->LoadItemData(29);
+//bottleEffect->RunScript(ISCR_RUN);

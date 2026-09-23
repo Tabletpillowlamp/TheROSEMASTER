@@ -1,0 +1,82 @@
+ffc script Barriers {
+	void run() {
+		
+		// Initialize storage for bswitch hit dummies
+		int bswitch_count;
+		npc bswitch[8];
+		
+		for (int i = 0; i <= 175; i++) {
+			if (Screen->ComboD[i] == BARRIER_A_SWITCH || Screen->ComboD[i] == BARRIER_B_SWITCH ||
+				Screen->ComboD[i] == BARRIER_A_SWITCH+40 || Screen->ComboD[i] == BARRIER_B_SWITCH+40 ||
+				Screen->ComboD[i] == BARRIER_A_SWITCH+192 || Screen->ComboD[i] == BARRIER_B_SWITCH+192 ){
+				npc bs = CreateNPCAt(BARRIER_SWITCH_DUMMY, ComboX(i), ComboY(i));
+				bs->HitWidth = 8; // Smaller hit box to avoid annoying collisions with Link
+				bs->HitHeight = 8;
+				bs->HP = BARRIER_SWITCH_DUMMY_HP;
+				bswitch[bswitch_count++] = bs;
+			}
+		}
+			
+		// Change raised barriers to walkable ones if Link enters screen on a raised barrier
+		int lcombo = LinkOnComboD();
+		bool onbarrier = (lcombo == BARRIER_A_RAISED || lcombo == BARRIER_B_RAISED || lcombo == BARRIER_A_RAISED+40 || lcombo == BARRIER_B_RAISED+40);
+		if (onbarrier) for (int i = 0; i < 176; i++){
+			if (Screen->ComboD[i] == BARRIER_A_RAISED) {Screen->ComboD[i] = BARRIER_A_WALKABLE;}
+			else if (Screen->ComboD[i] == BARRIER_B_RAISED) {Screen->ComboD[i] = BARRIER_B_WALKABLE;}
+			else if (Screen->ComboD[i] == BARRIER_A_RAISED+40) {Screen->ComboD[i] = BARRIER_A_WALKABLE+40;}
+			else if (Screen->ComboD[i] == BARRIER_B_RAISED+40) {Screen->ComboD[i] = BARRIER_B_WALKABLE+40;}
+			else if (Screen->ComboD[i] == BARRIER_A_RAISED+192) {Screen->ComboD[i] = BARRIER_A_WALKABLE+192;}
+			else if (Screen->ComboD[i] == BARRIER_B_RAISED+192) {Screen->ComboD[i] = BARRIER_B_WALKABLE+192;}
+		}
+				
+		while (true){
+			// Detect hits on bswitches, and change combos accordingly
+			for (int j = 0; j < bswitch_count; j++){
+				if (bswitch[j]->HP < BARRIER_SWITCH_DUMMY_HP){
+						bswitch[j]->HP = BARRIER_SWITCH_DUMMY_HP;
+						ToggleBarriers();
+						break;
+				}
+			} //break so that only one bswitch hit may register per frame		
+					
+			// Make barriers walkable if Link is on raised barriers, or unwalkable if not
+			lcombo = LinkOnComboD();
+			if (!onbarrier && (lcombo == BARRIER_A_RAISED || lcombo == BARRIER_B_RAISED  || lcombo == BARRIER_A_RAISED+40 || lcombo == BARRIER_B_RAISED+40 || lcombo == BARRIER_A_RAISED+192 || lcombo == BARRIER_B_RAISED+192)){
+				onbarrier = true;
+				for (int i = 0; i <= 175; i++){
+					if (Screen->ComboD[i] == BARRIER_A_RAISED){
+						Screen->ComboD[i] = BARRIER_A_WALKABLE;
+					}
+					else if (Screen->ComboD[i] == BARRIER_B_RAISED){
+						Screen->ComboD[i] = BARRIER_B_WALKABLE;
+					}
+					else if (Screen->ComboD[i] == BARRIER_A_RAISED+40){
+						Screen->ComboD[i] = BARRIER_A_WALKABLE+40;
+					}
+					else if (Screen->ComboD[i] == BARRIER_B_RAISED+40){
+						Screen->ComboD[i] = BARRIER_B_WALKABLE+40;
+					}
+					else if (Screen->ComboD[i] == BARRIER_A_RAISED+192){
+						Screen->ComboD[i] = BARRIER_A_WALKABLE+192;
+					}
+					else if (Screen->ComboD[i] == BARRIER_B_RAISED+192){
+						Screen->ComboD[i] = BARRIER_B_WALKABLE+192;
+					}
+				}
+			}
+			else if (onbarrier && !(lcombo == BARRIER_A_WALKABLE || lcombo == BARRIER_B_WALKABLE || lcombo == BARRIER_A_WALKABLE+40 || lcombo == BARRIER_B_WALKABLE+40 || lcombo == BARRIER_A_WALKABLE+192 || lcombo == BARRIER_B_WALKABLE+192)){
+				onbarrier = false;
+				for (int i = 0; i <= 175; i++){
+					if (Screen->ComboD[i] == BARRIER_A_WALKABLE) {Screen->ComboD[i] = BARRIER_A_RAISED;}
+					else if (Screen->ComboD[i] == BARRIER_B_WALKABLE) {Screen->ComboD[i] = BARRIER_B_RAISED;}
+					else if (Screen->ComboD[i] == BARRIER_A_WALKABLE+40) {Screen->ComboD[i] = BARRIER_A_RAISED+40;}
+					else if (Screen->ComboD[i] == BARRIER_B_WALKABLE+40) {Screen->ComboD[i] = BARRIER_B_RAISED+40;}
+					else if (Screen->ComboD[i] == BARRIER_A_WALKABLE+192) {Screen->ComboD[i] = BARRIER_A_RAISED+192;}
+					else if (Screen->ComboD[i] == BARRIER_B_WALKABLE+192) {Screen->ComboD[i] = BARRIER_B_RAISED+192;}
+					}
+				}					
+			Waitframe();
+		}
+		
+	}
+}

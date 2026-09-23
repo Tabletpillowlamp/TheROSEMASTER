@@ -1,0 +1,46 @@
+ffc script SpawnItemAtFFC
+{
+	//Argument 1 is the item ID. Listens to FFC positioning instead of
+        //randomly placing it or having to place it by pixel value.
+	void run(int item1, int noGold)
+	{
+		//Golden Fairy
+		if(item1 == 34 && Link->Item[243] && noGold == 0){
+			item1 = 69;
+		}
+		CreateItemAt(item1, this->X, this->Y);
+		Quit();
+	}
+}
+
+ffc script BossEnemySpawn
+{
+	void run(int Bnpc)
+	{
+		CreateNPCAt(Bnpc, this->X, this->Y);
+		Quit();
+	}
+}
+
+ffc script BossWarpDefeat
+{
+	void run(int Bnpc)
+	{
+		Waitframes(4);
+		int i2 = 1;
+		
+		while(i2 == 1){
+			i2 = 0;
+			for(int i=Screen->NumNPCs(); i>=1; i--){
+				npc n = Screen->LoadNPC(i);
+				if(n->ID==Bnpc){
+					i2=1;
+				}
+			}
+			Waitframe();
+		}
+		
+		this->Data = 17701;
+		
+	}
+}

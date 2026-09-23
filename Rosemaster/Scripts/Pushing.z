@@ -1,0 +1,287 @@
+const int LTM_PUSHING = 158; // LTM for Link pushing a block with the Power Bracelet
+
+bool NoPush = false;
+
+void PushAnimation()
+{
+    if (((!CanWalk(Link->X, Link->Y, Link->Dir, 1, false) ||
+    (Link->Dir == AngleDir4(Angle(Link->X + 7, Link->Y + 11, Screen->MovingBlockX + 7, Screen->MovingBlockY + 7)) 
+    && Screen->MovingBlockX > -1 && Screen->MovingBlockY > -1 || Screen->MovingBlockX > -1 && Screen->MovingBlockY > -1
+    && RectCollision(Link->X, Link->Y + 8, Link->X + 15, Link->Y + 15, 
+    Screen->MovingBlockX - 2, Screen->MovingBlockY - 2, Screen->MovingBlockX + 16, Screen->MovingBlockY + 16)))
+    && Link->Action == LA_WALKING && Link->HP > 0) && !NoPush)
+    {
+        if(!Link->Item[LTM_PUSHING]) Link->Item[LTM_PUSHING] = true;
+    }
+    else
+    {
+        if(Link->Item[LTM_PUSHING]) Link->Item[LTM_PUSHING] = false;
+    }
+    NoPush = false;
+}
+
+int shield_sel	= 0;
+int pause_Screen = 0;
+
+void DrawStringWOutline(int layer, int x, int y, int font, int c, int outline, int tf, int str, int op){
+		Screen->DrawString(layer, x-1, y, font, outline, -1, tf, str, op);
+		Screen->DrawString(layer, x+1, y, font, outline, -1, tf, str, op);
+		Screen->DrawString(layer, x, y-1, font, outline, -1, tf, str, op);
+		Screen->DrawString(layer, x, y+1, font, outline, -1, tf, str, op);
+		
+		Screen->DrawString(layer, x, y, font, c, -1, tf, str, op);
+	}
+
+void ShieldSelection(){
+	int sel = 0;
+	int shield_Title[] 	= "-SHIELDS & COSTUMES-";
+	int name_00[256];
+	int name_01[256];
+	int name_02[256];
+	int name_03[256];
+	int name_04[256];
+	int name_05[256];
+	int name_06[256];
+	int name_07[256];
+	int name_08[256];
+	int name_10[256];
+	int name_11[256];
+	int name_12[256];
+	int name_13[256];
+	int name_14[256];
+	int name_15[256];
+	int name_16[256];
+	int name_17[256];
+	int name_18[256];
+	
+	itemdata shield00 = Game->LoadItemData(135);	//None
+	itemdata shield01 = Game->LoadItemData(93);		//Small Shield
+	itemdata shield02 = Game->LoadItemData(8);		//Big Shield
+	itemdata shield03 = Game->LoadItemData(37);		//Mirror Shield
+	itemdata shield04 = Game->LoadItemData(212);	//Baby Costume
+	itemdata shield05 = Game->LoadItemData(210);	//Moogle Costume
+	itemdata shield06 = Game->LoadItemData(213);	//Chocobo Costume
+	itemdata shield07 = Game->LoadItemData(211);	//Linkle Costume
+	itemdata shield08 = Game->LoadItemData(136);	//Knight's Armor
+	itemdata shield09 = Game->LoadItemData(239);	//Gold Moogle
+	itemdata shield10 = Game->LoadItemData(240);	//Gold Chocobo
+	itemdata shield11 = Game->LoadItemData(26);		//Blue Dragon
+	itemdata shield12 = Game->LoadItemData(65);		//Orange Dragon
+	itemdata shield13 = Game->LoadItemData(63);		//Green Dragon
+	itemdata shield14 = Game->LoadItemData(105);	//Purple Dragon
+	itemdata shield15 = Game->LoadItemData(12);		//Black Dragon
+	itemdata shield16 = Game->LoadItemData(118);	//White Dragon
+	itemdata shield17 = Game->LoadItemData(90);		//Red Dragon
+	
+	if(Link->Item[135]){strcat(name_00, "-None-");}
+	else				{strcat(name_00, "??????");}
+	if(Link->Item[93])	{strcat(name_01, "Small Shield");}
+	else				{strcat(name_01, "??????");}
+	if(Link->Item[8])	{strcat(name_02, "Big Shield");}
+	else				{strcat(name_02, "??????");}
+	if(Link->Item[37]){strcat(name_03, "Mirror Shield");}
+	else				{strcat(name_03, "??????");}
+	if(Link->Item[212]){strcat(name_04, "Baby Costume");}
+	else				{strcat(name_04, "??????");}
+	if(Link->Item[210]){strcat(name_05, "Moogle Costume");}
+	else				{strcat(name_05, "??????");}
+	if(Link->Item[213]){strcat(name_06, "Chocobo Costume");}
+	else				{strcat(name_06, "??????");}
+	if(Link->Item[211]){strcat(name_07, "Linkle Costume");}
+	else				{strcat(name_07, "??????");}
+	if(Link->Item[136]){strcat(name_08, "Knight's Armor");}
+	else				{strcat(name_08, "??????");}
+	
+	if(Link->Item[239]){strcat(name_10, "Golden Moogle");}
+	else				{strcat(name_10, "??????");}
+	if(Link->Item[240])	{strcat(name_11, "Golden Chocobo");}
+	else				{strcat(name_11, "??????");}
+	if(Link->Item[26]){strcat(name_12, "Blue Dragon");}
+	else				{strcat(name_12, "??????");}
+	if(Link->Item[65]){strcat(name_13, "Orange Dragon");}
+	else				{strcat(name_13, "??????");}
+	if(Link->Item[63]){strcat(name_14, "Green Dragon");}
+	else				{strcat(name_14, "??????");}
+	if(Link->Item[105]){strcat(name_15, "Purple Dragon");}
+	else				{strcat(name_15, "??????");}
+	if(Link->Item[12]){strcat(name_16, "Black Dragon");}
+	else				{strcat(name_16, "??????");}
+	if(Link->Item[118]){strcat(name_17, "White Dragon");}
+	else				{strcat(name_17, "??????");}
+	if(Link->Item[90]){strcat(name_18, "Red Dragon");}
+	else				{strcat(name_18, "??????");}
+	
+	sel = shield_sel;
+	
+	Game->PlaySound(6);
+	
+	pause_Screen = 1;
+	
+	Waitframe();
+	
+	while(pause_Screen == 1){
+		DrawStringWOutline(6, 128, 0, FONT_Z1, 0x01, 0x0F, TF_CENTERED, shield_Title, 128);
+		
+		if(sel==0){DrawStringWOutline(6, 64, 16, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_00, 128);}
+		else{DrawStringWOutline(6, 64, 16, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_00, 128);}
+		
+		if(sel==1){DrawStringWOutline(6, 64, 32, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_01, 128);}
+		else{DrawStringWOutline(6, 64, 32, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_01, 128);}
+		
+		if(sel==2){DrawStringWOutline(6, 64, 48, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_02, 128);}
+		else{DrawStringWOutline(6, 64, 48, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_02, 128);}
+		
+		if(sel==3){DrawStringWOutline(6, 64, 64, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_03, 128);}
+		else{DrawStringWOutline(6, 64, 64, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_03, 128);}
+		
+		if(sel==4){DrawStringWOutline(6, 64, 80, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_04, 128);}
+		else{DrawStringWOutline(6, 64, 80, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_04, 128);}
+		
+		if(sel==5){DrawStringWOutline(6, 64, 96, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_05, 128);}
+		else{DrawStringWOutline(6, 64, 96, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_05, 128);}
+		
+		if(sel==6){DrawStringWOutline(6, 64, 112, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_06, 128);}
+		else{DrawStringWOutline(6, 64, 112, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_06, 128);}
+		
+		if(sel==7){DrawStringWOutline(6, 64, 128, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_07, 128);}
+		else{DrawStringWOutline(6, 64, 128, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_07, 128);}
+		
+		if(sel==8){DrawStringWOutline(6, 64, 144, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_08, 128);}
+		else{DrawStringWOutline(6, 64, 144, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_08, 128);}
+		
+		if(sel==9){DrawStringWOutline(6, 176, 16, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_10, 128);}
+		else{DrawStringWOutline(6, 176, 16, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_10, 128);}
+		
+		if(sel==10){DrawStringWOutline(6, 176, 32, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_11, 128);}
+		else{DrawStringWOutline(6, 176, 32, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_11, 128);}
+		
+		if(sel==11){DrawStringWOutline(6, 176, 48, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_12, 128);}
+		else{DrawStringWOutline(6, 176, 48, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_12, 128);}
+		
+		if(sel==12){DrawStringWOutline(6, 176, 64, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_13, 128);}
+		else{DrawStringWOutline(6, 176, 64, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_13, 128);}
+		
+		if(sel==13){DrawStringWOutline(6, 176, 80, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_14, 128);}
+		else{DrawStringWOutline(6, 176, 80, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_14, 128);}
+		
+		if(sel==14){DrawStringWOutline(6, 176, 96, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_15, 128);}
+		else{DrawStringWOutline(6, 176, 96, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_15, 128);}
+		
+		if(sel==15){DrawStringWOutline(6, 176, 112, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_16, 128);}
+		else{DrawStringWOutline(6, 176, 112, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_16, 128);}
+		
+		if(sel==16){DrawStringWOutline(6, 176, 128, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_17, 128);}
+		else{DrawStringWOutline(6, 176, 128, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_17, 128);}
+		
+		if(sel==17){DrawStringWOutline(6, 176, 144, FONT_SUBSCREEN3, 0x88, 0x8A, TF_CENTERED, name_18, 128);}
+		else{DrawStringWOutline(6, 176, 144, FONT_SUBSCREEN3, 0x11, 0x0F, TF_CENTERED, name_18, 128);}
+		
+		if(Link->PressUp){
+			Game->PlaySound(5);
+			if(sel == 0 || sel == 9){
+				sel += 8;
+			}
+			else{
+				sel -= 1;
+			}
+		}
+		else if(Link->PressDown){
+			Game->PlaySound(5);
+			if(sel == 8 || sel == 17){
+				sel -= 8;
+			}
+			else{
+				sel += 1;
+			}
+		}
+		
+		if(Link->PressLeft||Link->PressRight){
+			Game->PlaySound(5);
+			if(sel <= 8){
+				sel += 9;
+			}
+			else{
+				sel -= 9;
+			}
+		}
+		
+		if(Link->PressB||Link->PressEx3){
+			Game->PlaySound(6);
+			Waitframe();
+			pause_Screen = 0;
+		}
+		
+		if(Link->PressA||Link->PressStart){
+			if ((sel==0 && !Link->Item[135]) || (sel==1 && !Link->Item[93]) || (sel==2 && !Link->Item[8]) || (sel==3 && !Link->Item[37]) || (sel==4 && !Link->Item[212]) || (sel==5 && !Link->Item[210]) || (sel==6 && !Link->Item[213]) || (sel==7 && !Link->Item[211]) || (sel==8 && !Link->Item[136]) || (sel==9 && !Link->Item[239]) || (sel==10 && !Link->Item[240]) || (sel==11 && !Link->Item[26]) || (sel==12 && !Link->Item[65]) || (sel==13 && !Link->Item[63]) || (sel==14 && !Link->Item[105]) || (sel==15 && !Link->Item[12]) || (sel==16 && !Link->Item[118]) || (sel==17 && !Link->Item[90])){
+				Game->PlaySound(68);
+			}
+			else{
+				Game->PlaySound(91);
+				
+				if(sel!=shield_sel){
+				
+					if		(sel==0){shield00->Level = 2;}
+					else if	(sel==1){shield01->Level = 2;}
+					else if	(sel==2){shield02->Level = 2;}
+					else if	(sel==3){shield03->Level = 2;}
+					else if	(sel==4){shield04->Level = 2;}
+					else if	(sel==5){shield05->Level = 2;}
+					else if	(sel==6){shield06->Level = 2;}
+					else if	(sel==7){shield07->Level = 2;}
+					else if	(sel==8){shield08->Level = 2;}
+					else if	(sel==9){shield09->Level = 2;}
+					else if	(sel==10){shield10->Level = 2;}
+					else if	(sel==11){shield11->Level = 2;}
+					else if	(sel==12){shield12->Level = 2;}
+					else if	(sel==13){shield13->Level = 2;}
+					else if	(sel==14){shield14->Level = 2;}
+					else if	(sel==15){shield15->Level = 2;}
+					else if	(sel==16){shield16->Level = 2;}
+					else if	(sel==17){shield17->Level = 2;}
+					
+					if		(shield_sel==0){shield00->Level = 1;}
+					else if	(shield_sel==1){shield01->Level = 1;}
+					else if	(shield_sel==2){shield02->Level = 1;}
+					else if	(shield_sel==3){shield03->Level = 1;}
+					else if	(shield_sel==4){shield04->Level = 1;}
+					else if	(shield_sel==5){shield05->Level = 1;}
+					else if	(shield_sel==6){shield06->Level = 1;}
+					else if	(shield_sel==7){shield07->Level = 1;}
+					else if	(shield_sel==8){shield08->Level = 1;}
+					else if	(shield_sel==9){shield09->Level = 1;}
+					else if	(shield_sel==10){shield10->Level = 1;}
+					else if	(shield_sel==11){shield11->Level = 1;}
+					else if	(shield_sel==12){shield12->Level = 1;}
+					else if	(shield_sel==13){shield13->Level = 1;}
+					else if	(shield_sel==14){shield14->Level = 1;}
+					else if	(shield_sel==15){shield15->Level = 1;}
+					else if	(shield_sel==16){shield16->Level = 1;}
+					else if	(shield_sel==17){shield17->Level = 1;}
+					
+					shield_sel = sel;
+				}
+				Waitframe();
+				pause_Screen = 0;
+			}
+		}
+				
+		Link->PressStart = false; Link->InputStart = false;
+		Link->PressMap = false; Link->InputMap = false;
+		//NoAction();
+		Game->Suspend[susptGUYS] = true;
+		Game->Suspend[susptLINK] = true;
+		Game->Suspend[susptUPDATEFFC] = true;
+		Game->Suspend[susptFFCSCRIPTS] = true;
+		Game->Suspend[susptNPCSCRIPTS] = true;
+		Waitframe();
+	}
+	NoPress();
+	NoInput();
+	Waitframes(10);
+	Game->Suspend[susptGUYS] = false;
+	Game->Suspend[susptLINK] = false;
+	Game->Suspend[susptUPDATEFFC] = false;
+	Game->Suspend[susptFFCSCRIPTS] = false;
+	Game->Suspend[susptNPCSCRIPTS] = false;
+}
+

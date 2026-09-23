@@ -1,0 +1,231 @@
+CONFIG CF_MAID_DIRT = CF_SCRIPT2; // Combo flag used to detect combos to clean. Place this as an inherent flag and the enemy will target that combo.
+
+CONFIG SFX_MAID_NOTICE = 6; // Sound when the maid notices dirt
+CONFIG SFX_MAID_SWEEP = 93; // Sound of sweeping dirt
+CONFIG FREQ_MAID_SWEEP = 8; // Frequency of dirt sweeping sounds
+
+class MaidNPC
+{
+    npc Owner;
+    int TargetPoint;
+    int TargetLayer;
+    int TargetZ;
+    MaidNPC(npc owner)
+    {
+        Owner = owner;
+        TargetPoint = -1;
+    }
+}
+
+@InitD0("Detection Distance"),
+@InitDHelp0("Distance at which the enemy will detect dirt to clean. 80 by default."),
+@InitD1("Pause Time"),
+@InitDHelp1("Frames the enemy pauses for after noticing dirt. 32 by default."),
+@InitD2("Sweep Time"),
+@InitDHelp2("Frames the enemy pauses for while sweeping dirt. 32 by default."),
+@InitD3("Fake Z"),
+@InitDHelp3("Z height the enemy draws above the ground when floating")
+npc script Maid
+{
+    enum Animations
+    {
+        ANIM_WALK_L,
+        ANIM_WALK_R,
+        ANIM_SWEEP_L,
+        ANIM_SWEEP_R,
+        ANIM_NOTICE_L,
+        ANIM_NOTICE_R,
+        ANIM_WALK,
+        ANIM_SWEEP,
+        ANIM_NOTICE
+    };
+
+    using namespace NPCAnim;
+    using namespace GhostBasedMovement;
+    void run(int detectionDistance, int detectPause, int sweepPause, int fakeZ)
+    {
+        if(!detectionDistance)
+            detectionDistance = 80;
+        if(!detectPause)
+            detectPause = 32;
+        if(!sweepPause)
+            sweepPause = 32;
+        AnimHandler aptr = new AnimHandler(this);
+        aptr->AddAnim(ANIM_WALK_L, 0, 4, 4, 0);
+        aptr->AddAnim(ANIM_WALK_R, 8, 4, 4, 0);
+        aptr->AddAnim(ANIM_SWEEP_L, 40, 4, 4, 0);
+        aptr->AddAnim(ANIM_SWEEP_R, 48, 4, 4, 0);
+        aptr->AddAnim(ANIM_NOTICE_L, 80, 2, 4, 0);
+        aptr->AddAnim(ANIM_NOTICE_R, 84, 2, 4, 0);
+        aptr->SetHitbox(2, 2, {6, 6, 8, 8});
+
+        MaidNPC mn = new MaidNPC(this);
+        mn->TargetZ = fakeZ;
+        mapdata l6 = Game->LoadTempScreen(6);
+
+        this->Immortal = true;
+        int counter = -1;
+        int oldDir = this->Dir;
+        int moveDir = Rand(8);
+        int facingDir = moveDir;
+		//int p1 = 0;
+		//int p2 = 0;
+		//int p3 = 0;
+		//int p4 = 0;
+		//int p5 = 0;
+		//int p6 = 0;
+		//int p7 = 0;
+		//int p8 = 0;
+		//int p9 = 0;
+		PlayAnim(this, ANIM_WALK_L);
+        while(true)
+        {
+			//p1 += 1; printf("===P1=== %d\n", p1);
+            this->Dir = moveDir;
+            counter = ConstWalk8(this, counter, true);
+			PlayAnim(this, ANIM_WALK_L);
+            moveDir = this->Dir;
+            if(oldDir!=this->Dir)
+            {
+				//p2 += 1; printf("===P2=== %d\n", p2);
+                FindDirt(mn);
+                if(mn->TargetPoint>-1)
+                    moveDir = AngleDir8(Angle(this->X+8, this->Y+8, ComboX(mn->TargetPoint), ComboY(mn->TargetPoint)));
+                facingDir = AngleDir4(DirAngle(moveDir));
+            }
+            this->Dir = facingDir;
+            if(mn->TargetPoint>-1)
+            {
+				//p3 += 1; printf("===P3=== %d\n", p3);
+                if(Distance(this->X+8, this->Y+8, ComboX(mn->TargetPoint), ComboY(mn->TargetPoint))<detectionDistance)
+                {
+					//p4 += 1; printf("===P4=== %d\n", p4);
+                    this->Dir = AngleDir4(Angle(this->X+8, this->Y+8, ComboX(mn->TargetPoint), ComboY(mn->TargetPoint)));
+					//printf("======DIRECTION====== %d", this->Dir);
+                    //aptr->PlayAnim(ANIM_NOTICE);
+					PlayAnim(this, ANIM_NOTICE_L);
+					//printf("======XXXXXXXXX======\n");
+                    Game->PlaySound(SFX_MAID_NOTICE);
+                    MaidWaitframe(mn, detectPause);
+					PlayAnim(this, ANIM_WALK_L);
+                    MaidWaitframe(mn, 16);
+                    do
+                    {
+						//p5 += 1; printf("===P5=== %d\n", p5);
+                        this->Dir = AngleDir4(Angle(this->X+8, this->Y+8, ComboX(mn->TargetPoint), ComboY(mn->TargetPoint)));
+                        while(Distance(this->X+8, this->Y+8, ComboX(mn->TargetPoint), ComboY(mn->TargetPoint))>this->Step/100*2)
+                        {
+							PlayAnim(this, ANIM_WALK_L);
+                            int angle = Angle(this->X+8, this->Y+8, ComboX(mn->TargetPoint), ComboY(mn->TargetPoint));
+                            this->MoveAtAngle(angle, this->Step/100*2, SPW_FLOATER);
+                            MaidWaitframe(mn);
+                        }
+						//p6 += 1; printf("===P6=== %d\n", p6);
+						PlayAnim(this, ANIM_SWEEP_L);
+                        mn->TargetZ = 0;
+                        for(int i=0; i<sweepPause; ++i)
+                        {
+                            if(i%FREQ_MAID_SWEEP==0)
+                                Game->PlaySound(SFX_MAID_SWEEP);
+                            MaidWaitframe(mn);
+                        }
+						//p7 += 1; printf("===P7=== %d\n", p7);
+                        mn->TargetZ = fakeZ;
+                        l6->ComboF[mn->TargetPoint] = 0;
+                        mapdata lyr = Game->LoadTempScreen(mn->TargetLayer);
+                        ++lyr->ComboD[mn->TargetPoint];
+						PlayAnim(this, ANIM_WALK_L);
+                        FindDirt(mn);
+                    }while(mn->TargetPoint>-1)
+                }
+            }
+            MaidWaitframe(mn);
+        }
+    }
+    void PlayAnim(npc this, int anim)
+	{
+		AnimHandler aptr = GetAnimHandler(this);
+		int oldAnim = aptr->GetCurAnim();
+		int newAnim = anim;
+		if(this->Dir==DIR_RIGHT||this->Dir==DIR_DOWN)
+			++newAnim;
+		if(newAnim!=oldAnim)
+		{
+			aptr->PlayAnim(newAnim);
+		}
+	}
+	void FindDirt(MaidNPC mn)
+    {
+        npc this = mn->Owner;
+        mapdata l6 = Game->LoadTempScreen(6);
+
+        int closestPos = -1;
+        int closestDist = 10000;
+        int closestLayer;
+        if(mn->TargetPoint>-1)
+            l6->ComboF[mn->TargetPoint] = 0;
+        for(int i=0; i<=2; ++i)
+        {
+            mapdata lyr = Game->LoadTempScreen(i);
+            for(int j=0; j<NUM_COMBO_POS; ++j)
+            {
+                if(lyr->ComboI[j]==CF_MAID_DIRT&&l6->ComboF[j]!=CF_MAID_DIRT)
+                {
+                    int dist = Distance(this->X+8, this->Y+8, ComboX(j), ComboY(j));
+                    if(dist<closestDist)
+                    {
+                        closestPos = j;
+                        closestDist = dist;
+                        closestLayer = i;
+                    }
+                }
+            }
+        }
+        mn->TargetPoint = closestPos;
+        mn->TargetLayer = closestLayer;
+        l6->ComboF[closestPos] = CF_MAID_DIRT;
+    }
+    void MaidWaitframe(MaidNPC mn, int frames=1)
+    {
+        npc this = mn->Owner;
+        for(int i=0; i<frames; ++i)
+        {
+            if(this->FakeZ<mn->TargetZ)
+                this->FakeZ = Min(this->FakeZ+1, mn->TargetZ);
+            else if(this->FakeZ>mn->TargetZ)
+                this->FakeZ = Max(this->FakeZ-1, mn->TargetZ);
+            this->FakeJump = 0;
+            if(this->HP<=0)
+            {
+                if(mn->TargetPoint>-1)
+                {
+                    mapdata l6 = Game->LoadTempScreen(6);
+                    l6->ComboF[mn->TargetPoint] = 0;
+                }
+                this->Immortal = false;
+            }
+            Waitframe(this);
+        }
+    }
+}
+
+ffc script FlagDebug
+{
+    void run()
+    {
+        mapdata l6 = Game->LoadTempScreen(6);
+        while(true)
+        {
+            for(int i=0; i<NUM_COMBO_POS; ++i)
+            {
+                int x = ComboX(i);
+                int y = ComboY(i);
+                if(Screen->ComboI[i]==CF_MAID_DIRT)
+                    Screen->Rectangle(6, x, y+8, x+15, y+15, 0x0A, 1, 0, 0, 0, true, OP_TRANS);
+                if(l6->ComboF[i]==CF_MAID_DIRT)
+                    Screen->Rectangle(6, x, y, x+15, y+7, 0x0D, 1, 0, 0, 0, true, OP_TRANS);
+            }
+            Waitframe();
+        }
+    }
+}

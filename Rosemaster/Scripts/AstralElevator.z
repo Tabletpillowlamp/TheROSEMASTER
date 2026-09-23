@@ -1,0 +1,721 @@
+
+
+/*
+	type = 0: Move Link to a current position and warp.
+	type = 1: Display current floor on elevator. 
+	type = 2: Call Generic Script: Select Floor.
+	type = 3: Floor Message Hint.
+	--------------------
+	type = 4: Entering 6666F.
+	type = 5: 6666F Entering Maze.
+	type = 6: Leaving the walled area. Setting up for Ramiel.
+	type = 7: Fake Elevator Exit.
+	type = 8: Rolling RNG for Fake Elevator.
+	type = 9: Fake Elevator Glitch.
+*/
+
+ffc script AstralTowerElevator{
+	void run(int type, int aug1, int aug2, int aug3, int aug4){
+		
+		int cF = 68; int dF = 69;
+		int warpRoomA = 105; // Room to reset counter.
+		int warpRoomB = 121; // Maze Room
+		int warpRoomC = 14;  // Ramiel Maze (No Lonk).
+		int warpRoomD = 25;  // Ramiel Maze (Lonk).
+		
+		if(type == 0)
+		{ // Move Link to a current position and warp.
+			/*  
+				aug1: X position
+				aug2: Y position
+				aug3: Wait
+				aug4: -1 = To B1 noSound, 0 = To B1, 1 = To 2000F - 6000F, 2 = To Dimension Floor
+			*/
+			
+			Waitframes(aug3);
+			while( Link->X != aug1 || Link->Y != aug2 ){
+				//Prevent moving around while moving Link into position
+				Link->InputStart = false; Link->PressStart = false;
+				Link->InputMap = false; Link->PressMap = false;
+				PegasusBoots::UserInterruptDash();
+				NoAction();
+				//Apply inputs that should be active
+				if(Abs(Link->X-aug1)<=2){
+					Link->X = aug1;
+				}
+				else{
+					if(Link->X<aug1)
+						Link->InputRight = true;
+					else if(Link->X>aug1)
+						Link->InputLeft = true;
+				}
+				if(Abs(Link->Y-aug2)<=2){
+					Link->Y = aug2;
+				}
+				else{
+					if(Link->Y<aug2)
+						Link->InputDown = true;
+					else if(Link->Y>aug2)
+						Link->InputUp = true;
+				}
+				Waitframe();
+			}
+			Link->Dir = DIR_DOWN;
+			Waitframes(10);
+			if(aug4 == -1){
+				Link->WarpEx({WT_IWARP,365,20,-1,-1,WARPEFFECT_NONE,25,0});
+			}
+			else if(aug4 == 0){
+				Link->WarpEx({WT_IWARP,365,20,-1,-1,WARPEFFECT_NONE,67,0});
+			}
+			else if(aug4 == 1){
+				Link->WarpEx({WT_IWARP,366,115,-1,-1,WARPEFFECT_NONE,67,0});
+			}
+			else{
+				Link->WarpEx({WT_IWARP,366,116,-1,-1,WARPEFFECT_NONE,67,0});
+			}
+		}
+		else if(type == 1)
+		{ // Display current floor on elevator.
+			int curFloor[256];
+			if(aug3 != 0 || Game->Counter[cF] == 0 || Screen->D[1] == -1){
+				sprintf(curFloor,"B1");
+			}
+			else{
+				sprintf(curFloor,"%d F",Game->Counter[cF]);
+			}
+			while(true){
+				Screen->DrawString(2, aug1, aug2, FONT_SUBSCREEN3, 0x88, -1, TF_CENTERED, curFloor, OP_OPAQUE, SHD_SHADOWED, 0x89);
+				Waitframe();
+			}
+		}
+		else if(type == 2)
+		{ // Call Generic Script: Select Floor.
+			Waitframe();
+			genericdata gd = Game->LoadGenericData(CheckGenericScript("AstralTowerSelectFloor"));
+			gd->RunFrozen();
+		}
+		else if(type == 3)
+		{ // Floor Message Hint.
+			
+			if(Link->X == 120 && Link->Y == 80 && Game->Counter[12] < 57){
+				
+				// Move Link
+				while( Link->X != aug1 || Link->Y != aug2 ){
+					//Prevent moving around while moving Link into position
+					Link->InputStart = false; Link->PressStart = false;
+					Link->InputMap = false; Link->PressMap = false;
+					PegasusBoots::UserInterruptDash();
+					NoAction();
+					//Apply inputs that should be active
+					if(Abs(Link->X-aug1)<=2){
+						Link->X = aug1;
+					}
+					else{
+						if(Link->X<aug1)
+							Link->InputRight = true;
+						else if(Link->X>aug1)
+							Link->InputLeft = true;
+					}
+					if(Abs(Link->Y-aug2)<=2){
+						Link->Y = aug2;
+					}
+					else{
+						if(Link->Y<aug2)
+							Link->InputDown = true;
+						else if(Link->Y>aug2)
+							Link->InputUp = true;
+					}
+					Waitframe();
+				}
+				// Create Dimension Floor if entering for first time
+				if(Screen->D[1] != 1){
+					Game->Counter[dF] = Rand(2000,6000);
+					while(Game->Counter[dF] == Game->Counter[cF]){
+						Game->Counter[dF] = Rand(2000,6000);
+					}
+					Screen->D[1] = 1;
+				}
+				
+				// Pause then play message
+				for(int i = 0; i < 20; i++){
+					Link->InputStart = false; Link->PressStart = false;
+					Link->InputMap = false; Link->PressMap = false;
+					PegasusBoots::UserInterruptDash();
+					NoAction();
+					Waitframe();
+				}
+				if(Game->Counter[cF] < Game->Counter[dF]){
+					Screen->Message(7972);
+				}
+				else{
+					Screen->Message(7973);
+				}
+				for(int i = 0; i < 20; i++){
+					Link->InputStart = false; Link->PressStart = false;
+					Link->InputMap = false; Link->PressMap = false;
+					PegasusBoots::UserInterruptDash();
+					NoAction();
+					Waitframe();
+				}
+				
+			}
+		}
+		else if(type == 4)
+		{ // Entering 6666F.
+
+			// Initialize
+			int randA = Rand(0,3);
+		
+			// 0: One Exit Only, 1: Two Exits, 2: Three Exits, 3: Four Exits, 4: Entering Ramiel Room
+			if(aug1 == 0){
+				Screen->SetSideWarp(SIDEWARP_A, warpRoomA + randA, 367, -1);
+			}
+			else if(aug1 == 1){
+				Screen->SetSideWarp(SIDEWARP_A, warpRoomA + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_B, warpRoomA + randA, 367, -1);
+			}
+			else if(aug1 == 2){
+				Screen->SetSideWarp(SIDEWARP_A, warpRoomA + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_B, warpRoomA + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_C, warpRoomA + randA, 367, -1);
+			}
+			else{
+				Screen->SetSideWarp(SIDEWARP_A, warpRoomA + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_B, warpRoomA + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_C, warpRoomA + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_D, warpRoomA + randA, 367, -1);
+			}
+			
+		}
+		else if(type == 5)
+		{ // 6666F Entering Maze.
+			
+			// Initialize
+			// Rooms needed to pass through to get to a wall.
+			int tres1 = 10; int tres2 = 15; int tres3 = 20;
+			int randA = Rand(0,3);
+			// Reset counter if Link goes back where he came from.
+			int noWarpDir = Link->Dir;
+			
+			// If Link has completed a certain threshold, set warp 
+			if((Game->Counter[12] < 59 && Game->Counter[17] >= tres1) || (Game->Counter[12] < 61 && Game->Counter[17] >= tres2) || (Game->Counter[12] >= 61 && Game->Counter[17] >= tres3)){
+				Screen->SetSideWarp(SIDEWARP_A, 117, 367, -1); // Link moves Up
+				Screen->SetSideWarp(SIDEWARP_B, 36, 367, -1);  // Link moves Down
+				Screen->SetSideWarp(SIDEWARP_C, 39, 367, -1);  // Link moves Left
+				Screen->SetSideWarp(SIDEWARP_D, 114, 367, -1); // Link moves Right
+			}
+			else{
+				Screen->SetSideWarp(SIDEWARP_A, warpRoomB + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_B, warpRoomB + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_C, warpRoomB + randA, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_D, warpRoomB + randA, 367, -1);
+			}
+			
+			// Reset counter if Link goes back where he came from.
+			if(noWarpDir == DIR_UP){
+				Screen->SetSideWarp(SIDEWARP_B, warpRoomA + randA, 367, -1);
+			}
+			else if(noWarpDir == DIR_DOWN){
+				Screen->SetSideWarp(SIDEWARP_A, warpRoomA + randA, 367, -1);
+			}
+			else if(noWarpDir == DIR_LEFT){
+				Screen->SetSideWarp(SIDEWARP_D, warpRoomA + randA, 367, -1);
+			}
+			else if(noWarpDir == DIR_RIGHT){
+				Screen->SetSideWarp(SIDEWARP_C, warpRoomA + randA, 367, -1);
+			}
+	
+		}
+		else if(type == 6)
+		{ // Leaving the walled area. Setting up for Ramiel.
+			
+			// Initialize
+			int lonkChance = Rand(0,9);
+			int randR1 = Rand(0,1); int randR2 = Rand(0,7);
+			int randL1 = Rand(0,3); int randL2 = Rand(0,3);
+			int tres1 = 10; int tres2 = 15; int tres3 = 20;
+			
+			int exitRoom = 20;
+			
+			if(aug2 == DIR_DOWN){
+				exitRoom = 23;
+			}
+			else if(aug2 == DIR_LEFT){
+				exitRoom = 21;
+			}
+			else if(aug2 == DIR_RIGHT){
+				exitRoom = 22;
+			}
+			
+			if(aug1 == 0){ // Leaving Walled Room
+				if(lonkChance != 0){
+					Screen->SetSideWarp(SIDEWARP_A, warpRoomC + randR1 + (randR2 * 16), 367, -1);
+				}
+				else{
+					Screen->SetSideWarp(SIDEWARP_A, warpRoomD + randL1 + (randL2 * 16), 367, -1);
+				}
+				Screen->SetSideWarp(SIDEWARP_B, warpRoomA + randL1, 367, -1);
+			}
+			else if(aug1 == 1){ // No Walled or Lonk Room
+				
+				if((Game->Counter[12] < 59 && Game->Counter[17] >= tres1) || (Game->Counter[12] < 61 && Game->Counter[17] >= tres2) || (Game->Counter[12] >= 61 && Game->Counter[17] >= tres3)){
+					Screen->SetSideWarp(SIDEWARP_A, exitRoom, 367, -1);
+				}
+				else{
+					if(lonkChance != 0){
+						Screen->SetSideWarp(SIDEWARP_A, warpRoomC + randR1 + (randR2 * 16), 367, -1);
+					}
+					else{
+						Screen->SetSideWarp(SIDEWARP_A, warpRoomD + randL1 + (randL2 * 16), 367, -1);
+					}
+				}
+				Screen->SetSideWarp(SIDEWARP_B, warpRoomA + randL1, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_C, warpRoomA + randL1, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_D, warpRoomA + randL1, 367, -1);
+				
+			}
+			else{ // Lonk Room
+				
+				if((Game->Counter[12] < 59 && Game->Counter[17] >= tres1) || (Game->Counter[12] < 61 && Game->Counter[17] >= tres2) || (Game->Counter[12] >= 61 && Game->Counter[17] >= tres3)){
+					Screen->SetSideWarp(SIDEWARP_B, exitRoom, 367, -1);
+				}
+				else{
+					Screen->SetSideWarp(SIDEWARP_B, warpRoomC + randR1 + (randR2 * 16), 367, -1);
+				}
+				Screen->SetSideWarp(SIDEWARP_C, warpRoomA + randL1, 367, -1);
+				Screen->SetSideWarp(SIDEWARP_D, warpRoomA + randL1, 367, -1);
+				
+			}
+		}
+		else if(type == 7)
+		{ // Fake Elevator Exit.
+			int ranDmap[]   = {162, 193, 173,  8, 18, 65, 264, 77, 179, 250};
+			int ranScreen[] = { 84,  66,  98, 96,  5, 36, 116, 35,  82,  66};
+			int ranNumWarp = Rand(0,9);
+			Screen->SetSideWarp(SIDEWARP_A, ranScreen[ranNumWarp], ranDmap[ranNumWarp], -1);
+		}
+		else if(type == 8)
+		{ // Rolling RNG for Fake Elevator.
+			int rngEle = Rand(0,4);
+			if (rngEle != 0){
+				Waitframes(Rand(160,350));
+				Link->WarpEx({WT_IWARP,368,116,-1,-1,WARPEFFECT_NONE,25,4});
+			}
+		}
+		else if(type == 9)
+		{ // Fake Elevator Glitch
+			
+			// Initialize
+			int tileLimit = 42383;
+			int midiLimit = 155; int sfxLimit = 135;
+			int glitchLimit = Rand(10,15);
+			int rollSFX = Rand(0,sfxLimit);
+			
+			for(int i=0; i < glitchLimit * 60; i++){
+				// MIDI
+				if(i % 16 == 0){Game->PlayMIDI(Rand(0,midiLimit));}
+				rollSFX = Rand(0,sfxLimit);
+				while(rollSFX == 131){
+					rollSFX = Rand(0,sfxLimit);
+				}
+				if(i % 8 == 0){Game->PlaySound(rollSFX);}
+				if(i >= 180){
+					Screen->Rectangle(4, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+				}
+				
+				for(int ix=1; ix <= 16; ix++){
+					for(int iy=1; iy <= 11; iy++){
+						FastTile(5, ix * 16, iy * 16, Rand(0,tileLimit), Rand(0,11), 255);
+						if(i >= 180){
+							FastTile(6, ix * 16, iy * 16, Rand(0,tileLimit), Rand(0,11), 255);
+							FastTile(6, Link->X, Link->Y, 25760, 6, 255);
+						}
+					}
+				}
+				Waitframe();
+			}
+			for(int i2=0; i2 != -1; i2++){
+				if(i2 == 0){ Game->PlayMIDI(0); Game->PlaySound(131); }
+				Screen->Rectangle(5, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+				
+				//Kill Link
+				if(i2 == 340){ Link->Kill(true); }
+					
+				Waitframe();
+			}
+		}
+		
+	}
+}
+
+generic script AstralTowerSelectFloor{
+	void run(){
+		
+		//Initialize Constants
+		int cF = 68; int dF = 69; int fontE = 2;
+		
+		// Set starting floor to 2000F
+		if(Game->Counter[cF] == 0){
+			Game->Counter[cF] = 2000;
+		}
+		
+		// Initialize Position
+		int curPos = 0;
+		int fN1 = Floor(Game->Counter[cF] / 1000);
+		int fN2 = Floor(Game->Counter[cF] / 100) % 10;
+		int fN3 = Floor(Game->Counter[cF] / 10) % 10;
+		int fN4 = Floor(Game->Counter[cF]) % 10;
+		
+		// Arrow Tiles
+		int upAr1 = 85216; int upAr2 = 85218;
+		int downAr1 = 85217; int downAr2 = 85219;
+		
+		// Text Position
+		int textX = 40; int textY = 36;
+		
+		// X Position Tiles
+		int tileX1 = 128; int tileX2 = 144; int tileX3 = 160; int tileX4 = 176;
+		
+		// Number Tiles
+		int num1 = 85205; int num2 = 85206; int num3 = 85207; int num4 = 85208; int num5 = 85209;
+		int num6 = 85210; int num7 = 85211; int num8 = 85212; int num9 = 85213; int num0 = 85214;
+		int numF = 85215;
+		
+		// Main Menu Loop
+		while(true){
+			Screen->Rectangle(6, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+			Screen->Rectangle(6, 48, 16, 208, 64, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			FastTile(6,192,36,numF,8,OP_OPAQUE);
+			
+			Screen->DrawString(6, textX+1, textY, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+			Screen->DrawString(6, textX+1, textY+10, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+			
+			Screen->DrawString(6, textX-1, textY, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+			Screen->DrawString(6, textX-1, textY+10, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+			
+			Screen->DrawString(6, textX, textY+1, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+			Screen->DrawString(6, textX, textY+11, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+			
+			Screen->DrawString(6, textX, textY-1, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+			Screen->DrawString(6, textX, textY+9, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+			
+			Screen->DrawString(6, textX, textY, fontE, 0x01, -1, 0, "  Select a floor", OP_OPAQUE);
+			Screen->DrawString(6, textX, textY+10, fontE, 0x01, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+			
+			// ====================
+			
+			// Display Arrows
+			if(curPos == 0){
+				FastTile(6,tileX1,24,upAr2,8,OP_OPAQUE); FastTile(6,tileX1,48,downAr2,8,OP_OPAQUE);
+				FastTile(6,tileX2,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX2,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX3,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX3,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX4,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX4,48,downAr1,8,OP_OPAQUE);
+			}
+			else if(curPos == 1){
+				FastTile(6,tileX1,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX1,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX2,24,upAr2,8,OP_OPAQUE); FastTile(6,tileX2,48,downAr2,8,OP_OPAQUE);
+				FastTile(6,tileX3,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX3,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX4,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX4,48,downAr1,8,OP_OPAQUE);
+			}
+			else if(curPos == 2){
+				FastTile(6,tileX1,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX1,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX2,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX2,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX3,24,upAr2,8,OP_OPAQUE); FastTile(6,tileX3,48,downAr2,8,OP_OPAQUE);
+				FastTile(6,tileX4,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX4,48,downAr1,8,OP_OPAQUE);
+			}
+			else if(curPos == 3){
+				FastTile(6,tileX1,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX1,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX2,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX2,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX3,24,upAr1,8,OP_OPAQUE); FastTile(6,tileX3,48,downAr1,8,OP_OPAQUE);
+				FastTile(6,tileX4,24,upAr2,8,OP_OPAQUE); FastTile(6,tileX4,48,downAr2,8,OP_OPAQUE);
+			}
+			
+			// ====================
+			
+			// Digit 1
+			if(fN1 == 0){FastTile(6,tileX1,36,num0,8,OP_OPAQUE);}
+			else if(fN1 == 1){FastTile(6,tileX1,36,num1,8,OP_OPAQUE);}
+			else if(fN1 == 2){FastTile(6,tileX1,36,num2,8,OP_OPAQUE);}
+			else if(fN1 == 3){FastTile(6,tileX1,36,num3,8,OP_OPAQUE);}
+			else if(fN1 == 4){FastTile(6,tileX1,36,num4,8,OP_OPAQUE);}
+			else if(fN1 == 5){FastTile(6,tileX1,36,num5,8,OP_OPAQUE);}
+			else if(fN1 == 6){FastTile(6,tileX1,36,num6,8,OP_OPAQUE);}
+			else if(fN1 == 7){FastTile(6,tileX1,36,num7,8,OP_OPAQUE);}
+			else if(fN1 == 8){FastTile(6,tileX1,36,num8,8,OP_OPAQUE);}
+			else if(fN1 == 9){FastTile(6,tileX1,36,num9,8,OP_OPAQUE);}
+			
+			// Digit 2
+			if(fN2 == 0){FastTile(6,tileX2,36,num0,8,OP_OPAQUE);}
+			else if(fN2 == 1){FastTile(6,tileX2,36,num1,8,OP_OPAQUE);}
+			else if(fN2 == 2){FastTile(6,tileX2,36,num2,8,OP_OPAQUE);}
+			else if(fN2 == 3){FastTile(6,tileX2,36,num3,8,OP_OPAQUE);}
+			else if(fN2 == 4){FastTile(6,tileX2,36,num4,8,OP_OPAQUE);}
+			else if(fN2 == 5){FastTile(6,tileX2,36,num5,8,OP_OPAQUE);}
+			else if(fN2 == 6){FastTile(6,tileX2,36,num6,8,OP_OPAQUE);}
+			else if(fN2 == 7){FastTile(6,tileX2,36,num7,8,OP_OPAQUE);}
+			else if(fN2 == 8){FastTile(6,tileX2,36,num8,8,OP_OPAQUE);}
+			else if(fN2 == 9){FastTile(6,tileX2,36,num9,8,OP_OPAQUE);}
+			
+			// Digit 3
+			if(fN3 == 0){FastTile(6,tileX3,36,num0,8,OP_OPAQUE);}
+			else if(fN3 == 1){FastTile(6,tileX3,36,num1,8,OP_OPAQUE);}
+			else if(fN3 == 2){FastTile(6,tileX3,36,num2,8,OP_OPAQUE);}
+			else if(fN3 == 3){FastTile(6,tileX3,36,num3,8,OP_OPAQUE);}
+			else if(fN3 == 4){FastTile(6,tileX3,36,num4,8,OP_OPAQUE);}
+			else if(fN3 == 5){FastTile(6,tileX3,36,num5,8,OP_OPAQUE);}
+			else if(fN3 == 6){FastTile(6,tileX3,36,num6,8,OP_OPAQUE);}
+			else if(fN3 == 7){FastTile(6,tileX3,36,num7,8,OP_OPAQUE);}
+			else if(fN3 == 8){FastTile(6,tileX3,36,num8,8,OP_OPAQUE);}
+			else if(fN3 == 9){FastTile(6,tileX3,36,num9,8,OP_OPAQUE);}
+			
+			// Digit 4
+			if(fN4 == 0){FastTile(6,tileX4,36,num0,8,OP_OPAQUE);}
+			else if(fN4 == 1){FastTile(6,tileX4,36,num1,8,OP_OPAQUE);}
+			else if(fN4 == 2){FastTile(6,tileX4,36,num2,8,OP_OPAQUE);}
+			else if(fN4 == 3){FastTile(6,tileX4,36,num3,8,OP_OPAQUE);}
+			else if(fN4 == 4){FastTile(6,tileX4,36,num4,8,OP_OPAQUE);}
+			else if(fN4 == 5){FastTile(6,tileX4,36,num5,8,OP_OPAQUE);}
+			else if(fN4 == 6){FastTile(6,tileX4,36,num6,8,OP_OPAQUE);}
+			else if(fN4 == 7){FastTile(6,tileX4,36,num7,8,OP_OPAQUE);}
+			else if(fN4 == 8){FastTile(6,tileX4,36,num8,8,OP_OPAQUE);}
+			else if(fN4 == 9){FastTile(6,tileX4,36,num9,8,OP_OPAQUE);}
+			
+			// ====================
+			
+			// Confirm
+			if(Link->PressA){
+				
+				// Convert Selection to Current Floor
+				int selFloor = (fN1 * 1000) + (fN2 * 100) + (fN3 * 10) + fN4;
+				int elevatorDir = 0;    // 0: Down, 1: Up
+				int dimensionFloor = 0; // 0: Not Dimension, 1: Dimension Floor
+				
+				if(selFloor == Game->Counter[cF] && Screen->D[1] != -1){ // Cancel if the same
+					Game->PlaySound(94);
+					break;
+				}
+				else{
+					
+					// Going up or down
+					if(selFloor > Game->Counter[cF] || Screen->D[1] == -1){ elevatorDir = 1; }
+					// Got the right dimension floor?
+					if(selFloor == Game->Counter[dF]){ dimensionFloor = 1; }
+					
+					// Set selected floor to be the current floor
+					Game->Counter[cF] = selFloor;
+					
+					// Initialize Flashing Number Tiles
+					int flashNum1 = 0; int flashNum2 = 0;
+					int flashNum3 = 0; int flashNum4 = 0;
+					int flashCset = 8;
+					if(fN1 == 0){flashNum1 = num0;}
+					else if(fN1 == 1){flashNum1 = num1;} else if(fN1 == 2){flashNum1 = num2;}
+					else if(fN1 == 3){flashNum1 = num3;} else if(fN1 == 4){flashNum1 = num4;}
+					else if(fN1 == 5){flashNum1 = num5;} else if(fN1 == 6){flashNum1 = num6;}
+					else if(fN1 == 7){flashNum1 = num7;} else if(fN1 == 8){flashNum1 = num8;}
+					else if(fN1 == 9){flashNum1 = num9;}
+					if(fN2 == 0){flashNum2 = num0;}
+					else if(fN2 == 1){flashNum2 = num1;} else if(fN2 == 2){flashNum2 = num2;}
+					else if(fN2 == 3){flashNum2 = num3;} else if(fN2 == 4){flashNum2 = num4;}
+					else if(fN2 == 5){flashNum2 = num5;} else if(fN2 == 6){flashNum2 = num6;}
+					else if(fN2 == 7){flashNum2 = num7;} else if(fN2 == 8){flashNum2 = num8;}
+					else if(fN2 == 9){flashNum2 = num9;}
+					if(fN3 == 0){flashNum3 = num0;}
+					else if(fN3 == 1){flashNum3 = num1;} else if(fN3 == 2){flashNum3 = num2;}
+					else if(fN3 == 3){flashNum3 = num3;} else if(fN3 == 4){flashNum3 = num4;}
+					else if(fN3 == 5){flashNum3 = num5;} else if(fN3 == 6){flashNum3 = num6;}
+					else if(fN3 == 7){flashNum3 = num7;} else if(fN3 == 8){flashNum3 = num8;}
+					else if(fN3 == 9){flashNum3 = num9;}
+					if(fN4 == 0){flashNum4 = num0;}
+					else if(fN4 == 1){flashNum4 = num1;} else if(fN4 == 2){flashNum4 = num2;}
+					else if(fN4 == 3){flashNum4 = num3;} else if(fN4 == 4){flashNum4 = num4;}
+					else if(fN4 == 5){flashNum4 = num5;} else if(fN4 == 6){flashNum4 = num6;}
+					else if(fN4 == 7){flashNum4 = num7;} else if(fN4 == 8){flashNum4 = num8;}
+					else if(fN4 == 9){flashNum4 = num9;}
+					
+					// Selection Flash
+					Game->PlaySound(91);
+					for(int i = 0; i < 40; i++){
+						// ====================
+						if(i % 4 < 2){ flashCset = 7; }
+						else{ flashCset = 8; }
+						// ====================
+						Screen->Rectangle(6, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+						Screen->Rectangle(6, 48, 16, 208, 64, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+						FastTile(6,192,36,numF,8,OP_OPAQUE);
+						Screen->DrawString(6, textX+1, textY, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+						Screen->DrawString(6, textX+1, textY+10, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+						Screen->DrawString(6, textX-1, textY, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+						Screen->DrawString(6, textX-1, textY+10, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+						Screen->DrawString(6, textX, textY+1, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+						Screen->DrawString(6, textX, textY+11, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+						Screen->DrawString(6, textX, textY-1, fontE, 0x89, -1, 0, "  Select a floor", OP_OPAQUE);
+						Screen->DrawString(6, textX, textY+9, fontE, 0x89, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+						Screen->DrawString(6, textX, textY, fontE, 0x01, -1, 0, "  Select a floor", OP_OPAQUE);
+						Screen->DrawString(6, textX, textY+10, fontE, 0x01, -1, 0, "From 2000F to 6000F", OP_OPAQUE);
+						// ====================
+						FastTile(6,tileX1,36,flashNum1,flashCset,OP_OPAQUE);
+						FastTile(6,tileX2,36,flashNum2,flashCset,OP_OPAQUE);
+						FastTile(6,tileX3,36,flashNum3,flashCset,OP_OPAQUE);
+						FastTile(6,tileX4,36,flashNum4,flashCset,OP_OPAQUE);
+						// ====================
+						Waitframe();
+						// ====================
+					}
+					
+					// Warp
+					if(dimensionFloor == 0 && elevatorDir == 1){
+						Link->WarpEx({WT_IWARP,366,4,-1,-1,WARPEFFECT_NONE,25,0});
+					}
+					else if(dimensionFloor == 0 && elevatorDir == 0){
+						Link->WarpEx({WT_IWARP,366,20,-1,-1,WARPEFFECT_NONE,25,0});
+					}
+					else if(dimensionFloor == 1 && elevatorDir == 1){
+						Link->WarpEx({WT_IWARP,366,36,-1,-1,WARPEFFECT_NONE,25,0});
+					}
+					else if(dimensionFloor == 1 && elevatorDir == 0){
+						Link->WarpEx({WT_IWARP,366,52,-1,-1,WARPEFFECT_NONE,25,0});
+					}
+					
+					break;
+					
+				}
+				
+			}
+			
+			// Cancel
+			if(Link->PressB){
+				Game->PlaySound(94);
+				break;
+			}
+			// Move Cursor Left and Right
+			if(Link->PressLeft){
+				Game->PlaySound(5);
+				if(curPos == 0){ curPos = 3; }
+				else{ curPos -= 1; }
+			}
+			if(Link->PressRight){
+				Game->PlaySound(5);
+				if(curPos == 3){ curPos = 0; }
+				else{ curPos += 1; }
+			}
+			// Move Cursor Up and Down
+			if(Link->PressUp){
+				if(curPos == 0){
+					if(fN1 == 6){Game->PlaySound(5); fN1 = 2;}
+					else{Game->PlaySound(5); fN1 += 1;}
+					// Can't reach over 6000
+					if(fN1 == 6){fN2 = 0; fN3 = 0; fN4 = 0;}
+				}
+				else if(curPos == 1 && fN1 != 6){
+					if(fN2 == 9){Game->PlaySound(5); fN2 = 0;}
+					else{Game->PlaySound(5); fN2 += 1;}
+				}
+				else if(curPos == 2 && fN1 != 6){
+					if(fN3 == 9){Game->PlaySound(5); fN3 = 0;}
+					else{Game->PlaySound(5); fN3 += 1;}
+				}
+				else if(curPos == 3 && fN1 != 6){
+					if(fN4 == 9){Game->PlaySound(5); fN4 = 0;}
+					else{Game->PlaySound(5); fN4 += 1;}
+				}
+			}
+			if(Link->PressDown){
+				if(curPos == 0){
+					if(fN1 == 2){Game->PlaySound(5); fN1 = 6; fN2 = 0; fN3 = 0; fN4 = 0;}
+					else{Game->PlaySound(5); fN1 -= 1;}
+				}
+				else if(curPos == 1 && fN1 != 6){
+					if(fN2 == 0){Game->PlaySound(5); fN2 = 9;}
+					else{Game->PlaySound(5); fN2 -= 1;}
+				}
+				else if(curPos == 2 && fN1 != 6){
+					if(fN3 == 0){Game->PlaySound(5); fN3 = 9;}
+					else{Game->PlaySound(5); fN3 -= 1;}
+				}
+				else if(curPos == 3 && fN1 != 6){
+					if(fN4 == 0){Game->PlaySound(5); fN4 = 9;}
+					else{Game->PlaySound(5); fN4 -= 1;}
+				}
+			}
+			
+			// ====================
+			
+			Waitframe();
+		}
+		
+	}
+}
+
+ffc script FakeAstralFollowers{
+	void run(int type, int aug1){ // 0 - Lonk, 1 - Creepy Ass Baby
+		if(type == 0){ // Lonk (aug1 = Direction)
+			for(int i=0; i != -1; i++){
+				Link->InputStart = false; Link->PressStart = false;
+				Link->InputMap = false; Link->PressMap = false;
+				Link->InputL = false; Link->PressL = false;
+				Link->InputR = false; Link->PressR = false;
+				NoAction();
+				
+				// Lonk starts moving
+				if(i == 120){
+					if(aug1 == DIR_UP){ this->Data = 18104; }
+					else if(aug1 == DIR_DOWN){ this->Data = 18105; }
+					else if(aug1 == DIR_LEFT){ this->Data = 18106; }
+					else if(aug1 == DIR_RIGHT){ this->Data = 18107; }
+				}
+				if(i > 120){ // Slowly Move Lonk
+					this->Vx = VectorX(1, Angle(this->X, this->Y, Link->X, Link->Y));
+					this->Vy = VectorY(1, Angle(this->X, this->Y, Link->X, Link->Y));
+				}
+				
+				Waitframe();
+			}
+		}
+		else if(type == 1){ // Creepy Ass Baby
+			// Condition: 13th room, have at least 6666 rupees, Be baby Link, wait 6 minutes
+			if(	Game->Counter[17] == 12 &&
+				Game->Counter[1] >= 6666 &&
+				Game->LoadItemData(212)->Level == 2 ){
+				
+				// Intialize
+				int babyPos = Rand(0,3);
+				if (babyPos == 0){
+					this->X = -32; this->Y = -32;
+				}
+				else if (babyPos == 1){
+					this->X = 256; this->Y = -32;
+				}
+				else if (babyPos == 2){
+					this->X = -32; this->Y = 176;
+				}
+				else{
+					this->X = 256; this->Y = 176;
+				}
+				
+				for(int i=0; i < 216; i++){
+					printf("Num %d\n", i);
+					Waitframes(100);
+				}
+				
+				if(	Game->Counter[17] == 12 &&
+				Game->Counter[1] >= 6666 &&
+				Game->LoadItemData(212)->Level == 2 ){
+					
+					Screen->Message(7987);
+					this->Data = 18076;
+					
+					for(int i=0; i != -1; i++){
+						this->Vx = VectorX(0.25, Angle(this->X, this->Y, Link->X, Link->Y));
+						this->Vy = VectorY(0.25, Angle(this->X, this->Y, Link->X, Link->Y));
+						Waitframe();
+					}
+					
+				}
+				
+			}
+			
+		}
+	}
+}

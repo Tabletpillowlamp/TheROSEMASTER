@@ -1,0 +1,528 @@
+// ===========================================================
+// CHARACTER SWITCH
+// ===========================================================
+
+generic script EquipBackup
+{
+	const int itemLink_A = 1;
+	const int itemLink_B = 2;
+	const int itemLink_X = 3;
+	const int itemLink_Y = 4;
+	
+	const int itemCain_A = 5;
+	const int itemCain_B = 6;
+	const int itemCain_X = 7;
+	const int itemCain_Y = 8;
+	
+	const int itemCiel_A = 9;
+	const int itemCiel_B = 10;
+	const int itemCiel_X = 11;
+	const int itemCiel_Y = 12;
+	
+	const int itemAure_A = 13;
+	const int itemAure_B = 14;
+	const int itemAure_X = 15;
+	const int itemAure_Y = 16;
+	
+	const int itemIngr_A = 17;
+	const int itemIngr_B = 18;
+	const int itemIngr_X = 19;
+	const int itemIngr_Y = 20;
+	
+    void run()
+    {	
+		this->ReloadState[GENSCR_ST_RELOAD] = true;
+		this->ReloadState[GENSCR_ST_CONTINUE] = true;
+		int altCharItems[] = {198, 119, 137, 197, 237, 201, 230, 231, 109, 171, 205, 172, 221, 104, 133, 224, 223, 193, 61, 217, 110, 226, 244, 228, 141};
+		bool ownedItems[256];
+		int equippedItems[4];
+		for(int i=0; i<256; ++i) ownedItems[i] = Link->Item[i];
+		
+		int curChar = GetCharFromDMap();
+		int prevChar = curChar;
+		
+		bool init = !this->DataSize;
+		
+		this->DataSize = 25;
+		// Set default items for each character
+		if(init)
+		{
+			this->Data[itemLink_A] = 5; // Sword
+			
+			this->Data[itemCain_A] = 109; // Machete L1
+			this->Data[itemCain_B] = 172; // Shuriken L1
+			this->Data[itemCain_X] = 227; // Kunai
+			
+			this->Data[itemCiel_A] = 141; // Wooden Staff
+			this->Data[itemCiel_B] = 61; // Book of Frost
+			this->Data[itemCiel_X] = 217; // Cryo Book
+			this->Data[itemCiel_Y] = 110; // Crystal Book
+			
+			this->Data[itemAure_A] = 198; // Ascalon
+			this->Data[itemAure_B] = 137; // Fairy Bow
+			this->Data[itemAure_X] = 197; // Fairy Cane
+			this->Data[itemAure_Y] = 237; // Fairy Cloak
+			
+			this->Data[itemIngr_A] = 193; // Draconic Blade
+			this->Data[itemIngr_B] = 184; // Golden Dragoon
+			this->Data[itemIngr_X] = 104; // Aim shot
+			this->Data[itemIngr_Y] = 224; // Bodyguard Conscription
+		}
+		
+		EquipItems(this, curChar);
+		ValidateItems(equippedItems);
+		while(true)
+		{
+			if(!ButtonDisabled())
+			{
+				curChar = GetCharFromDMap();
+				if(curChar!=prevChar)
+				{
+					EquipItems(this, curChar);
+				}
+				ValidateItems(equippedItems);
+				prevChar = curChar;
+				if(InventoryChanged(altCharItems, ownedItems))
+				{
+					RestoreOldEquips(equippedItems);
+				}
+				StoreItems(this, curChar);
+			}
+			Waitframe();
+		}
+    }
+	void EquipItems(genericdata this, int who)
+	{
+		switch(who)
+		{
+			case 0:
+			{
+				Link->ItemA = this->Data[itemLink_A];
+				Link->ItemB = this->Data[itemLink_B];
+				Link->ItemX = this->Data[itemLink_X];
+				Link->ItemY = this->Data[itemLink_Y];
+				break;
+			}
+			case 1:
+			{
+				Link->ItemA = this->Data[itemCain_A];
+				Link->ItemB = this->Data[itemCain_B];
+				Link->ItemX = this->Data[itemCain_X];
+				Link->ItemY = this->Data[itemCain_Y];
+				break;
+			}
+			case 2: // Ciela
+			{
+				Link->ItemA = this->Data[itemCiel_A];
+				Link->ItemB = this->Data[itemCiel_B];
+				Link->ItemX = this->Data[itemCiel_X];
+				Link->ItemY = this->Data[itemCiel_Y];
+				break;
+			}
+			case 3: // Aurelia
+			{
+				Link->ItemA = this->Data[itemAure_A];
+				Link->ItemB = this->Data[itemAure_B];
+				Link->ItemX = this->Data[itemAure_X];
+				Link->ItemY = this->Data[itemAure_Y];
+				break;
+			}
+			case 4: // Ingrid
+			{
+				Link->ItemA = this->Data[itemIngr_A];
+				Link->ItemB = this->Data[itemIngr_B];
+				Link->ItemX = this->Data[itemIngr_X];
+				Link->ItemY = this->Data[itemIngr_Y];
+				break;
+			}
+		}
+	}
+	void StoreItems(genericdata this, int who)
+	{
+		switch(who)
+		{
+			case 0:
+			{
+				this->Data[itemLink_A] = Link->ItemA;
+				this->Data[itemLink_B] = Link->ItemB;
+				this->Data[itemLink_X] = Link->ItemX;
+				this->Data[itemLink_Y] = Link->ItemY;
+				break;
+			}
+			case 1:
+			{
+				this->Data[itemCain_A] = Link->ItemA;
+				this->Data[itemCain_B] = Link->ItemB;
+				this->Data[itemCain_X] = Link->ItemX;
+				this->Data[itemCain_Y] = Link->ItemY;
+				break;
+			}
+			case 2: // Ciela
+			{
+				this->Data[itemCiel_A] = Link->ItemA;
+				this->Data[itemCiel_B] = Link->ItemB;
+				this->Data[itemCiel_X] = Link->ItemX;
+				this->Data[itemCiel_Y] = Link->ItemY;
+				break;
+			}
+			case 3: // Aurelia
+			{
+				this->Data[itemAure_A] = Link->ItemA;
+				this->Data[itemAure_B] = Link->ItemB;
+				this->Data[itemAure_X] = Link->ItemX;
+				this->Data[itemAure_Y] = Link->ItemY;
+				break;
+			}
+			case 4: // Ingrid
+			{
+				this->Data[itemIngr_A] = Link->ItemA;
+				this->Data[itemIngr_B] = Link->ItemB;
+				this->Data[itemIngr_X] = Link->ItemX;
+				this->Data[itemIngr_Y] = Link->ItemY;
+				break;
+			}
+		}
+	}
+	void ValidateItems(int equippedItems)
+	{
+		dmapdata dmd = Game->LoadDMapData(Game->CurDMap);
+		// Get the equipable status of all items
+		bool valid[256];
+		for(int i=0; i<256; ++i)
+		{
+			valid[i] = Link->Item[i];
+			if(dmd->DisabledItems[i])
+				valid[i] = false;
+		}
+		// Loop through buttons
+		for(int i=0; i<4; ++i)
+		{
+			int itemID;
+			switch(i)
+			{
+				case 0: itemID = Link->ItemA; break;
+				case 1: itemID = Link->ItemB; break;
+				case 2: itemID = Link->ItemX; break;
+				case 3: itemID = Link->ItemY; break;
+			}
+			itemID = Clamp(itemID, 0, 255);
+			
+			// Get highest level item for character specific items that come in multiple levels
+			switch(itemID)
+			{
+				case 5: // Swords
+				case 6:
+				case 7:
+				case 36:
+				case 127:
+					if(valid[127]) itemID = 127;
+					else if(valid[36]) itemID = 36;
+					else if(valid[7]) itemID = 7;
+					else if(valid[6]) itemID = 6;
+					else if(valid[5]) itemID = 5;
+					else itemID = 196;
+					break;
+				case 53: // Lenses
+				case 155:
+				case 156:
+					if(valid[156]) itemID = 156;
+					else if(valid[155]) itemID = 155;
+					else if(valid[53]) itemID = 53;
+					break;
+				case 109: // Machete
+				case 171: 
+					if(valid[171]) itemID = 171;
+					else if(valid[109]) itemID = 109;
+					break;
+				case 172: // Shurikens
+				case 221:
+					if(valid[221]) itemID = 221;
+					else if(valid[172]) itemID = 172;
+					break;
+				case 227: // Kunai
+				case 233:
+					if(valid[233]) itemID = 233;
+					else if(valid[227]) itemID = 227;
+					break;
+				case 198: // Ascalon
+				case 119:
+					if(valid[119]) itemID = 119;
+					else if(valid[198]) itemID = 198;
+					break;
+				case 141: // Wooden Staff
+				case 244:
+					if(valid[244]) itemID = 244;
+					else if(valid[141]) itemID = 141;
+					break;
+				case 147: // Pendant -> Ignis
+				case 228:
+					if(valid[228]) itemID = 228;
+					else if(valid[147]) itemID = 147;
+					break;
+				case 224: // Bodyguard
+				case 133:
+					if(valid[133]) itemID = 133;
+					else if(valid[224]) itemID = 224;
+					break;
+			}
+			
+			// If the item isn't obtained, zero it out
+			if(itemID>0&&!valid[itemID])
+			{
+				equippedItems[i] = itemID;
+				itemID = 0;
+			}
+			
+			switch(i)
+			{
+				case 0: Link->ItemA = itemID; break;
+				case 1: Link->ItemB = itemID; break;
+				case 2: Link->ItemX = itemID; break;
+				case 3: Link->ItemY = itemID; break;
+			}
+		}
+	}
+	int GetCharFromDMap()
+	{
+		dmapdata dmd = Game->LoadDMapData(Game->CurDMap);
+		switch(dmd->ActiveSubscreen)
+		{
+			case 0:
+			case 1: // Link
+				return 0;
+			case 2: // Cain
+				return 1;
+			case 3: // Ciela
+				return 2;
+			case 4: // Aurelia
+				return 3;
+			case 5: // Ingrid
+				return 4;
+		}
+		return 0;
+	}
+	bool ButtonDisabled()
+	{
+		for(int i=1; i<=32; ++i)
+		{
+			ffc f = Screen->LoadFFC(i);
+			if(f->Script==10) // Button disabler
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	bool InventoryChanged(int altCharItems, bool ownedItems)
+	{
+		bool ret;
+		for(int i=0; i<SizeOfArray(altCharItems); ++i)
+		{
+			if(Link->Item[i]!=ownedItems[i])
+			{
+				ownedItems[i] = Link->Item[i];
+				ret = true;
+			}
+		}
+		return ret;
+	}
+	void RestoreOldEquips(int equippedItems)
+	{
+		dmapdata dmd = Game->LoadDMapData(Game->CurDMap);
+		for(int i=0; i<4; ++i)
+		{
+			int itemID;
+			switch(i)
+			{
+				case 0: itemID = Link->ItemA; break;
+				case 1: itemID = Link->ItemB; break;
+				case 2: itemID = Link->ItemX; break;
+				case 3: itemID = Link->ItemY; break;
+			}
+			if(itemID==0)
+			{
+				if(equippedItems[i])
+				{
+					if(Link->Item[equippedItems[i]]&&!dmd->DisabledItems[equippedItems[i]])
+					{
+						itemID = equippedItems[i];
+						equippedItems[i] = 0;
+					}
+				}
+			}
+			switch(i)
+			{
+				case 0: Link->ItemA = itemID; break;
+				case 1: Link->ItemB = itemID; break;
+				case 2: Link->ItemX = itemID; break;
+				case 3: Link->ItemY = itemID; break;
+			}
+		}
+	}
+}
+
+// 0 = Cain
+// 1 = Solarette
+// 2 = Agent A / Aurelia
+// 3 = Ingrid
+
+ffc script CharacterSwitch
+{
+	void run(int chara, int type, int Add, int recordItemID)
+	{
+		
+		genericdata gd = Game->LoadGenericData(CheckGenericScript("EquipBackup"));
+		
+		const int itemLink_A = 1;
+		const int itemLink_B = 2;
+		const int itemLink_X = 3;
+		const int itemLink_Y = 4;
+		
+		const int itemCain_A = 5;
+		const int itemCain_B = 6;
+		const int itemCain_X = 7;
+		const int itemCain_Y = 8;
+		
+		const int itemCiel_A = 9;
+		const int itemCiel_B = 10;
+		const int itemCiel_X = 11;
+		const int itemCiel_Y = 12;
+		
+		const int itemAure_A = 13;
+		const int itemAure_B = 14;
+		const int itemAure_X = 15;
+		const int itemAure_Y = 16;
+		
+		const int itemIngr_A = 17;
+		const int itemIngr_B = 18;
+		const int itemIngr_X = 19;
+		const int itemIngr_Y = 20;
+		
+		gd->DataSize = 25;
+		
+		// Revert Crystal Book Sprite Change when switching back to Link
+		if(Add == 0){
+			Link->ScriptCSet = 6;
+			Link->ScriptTile = -1;
+		}
+		
+		if (chara == 0){ //Cain
+			Link->Item[170] = Add;	//Skin
+			
+			if(type>=0){Link->Item[109] = Add;}	//Machete L1
+			if(type>=0){Link->Item[172] = Add;}	//Shuriken L1
+			if(type>=0 && type<3){Link->Item[227] = Add;}	//Kunai
+			if(type>=1){Link->Item[171] = Add;}	//Machete L2
+			if(type>=2){Link->Item[221] = Add;}	//Shuriken L2
+			if(type!=0 && type!=2 && type!=3){Link->Item[205] = Add;}	//Sheikah Arts
+			if(type>=3){Link->Item[231] = Add;} //Hylian Cracker
+			if(type>=3 && !Link->Item[9]){Link->Item[233] = Add;} //Killer Kunai
+		}
+		
+		if (chara == 1){ //Ciela
+			if(type==0){Link->Item[216] = Add;}	//Skin 1
+			if(type>=1){Link->Item[112] = Add;}	//Skin 2
+			
+			if(type>=0){Link->Item[61] = Add;}	//Book of Frost
+			if(type>=0){Link->Item[226] = Add;}	//Cure Tome
+			if(type>=0){Link->Item[217] = Add;}	//Crystal Book
+			if(type>=0){Link->Item[110] = Add;}	//Cryo Book
+			if(type==0){Link->Item[141] = Add;}	//Wooden Staff
+			if(type>=1){Link->Item[244] = Add;}	//Firebrand
+			if(type>=1){Link->Item[228] = Add;}	//Ignis Tome
+		}
+		if (chara == 2){ //Agent A
+			if(type==0){Link->Item[199] = Add;}	//Skin 1
+			if(type>=1){Link->Item[120] = Add;}	//Skin 2
+			
+			if(type>=0){Link->Item[198] = Add;}	//Ascalon L1
+			if(type>=0){Link->Item[197] = Add;}	//Fairy Cane
+			if(type>=0){Link->Item[137] = Add;}	//Fairy Bow
+			if(type>=0){Link->Item[237] = Add;}	//Fairy Cloak
+			if((type>=2) && (type!=3) && (type!=5)){Link->Item[230] = Add;}	//Rauru
+			if(type>=3){Link->Item[201] = Add;} //Fairy Lamp
+			if(type>=4){Link->Item[119] = Add;}	//Ascalon L2
+		}
+		if (chara == 3){ //Ingrid
+			if(type==0){Link->Item[225] = Add;}	//Skin 1
+			if(type>=1){Link->Item[248] = Add;}	//Skin 2
+			
+			if(!Link->Item[232]){Link->Item[184] = Add;} //Golden Dragoon
+			if(type==0||type==3){Link->Item[224] = Add;}	//Bodyguard Conscription
+			if(type>=0){Link->Item[193] = Add;}	//Draconic Blade
+			if(type>=0){Link->Item[104] = Add;}	//Aim Shot
+			if(type==1){Link->Item[133] = Add;} //Bodyguard Commission
+			if(type!=1){Link->Item[223] = Add;}	//C4
+		}
+		
+		dmapdata dmd = Game->LoadDMapData(Game->CurDMap);
+		// Set items based on backup items
+		// printf("VALIDATE\n");
+		Link->ItemY = ValidateItem(Link->ItemY);
+		Link->ItemX = ValidateItem(Link->ItemX);
+		Link->ItemB = ValidateItem(Link->ItemB);
+		Link->ItemA = ValidateItem(Link->ItemA);
+		// printf("Items Final %d %d %d %d\n", Link->ItemA, Link->ItemB, Link->ItemX, Link->ItemY);
+	}
+	int ValidateItem(int itemid)
+	{
+		if(itemid<=0)
+			return 196;
+		// Handle items that can be upgraded
+		// printf("Upgrades?\n");
+		switch(itemid)
+		{
+			case 5: // Sword->Radiant Sword
+				if(Link->Item[6]) return 6;
+				break;
+			case 53: // Lens->Lens L2
+				if(Link->Item[155]) return 155;
+				break;
+			case 155: // Lens->Lens L3
+				if(Link->Item[156]) return 156;
+				break;
+			case 109: // Machete -> Machete L2
+				if(Link->Item[171]) return 171;
+				break;
+			case 172: // Shuriken -> Crystal Shuriken
+				if(Link->Item[221]) return 221;
+				break;
+			case 227: // Kunai -> Killer Kunai
+				if(Link->Item[233]) return 233;
+				break;
+			case 198: // Ascalon L1->L2
+				if(Link->Item[119]) return 119;
+				break;
+			case 141: // Staff to Firebrand
+				if(Link->Item[244]) return 244;
+				break;
+			case 147: // Pendant to Ignis
+				if(Link->Item[228]) return 228;
+				break;
+			case 224: // Bodyguard Downgrade
+				if(Link->Item[133]) return 133;
+				break;
+		}
+		// printf("No own?\n");
+		if(!Link->Item[itemid]) // Item has been removed
+			return 196;
+		dmapdata dmd = Game->LoadDMapData(Game->CurDMap);
+		// Item is disabled on the dmap, remove it
+		// printf("Disbaled?\n");
+		if(dmd->DisabledItems[itemid])
+			return 196;
+		int onButtons;
+		if(Link->ItemA==itemid)
+			++onButtons;
+		if(Link->ItemB==itemid)
+			++onButtons;
+		if(Link->ItemX==itemid)
+			++onButtons;
+		if(Link->ItemY==itemid)
+			++onButtons;
+		if(onButtons>1)
+			return 196;
+		// printf("We good?\n");
+		return itemid;
+	}
+}

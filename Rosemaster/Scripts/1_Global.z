@@ -1,0 +1,1059 @@
+namespace tempPatches
+{
+	const int BASE_LINK_Z = 0;
+}
+
+// ===========================================================
+// ================== CONSTANTS & VARIABLES ==================
+// ===========================================================
+
+// Barriers
+const int SCRIPT_BARRIERS = 7;
+const int BARRIER_A_RAISED           = 4656;
+const int BARRIER_B_RAISED           = 4657;
+const int BARRIER_A_LOWERED          = 4658;
+const int BARRIER_B_LOWERED          = 4659;
+const int BARRIER_A_ANIMRAISE        = 4660;
+const int BARRIER_B_ANIMRAISE        = 4661;
+const int BARRIER_A_ANIMLOWER        = 4662;
+const int BARRIER_B_ANIMLOWER        = 4663;
+const int BARRIER_A_WALKABLE         = 4664;
+const int BARRIER_B_WALKABLE         = 4665;
+const int BARRIER_A_SWITCH           = 4666;
+const int BARRIER_B_SWITCH           = 4667;
+const int BARRIER_SWITCH_DUMMY 		 = 177; 
+const int BARRIER_SWITCH_DUMMY_HP	 = 32767;	
+
+bool barriers[511]; 							// false = blue barriers raised, true = red barriers raised
+int scrollDir;
+int scrollCounter;
+int drawX;
+int drawY;
+
+// Moosh Pitfalls
+int MooshPit[16];
+const int MP_LASTX = 0;
+const int MP_LASTY = 1;
+const int MP_LASTDMAP = 2;
+const int MP_LASTSCREEN = 3;
+const int MP_ENTRYX = 4;
+const int MP_ENTRYY = 5;
+const int MP_ENTRYDMAP = 6;
+const int MP_ENTRYSCREEN = 7;
+const int MP_FALLX = 8;
+const int MP_FALLY = 9;
+const int MP_FALLTIMER = 10;
+const int MP_FALLSTATE = 11;
+const int MP_DAMAGETYPE = 12;
+
+const int CT_HOLELAVA = 128; //Combo type for pits (No Ground Enemies by default)
+const int CF_LAVA = 98; //Combo flag marking pits as lava (Script 1 by default)
+
+const int SPR_FALLHOLE = 89; //Sprite for Link falling in a hole
+const int SPR_FALLLAVA = 90; //Sprite for Link falling in lava
+
+const int SFX_FALLHOLE = 87; //Sound for falling in a hole
+const int SFX_FALLLAVA = 13; //Sound for falling in lava
+
+const int DAMAGE_FALLHOLE = 8; //How much damage pits deal (1/2 heart default)
+const int DAMAGE_FALLLAVA = 8; //How much damage lava deals (1 heart default)
+
+const int FFC_MOOSHPIT_AUTOWARPA = 32; //FFC that turns into an auto side warp combo when you fall in a pit
+const int CMB_MOOSHPIT_AUTOWARPA = 6391; //Combo number of an invisible Auto Side Warp A combo
+const int SF_MISC_MOOSHPITWARP = 2; //Number of the screen flag under the Misc. section that makes pits warp (Script 1 by default)
+//All pit warps use Side Warp A
+
+const int MOOSHPIT_MIN_FALL_TIME = 60; //Minimum time for the pit's fall animation, to prevent repeated falling in pits
+const int MOOSHPIT_EXTRA_FALL_TIME = 0; //Extra frames at the end of the falling animation before Link respawns
+
+//Width and height of Link's hitbox for colliding with pits
+const int MOOSHPIT_LINKHITBOXWIDTH = 2;
+const int MOOSHPIT_LINKHITBOXHEIGHT = 2;
+
+//Width and height of Link's hitbox for colliding with pits/lava in sideview
+const int MOOSHPIT_SIDEVIEW_LINKHITBOXWIDTH = 2;
+const int MOOSHPIT_SIDEVIEW_LINKHITBOXHEIGHT = 2;
+
+const int MOOSHPIT_NO_GRID_SNAP = 0; //Set to 1 to prevent Link's falling sprite from snapping to the combo grid.
+
+//ICE SCRIPT
+bool isScrolling;
+bool onice;
+float Ice_X;
+float Ice_Y;
+int Ice_XStep;
+int Ice_YStep;
+
+// ===========================================================
+// =================== FUNCTIONS & BOOLS =====================
+// ===========================================================
+
+// ======================== BARRIERS ========================
+
+// Function that makes preparations for barriers on each screen and starts an FFC script
+void Barriers_NewScreen(){
+	// Search for a barrier-related combo
+	for (int i = 0; i <= 175; ++i) {
+		int cd = Screen->ComboD[i];
+		if (cd == BARRIER_A_RAISED || cd == BARRIER_A_LOWERED || cd == BARRIER_A_SWITCH ||
+			cd == BARRIER_B_RAISED || cd == BARRIER_B_LOWERED || cd == BARRIER_B_SWITCH ||
+			cd == BARRIER_A_RAISED+40 || cd == BARRIER_A_LOWERED+40 || cd == BARRIER_A_SWITCH+40 ||
+			cd == BARRIER_B_RAISED+40 || cd == BARRIER_B_LOWERED+40 || cd == BARRIER_B_SWITCH+40 ||
+			cd == BARRIER_A_RAISED+192 || cd == BARRIER_A_LOWERED+192 || cd == BARRIER_A_SWITCH+192 ||
+			cd == BARRIER_B_RAISED+192 || cd == BARRIER_B_LOWERED+192 || cd == BARRIER_B_SWITCH+192 ){
+			// A barrier-related combo was found
+			
+			// Make initial changes to combos
+			if (barriers[Game->GetCurDMap()]){
+				for (int j = i; j <= 175; ++j){
+					int cd = Screen->ComboD[j];
+					if (cd == BARRIER_A_RAISED) Screen->ComboD[j] = BARRIER_A_LOWERED;
+					else if (cd == BARRIER_B_LOWERED) Screen->ComboD[j] = BARRIER_B_RAISED;
+					else if (cd == BARRIER_A_SWITCH) Screen->ComboD[j] = BARRIER_B_SWITCH;
+					else if (cd == BARRIER_A_RAISED+40) Screen->ComboD[j] = BARRIER_A_LOWERED+40;
+					else if (cd == BARRIER_B_LOWERED+40) Screen->ComboD[j] = BARRIER_B_RAISED+40;
+					else if (cd == BARRIER_A_SWITCH+40) Screen->ComboD[j] = BARRIER_B_SWITCH+40;
+					else if (cd == BARRIER_A_RAISED+192) Screen->ComboD[j] = BARRIER_A_LOWERED+192;
+					else if (cd == BARRIER_B_LOWERED+192) Screen->ComboD[j] = BARRIER_B_RAISED+192;
+					else if (cd == BARRIER_A_SWITCH+192) Screen->ComboD[j] = BARRIER_B_SWITCH+192;
+				}
+			}
+			else {
+				for (int j = i; j <= 175; j++){
+					int cd = Screen->ComboD[j];
+					if (cd == BARRIER_B_RAISED) Screen->ComboD[j] = BARRIER_B_LOWERED;
+					else if (cd == BARRIER_A_LOWERED) Screen->ComboD[j] = BARRIER_A_RAISED;
+					else if (cd == BARRIER_B_SWITCH) Screen->ComboD[j] = BARRIER_A_SWITCH;
+					else if (cd == BARRIER_B_RAISED+40) Screen->ComboD[j] = BARRIER_B_LOWERED+40;
+					else if (cd == BARRIER_A_LOWERED+40) Screen->ComboD[j] = BARRIER_A_RAISED+40;
+					else if (cd == BARRIER_B_SWITCH+40) Screen->ComboD[j] = BARRIER_A_SWITCH+40;
+					else if (cd == BARRIER_B_RAISED+192) Screen->ComboD[j] = BARRIER_B_LOWERED+192;
+					else if (cd == BARRIER_A_LOWERED+192) Screen->ComboD[j] = BARRIER_A_RAISED+192;
+					else if (cd == BARRIER_B_SWITCH+192) Screen->ComboD[j] = BARRIER_A_SWITCH+192;
+				}
+			}
+			// So run FFCscript to control barriers
+			int args[] = {0,0,0,0,0,0,0,0};
+			RunFFCScript(SCRIPT_BARRIERS, args);
+			break;
+		}
+	}
+}
+
+// This lets you toggle barriers on any dmap
+bool ToggleBarriers(int dmap) {
+	if (dmap == Game->GetCurDMap()) ToggleBarriers();
+	else barriers[dmap] = !barriers[dmap];
+	return barriers[dmap];
+}
+
+// This toggles barriers on the current dmap
+bool ToggleBarriers() {
+	int curdmap = Game->GetCurDMap();
+	if (!barriers[curdmap]){
+		barriers[curdmap] = true;
+		for (int i = 0; i <= 175; i++){
+			int cd = Screen->ComboD[i];
+			if (cd == BARRIER_A_RAISED || cd == BARRIER_A_WALKABLE || cd == BARRIER_A_ANIMRAISE){
+				Screen->ComboD[i] = BARRIER_A_ANIMLOWER;
+			}
+			else if (cd == BARRIER_B_LOWERED || cd == BARRIER_B_ANIMLOWER){
+				Screen->ComboD[i] = BARRIER_B_ANIMRAISE;
+			}
+			else if (cd == BARRIER_A_SWITCH){
+				Screen->ComboD[i] = BARRIER_B_SWITCH;
+			}
+			else if (cd == BARRIER_A_RAISED+40 || cd == BARRIER_A_WALKABLE+40 || cd == BARRIER_A_ANIMRAISE+40){
+				Screen->ComboD[i] = BARRIER_A_ANIMLOWER+40;
+			}
+			else if (cd == BARRIER_B_LOWERED+40 || cd == BARRIER_B_ANIMLOWER+40){
+				Screen->ComboD[i] = BARRIER_B_ANIMRAISE+40;
+			}
+			else if (cd == BARRIER_A_SWITCH+40){
+				Screen->ComboD[i] = BARRIER_B_SWITCH+40;
+			}
+			else if (cd == BARRIER_A_RAISED+192 || cd == BARRIER_A_WALKABLE+192 || cd == BARRIER_A_ANIMRAISE+192){
+				Screen->ComboD[i] = BARRIER_A_ANIMLOWER+192;
+			}
+			else if (cd == BARRIER_B_LOWERED+192 || cd == BARRIER_B_ANIMLOWER+192){
+				Screen->ComboD[i] = BARRIER_B_ANIMRAISE+192;
+			}
+			else if (cd == BARRIER_A_SWITCH+192){
+				Screen->ComboD[i] = BARRIER_B_SWITCH+192;
+			}
+		}
+	}
+	else {
+		barriers[curdmap] = false;
+		for (int i = 0; i <= 175; i++){
+			int cd = Screen->ComboD[i];
+			if (cd == BARRIER_B_RAISED || cd == BARRIER_B_WALKABLE || cd == BARRIER_B_ANIMRAISE){
+				Screen->ComboD[i] = BARRIER_B_ANIMLOWER;
+			}
+			else if (cd == BARRIER_A_LOWERED || cd == BARRIER_A_ANIMLOWER){
+				Screen->ComboD[i] = BARRIER_A_ANIMRAISE;
+			}
+			else if (cd == BARRIER_B_SWITCH){
+				Screen->ComboD[i] = BARRIER_A_SWITCH;
+			}
+			else if (cd == BARRIER_B_RAISED+40 || cd == BARRIER_B_WALKABLE+40 || cd == BARRIER_B_ANIMRAISE+40){
+				Screen->ComboD[i] = BARRIER_B_ANIMLOWER+40;
+			}
+			else if (cd == BARRIER_A_LOWERED+40 || cd == BARRIER_A_ANIMLOWER+40){
+				Screen->ComboD[i] = BARRIER_A_ANIMRAISE+40;
+			}
+			else if (cd == BARRIER_B_SWITCH+40){
+				Screen->ComboD[i] = BARRIER_A_SWITCH+40;
+			}
+			else if (cd == BARRIER_B_RAISED+192 || cd == BARRIER_B_WALKABLE+192 || cd == BARRIER_B_ANIMRAISE+192){
+				Screen->ComboD[i] = BARRIER_B_ANIMLOWER+192;
+			}
+			else if (cd == BARRIER_A_LOWERED+192 || cd == BARRIER_A_ANIMLOWER+192){
+				Screen->ComboD[i] = BARRIER_A_ANIMRAISE+192;
+			}
+			else if (cd == BARRIER_B_SWITCH+192){
+				Screen->ComboD[i] = BARRIER_A_SWITCH+192;
+			}
+		}
+	}
+	return barriers[curdmap];
+}	
+
+// ======================== ITEM SWITCH (Unused) ========================
+
+void LREx1Ex2ItemSwitch(){
+	if (Link->PressL && Link->Action != LA_SCROLLING)
+	{
+		Link->SelectYWeapon(DIR_LEFT);
+	}
+	if (Link->PressR && Link->Action != LA_SCROLLING)
+	{
+		Link->SelectYWeapon(DIR_RIGHT);
+	}
+	//if (Link->PressEx1 && Link->Action != LA_SCROLLING)
+	//{
+	//	Link->SelectAWeapon(DIR_LEFT);
+	//}
+	//if (Link->PressEx2 && Link->Action != LA_SCROLLING)
+	//{
+	//	Link->SelectAWeapon(DIR_RIGHT);
+	//}
+}
+
+// ======================== MOOSH PITS ========================
+
+bool MooshPit_OnPit(int LinkX, int LinkY, bool countFFCs){
+	if(Link->Action==LA_FROZEN)
+	return false;
+	
+	if(countFFCs){
+		if(MooshPit_OnFFC(LinkX, LinkY))
+		return false;
+	}
+	
+	bool sideview;
+	if(Screen->Flags[SF_ROOMTYPE]&100b)
+	sideview = true;
+	//wew lad
+	int width = MOOSHPIT_LINKHITBOXWIDTH;
+	int height = MOOSHPIT_LINKHITBOXHEIGHT;
+	for(int x=0; x<=1; x++){
+		for(int y=0; y<=1; y++){
+			int X; int Y;
+			if(sideview){ //Hitbox functions differently in sideview
+				width = MOOSHPIT_SIDEVIEW_LINKHITBOXWIDTH;
+				height = MOOSHPIT_SIDEVIEW_LINKHITBOXHEIGHT;
+				X = LinkX+7-width/2+width;
+				Y = LinkY+7-height/2+height;
+			}
+			else{
+				X = LinkX+7-width/2+width;
+				Y = LinkY+11-height/2+height;
+			}
+			
+			//If one corner of Link's hitbox isn't on a pit, return false
+			if(Screen->ComboT[ComboAt(X, Y)]!=CT_HOLELAVA){
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+bool MooshPit_OnFFC(int LinkX, int LinkY){
+	for(int i=1; i<=32; i++){ //Cycle through every FFC
+		ffc f = Screen->LoadFFC(i);
+		//Check if the FFC is solid
+		if(f->Data>0&&!f->Flags[FFCF_CHANGER]&&!f->Flags[FFCF_ETHEREAL]){
+			//Check if Link collides with the FFC
+			if(RectCollision(LinkX+4, LinkY+9, LinkX+11, LinkY+14, f->X, f->Y, f->X+f->EffectWidth-1, f->Y+f->EffectHeight-1)){
+				return true;
+			}
+		}
+	}
+	//If Link doesn't collide with any FFC, return false
+	return false;
+}
+	
+void MooshPit_Init(){
+	MooshPit[MP_LASTX] = Link->X;
+	MooshPit[MP_LASTY] = Link->Y;
+	MooshPit[MP_LASTDMAP] = Game->GetCurDMap();
+	MooshPit[MP_LASTSCREEN] = Game->GetCurDMapScreen();
+	MooshPit[MP_ENTRYX] = Link->X;
+	MooshPit[MP_ENTRYY] = Link->Y;
+	MooshPit[MP_ENTRYDMAP] = Game->GetCurDMap();
+	MooshPit[MP_ENTRYSCREEN] = Game->GetCurDMapScreen();
+	MooshPit[MP_FALLSTATE] = 0;
+	MooshPit[MP_FALLTIMER] = 0;
+	Link->CollDetection = true;
+	Link->Invisible = false;
+}
+
+void MooshPit_Update(){
+	bool isWarp;
+	if(Screen->Flags[SF_MISC]&(1<<SF_MISC_MOOSHPITWARP))
+	isWarp = true;
+	
+	bool sideview;
+	if(Screen->Flags[SF_ROOMTYPE]&100b)
+	sideview = true;
+	
+	if(Link->Action!=LA_SCROLLING){
+		//Update the entry point whenever the screen changes
+		if(MooshPit[MP_ENTRYDMAP]!=Game->GetCurDMap()||MooshPit[MP_ENTRYSCREEN]!=Game->GetCurDMapScreen()){
+			MooshPit[MP_ENTRYX] = Link->X;
+			MooshPit[MP_ENTRYY] = Link->Y;
+			MooshPit[MP_ENTRYDMAP] = Game->GetCurDMap();
+			MooshPit[MP_ENTRYSCREEN] = Game->GetCurDMapScreen();
+		}
+		
+		if(MooshPit[MP_FALLSTATE]==0)
+		{ //Not falling in pit
+			//LogPrint("FallState == 0 %s \n", "checking if over a pit");
+			//LogPrint("Link is over a pit 2? %s \n", ( (MooshPit_OnPit(Link->X, Link->Y, true)) ? "true" : "false"));
+			
+			if(Link->Z<=tempPatches::BASE_LINK_Z&&MooshPit_OnPit(Link->X, Link->Y, true))
+			{
+				//LogPrint("Link is over a pit 3? %s \n", ( (MooshPit_OnPit(Link->X, Link->Y, true)) ? "true" : "false"));
+			
+				//If Link steps on a pit
+				int underLink;
+				if(!sideview)
+				underLink = ComboAt(Link->X+8, Link->Y+12);
+				else
+				underLink = ComboAt(Link->X+8, Link->Y+8);
+				//StopDash();
+				
+				lweapon fall;
+				
+				//Check if the combo is lava
+				if(ComboFI(underLink, CF_LAVA))
+				{
+					//LogPrint("We should be %s \n", "playing a sound for Lava");
+					//Play sound and display animation
+					Game->PlaySound(SFX_FALLLAVA);
+					fall = CreateLWeaponAt(LW_SCRIPT10, Link->X, Link->Y);
+					if(!MOOSHPIT_NO_GRID_SNAP){
+						fall->X = ComboX(underLink);
+						fall->Y = ComboY(underLink);
+					}
+					fall->UseSprite(SPR_FALLLAVA);
+					fall->CollDetection = false;
+					fall->DeadState = fall->ASpeed*fall->NumFrames;
+					
+					//Mark as lava damage
+					MooshPit[MP_DAMAGETYPE] = 1;
+				}
+				//Otherwise it's a pit
+				else
+				{
+					//LogPrint("We should be %s \n", "playing a sound for a pit");
+					//Play sound and display animation
+					Game->PlaySound(SFX_FALLHOLE);
+					fall = CreateLWeaponAt(LW_SCRIPT10, Link->X, Link->Y);
+					if(!MOOSHPIT_NO_GRID_SNAP){
+						fall->X = ComboX(underLink);
+						fall->Y = ComboY(underLink);
+					}
+					if (Player->Item[170] == true) {	//Cain Falling
+						fall->UseSprite(180);
+					}
+					else if (Player->Item[248] == true) {	//Ingrid Falling
+						fall->UseSprite(196);
+					}
+					else {
+						fall->UseSprite(SPR_FALLHOLE);
+					}
+					fall->CollDetection = false;
+					fall->DeadState = fall->ASpeed*fall->NumFrames;
+					
+					//Mark as hole damage
+					MooshPit[MP_DAMAGETYPE] = 0;
+				}
+				
+				MooshPit[MP_FALLX] = Link->X;
+				MooshPit[MP_FALLY] = Link->Y;
+				
+				//Cooldown should last as long as the fall animation
+				MooshPit[MP_FALLSTATE] = 1;
+				MooshPit[MP_FALLTIMER] = Max(MOOSHPIT_MIN_FALL_TIME, fall->DeadState+MOOSHPIT_EXTRA_FALL_TIME);
+				
+				//Render Link invisible and intangible
+				Link->Invisible = true;
+				Link->CollDetection = false;
+				
+				NoAction();
+				//StopDash();
+			}
+			else if(!MooshPit_OnPit(Link->X, Link->Y, false)&&Link->Action!=LA_FROZEN){ //All other times, while Link is on solid ground, record Link's last position
+				if(sideview){
+					//Link has no Z value in sideview, so we check if he's on a platform instead
+					if(OnSidePlatform(Link->X, Link->Y)){
+						MooshPit[MP_LASTDMAP] = Game->GetCurDMap();
+						MooshPit[MP_LASTSCREEN] = Game->GetCurDMapScreen();
+						MooshPit[MP_LASTX] = Link->X;
+						MooshPit[MP_LASTY] = Link->Y;
+					}
+				}
+				else{
+					if(Link->Z<=tempPatches::BASE_LINK_Z){
+						MooshPit[MP_LASTDMAP] = Game->GetCurDMap();
+						MooshPit[MP_LASTSCREEN] = Game->GetCurDMapScreen();
+						MooshPit[MP_LASTX] = Link->X;
+						MooshPit[MP_LASTY] = Link->Y;
+					}
+				}
+			}
+		}
+		else if(MooshPit[MP_FALLSTATE]==1){ //Falling animation
+			if(MooshPit[MP_FALLTIMER]>0)
+			MooshPit[MP_FALLTIMER]--;
+			
+			Link->Jump = 0;
+			Link->Z = 0;
+			
+			//Keep Link invisible just in case
+			Link->Invisible = true;
+			Link->CollDetection = false;
+			NoAction();
+			//StopDash();
+			if(MooshPit[MP_FALLTIMER]==0){
+				if(!isWarp||MooshPit[MP_DAMAGETYPE]==1){ //If the pit isn't a warp, deal damage and move Link back to the return point
+					//If the entry would dump Link back in the pit, dump him out at the failsafe position
+					if(MooshPit_OnPit(MooshPit[MP_ENTRYX], MooshPit[MP_ENTRYY], false)){
+						Link->X = MooshPit[MP_LASTX];
+						Link->Y = MooshPit[MP_LASTY];
+						//If the failsafe position was on a different screen, warp there
+						if(Game->GetCurDMap()!=MooshPit[MP_LASTDMAP]||Game->GetCurDMapScreen()!=MooshPit[MP_LASTSCREEN]){
+							Link->PitWarp(MooshPit[MP_LASTDMAP], MooshPit[MP_LASTSCREEN]);
+						}
+						
+						Link->Invisible = false;
+						Link->CollDetection = true;
+					}
+					else{
+						//Move Link to the start and make him visible
+						Link->X = MooshPit[MP_ENTRYX];
+						Link->Y = MooshPit[MP_ENTRYY];
+						
+						Link->Invisible = false;
+						Link->CollDetection = true;
+					}
+					
+					//Subtract HP based on damage type
+					if(MooshPit[MP_DAMAGETYPE]==1)
+					Link->HP -= DAMAGE_FALLLAVA;
+					else
+					Link->HP -= DAMAGE_FALLHOLE;
+					//Play hurt sound and animation
+					Link->Action = LA_GOTHURTLAND;
+					Link->HitDir = -1;
+					Game->PlaySound(SFX_OUCH);
+					
+					MooshPit[MP_FALLSTATE] = 0;
+				}
+				else{
+					MooshPit[MP_FALLSTATE] = 2;
+					MooshPit[MP_FALLTIMER] = 1;
+					ffc warp = Screen->LoadFFC(FFC_MOOSHPIT_AUTOWARPA);
+					warp->Data = CMB_MOOSHPIT_AUTOWARPA;
+					warp->Flags[FFCF_CARRYOVER] = false;
+				}
+			}
+		}
+		else if(MooshPit[MP_FALLSTATE]==2){ //Just warped
+			if(sideview){
+				Link->X = MooshPit[MP_FALLX];
+				Link->Y = 0;
+			}
+			else{
+				Link->X = MooshPit[MP_FALLX];
+				Link->Y = MooshPit[MP_FALLY];
+				Link->Z = 176;
+			}
+			Link->Invisible = false;
+			Link->CollDetection = true;
+			
+			MooshPit[MP_FALLSTATE] = 0;
+			MooshPit[MP_FALLTIMER] = 0;
+		}
+	}
+}
+
+void MooshPit_ResetEntry(){
+	MooshPit[MP_ENTRYX] = Link->X;
+	MooshPit[MP_ENTRYY] = Link->Y;
+	MooshPit[MP_ENTRYDMAP] = Game->GetCurDMap();
+	MooshPit[MP_ENTRYSCREEN] = Game->GetCurDMapScreen();
+}
+
+void onScreenChange(){
+    Game->SkipF6 = false;
+}
+
+int LinkOnComboD() {
+	return Screen->ComboD[ComboAt(Link->X+8, Link->Y+13)];
+}
+
+void dMapMidiChange(){
+			
+			if(Game->Counter[11] >= 12){ //District 4 Change Music
+				changeDMapProperties(170, 149, 4); changeDMapProperties(172, 149, 14);
+				changeDMapProperties(173, 149, 14); changeDMapProperties(190, 149, 14);
+				changeDMapProperties(193, 149, 14); changeDMapProperties(194, 149, 14);
+				changeDMapProperties(195, 149, 0x3B); changeDMapProperties(338, 149, 0x4E);
+			}
+			
+			if(Game->Counter[11] >= 6){	//Elignita Falls
+			
+				if ((Game->Counter[12]) >= 23){ changeDMapProperties(143, 111, 52); };
+			
+				changeDMapProperties(8, 69, 40);
+				changeDMapProperties(18, 75, 13);
+				changeDMapProperties(20, 75, 12);
+			}
+			else if(Game->Counter[11] >= 4){ //Elignita Base
+				changeDMapProperties(4, 102, 1);
+			}
+			else if(Game->Counter[11] >= 2){
+				changeDMapProperties(4, 5, 1);
+			}
+			
+}
+
+void speedChanger(){
+	
+	int diffMode = Game->Counter[37];
+	
+	//Speed modifers
+	if (Player->Item[252] == true){	//Vodka
+		Player->Step= 200;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (2 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 4;
+	}
+	else if (Player->Item[170] == true || Player->Item[199] == true || Player->Item[120] == true){	//Cain and Aurelia Speed
+		Player->Step= 180;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Player->Item[216] == true || Player->Item[112] == true){	//Ciela Speed
+		if(!Game->LoadGenericData(CheckGenericScript("CrystalBookTransform"))->Running){
+			Link->ScriptCSet = 6;
+			Link->ScriptTile = -1;
+		}
+		if(Game->LoadGenericData(CheckGenericScript("CrystalBookTransform"))->Running){
+			Player->Step= 270;
+		}
+		else{
+			Player->Step= 150;
+		}
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Player->Item[225] == true || Player->Item[248] == true || Player->Item[107] == true){	//Ingrid Speed
+		Player->Step= 190;
+		if(Player->Item[248] == true){
+			Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		}
+		else{
+			Game->Generic[GEN_ENEM_DMG_MULT] = (2 * diffMode) / 2;
+			}
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}	
+	else if (Player->Item[234] == true ){	//Cucco Speed
+		Player->Step= 80;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+		Link->InputA = false; Link->InputEx1 = false;
+		Link->InputB = false; Link->InputEx2 = false;
+	}
+	else if (Player->Item[251] == true ){	//Glory Baby Speed
+		Player->Step= 100;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (8 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(240)->Level == 2){ //Omega Speed
+		Player->Step= 122;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (3 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(168)->Level == 2){ //Ninja Speed
+		Player->Step= 280;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(187)->Level == 2){ //Business Suit
+		if(Game->Counter[CR_RUPEES]>0)
+		{
+			Player->Step= 150;
+			Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		}
+		else
+		{
+			Player->Step= 40;
+			Game->Generic[GEN_ENEM_DMG_MULT] = -1;
+		}
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(211)->Level == 2||Game->LoadItemData(213)->Level == 2){ //Linkle & Chocobo Speed, Also 
+		Player->Step= 180;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(90)->Level == 2){ //Red Dragon
+		Player->Step= 240;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(105)->Level == 2||Game->LoadItemData(63)->Level == 2||Game->LoadItemData(118)->Level == 2){ // Purple Dragon, Green Dragon, Silver Dragon
+		Player->Step= 180;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(12)->Level == 2||Game->LoadItemData(65)->Level == 2||Game->LoadItemData(26)->Level == 2){ // Black Dragon, Orange Dragon, Blue Dragon
+		Player->Step= 160;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else if (Game->LoadItemData(136)->Level == 2){ //Knight Speed and Power Boost
+		Player->Step= 70;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (3 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 3;
+	}
+	else if (Game->LoadItemData(212)->Level == 2){ //Baby Speed
+		Player->Step= 140;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (6 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+	else{
+		Player->Step= 150;
+		Game->Generic[GEN_ENEM_DMG_MULT] = (4 * diffMode) / 2;
+		Game->Generic[GEN_HERO_DMG_MULT] = 2;
+	}
+}
+
+void infiniteCounterCheck(){
+	
+	//Force no Magic
+	if(Link->Item[191]){
+		Link->MP = 0;
+	}
+	
+	//Limbs of God
+	if(Link->Item[254]){
+		if(Game->Counter[2] != Game->MCounter[2]){
+			Game->Counter[2] = Game->MCounter[2];
+		}
+		if(Game->Counter[3] != Game->MCounter[3]){
+			Game->Counter[3] = Game->MCounter[3];
+		}
+		if(Game->Counter[7] != Game->MCounter[7]){
+			Game->Counter[7] = Game->MCounter[7];
+		}
+	}
+	
+}
+
+
+void EquipButtonItems(int type){ // Type 0: Record, Type 1: Equip
+
+	genericdata gd = Game->LoadGenericData(CheckGenericScript("EquipBackup"));
+	gd->DataSize = 25;
+	
+	// Ingrid Chapter 7
+	int itemIngr_A = 17;
+	int itemIngr_B = 18;
+	int itemIngr_X = 19;
+	int itemIngr_Y = 20;
+	
+	int itemCur_A = 21;
+	int itemCur_B = 22;
+	int itemCur_X = 23;
+	int itemCur_Y = 24;
+	
+	if(type == 0){	// Saving Item
+		gd->Data[itemCur_A] = Link->ItemA;
+		gd->Data[itemCur_B] = Link->ItemB;
+		gd->Data[itemCur_X] = Link->ItemX;
+		gd->Data[itemCur_Y] = Link->ItemY;
+		
+		// Ingrid Chapter 7
+		if(Game->Counter[11] == 7 && Link->Item[225] && !Link->Item[107]){
+			gd->Data[itemIngr_A] = Link->ItemA;
+			gd->Data[itemIngr_B] = Link->ItemB;
+			gd->Data[itemIngr_X] = Link->ItemX;
+			gd->Data[itemIngr_Y] = Link->ItemY;
+		}
+		
+	}
+	else{ // Equipping Item
+		if(gd->Data[itemCur_A] != 0){
+			Link->ItemA = gd->Data[itemCur_A];
+			gd->Data[itemCur_A] = 0;
+		}
+		if(gd->Data[itemCur_B] != 0){
+			Link->ItemB = gd->Data[itemCur_B];
+			gd->Data[itemCur_B] = 0;
+		}
+		if(gd->Data[itemCur_X] != 0){
+			Link->ItemX = gd->Data[itemCur_X];
+			gd->Data[itemCur_X] = 0;
+		}
+		if(gd->Data[itemCur_Y] != 0){
+			Link->ItemY = gd->Data[itemCur_Y];
+			gd->Data[itemCur_Y] = 0;
+		}
+	}
+}
+
+
+//ICE FLOOR SCRIPT
+
+//Initializes global variables used for ice combos.
+void Setup_IceCombos()
+{
+    isScrolling = false;
+    onice = false;
+    Ice_X = 0;
+    Ice_Y = 0;
+    Ice_XStep = 0;
+    Ice_YStep = 0;
+}
+
+void IceCombos_RecordInput(bool Ice_Input)
+{
+	Ice_Input[DIR_UP] = Link->InputUp;
+	Ice_Input[DIR_DOWN] = Link->InputDown;
+	Ice_Input[DIR_LEFT] = Link->InputLeft;
+	Ice_Input[DIR_RIGHT] = Link->InputRight;
+}
+
+//Adds Ice Combo functionally to 142;
+void Update_IceCombos(int oldscreen, bool Ice_Input)
+{
+    //Update Variables
+	if(Game->Scrolling[SCROLL_DIR] < 0)
+	{
+		if(isScrolling || oldscreen != Game->GetCurScreen() || (!onice && OnIce()))
+		{
+			Ice_X = Link->X;
+			Ice_Y = Link->Y;
+			if(isScrolling)
+				isScrolling = false;
+			else
+			{
+				int iX = (Ice_Input[DIR_LEFT]?-1:0) + (Ice_Input[DIR_RIGHT]?1:0);
+				int iY = (Ice_Input[DIR_UP]?-1:0) + (Ice_Input[DIR_DOWN]?1:0);
+				if(iX!=0&&iY!=0)
+				{
+					iX *= 0.7071;
+					iY *= 0.7071;
+				}
+				Ice_XStep = iX * 100;
+				Ice_YStep = iY * 100;
+			}
+		}
+		onice = OnIce();
+	}
+	else
+	{
+		isScrolling = true;
+		return;
+	}
+
+    //Ice Physics
+	if(onice && Link->Action != LA_FROZEN)
+	{
+		
+		if(PegasusBoots::IsDashing())
+		{
+			int bootIce = 8;
+			if (Link->Item[145] == true){
+				bootIce = 32;
+			}
+			else{
+				bootIce=8;
+			}
+			if(Link->Dir==0)
+			Ice_YStep -= bootIce;
+			else if(Link->Dir==1)
+			Ice_YStep += bootIce;
+			else if(Link->Dir==2)
+			Ice_XStep -= bootIce;
+			else if(Link->Dir==3)
+			Ice_XStep += bootIce;
+		}
+		
+		if(Game->LoadGenericData(CheckGenericScript("CrystalBookTransform"))->Running){
+			int crystalIce = 32;
+			if(Link->Dir==0)
+			Ice_YStep -= crystalIce;
+			else if(Link->Dir==1)
+			Ice_YStep += crystalIce;
+			else if(Link->Dir==2)
+			Ice_XStep -= crystalIce;
+			else if(Link->Dir==3)
+			Ice_XStep += crystalIce;
+		}
+		
+		//Y Adjustment
+		if(Link_Walking() && (Link->InputUp || Link->InputDown))
+		{
+			if(Link->InputUp && !Link->InputDown)
+			Ice_YStep -= 5;
+			else if(!Link->InputUp && Link->InputDown)
+			Ice_YStep += 5;
+		}
+		else if(Ice_YStep != 0)
+		Ice_YStep = Cond(Abs(Ice_YStep) - 1 > 0, Ice_YStep - Sign(Ice_YStep)*1, 0);
+		Ice_YStep = Clamp(Ice_YStep, -150, 150);
+		
+		//X Adjustment
+		if(Link_Walking() && (Link->InputLeft || Link->InputRight))
+		{
+			if(Link->InputLeft && !Link->InputRight)
+			Ice_XStep -= 5;
+			else if(!Link->InputLeft && Link->InputRight)
+			Ice_XStep += 5;
+		}
+		else if(Ice_XStep != 0)
+		Ice_XStep = Cond(Abs(Ice_XStep) - 1 > 0, Ice_XStep -Sign(Ice_XStep)*1, 0);
+		Ice_XStep = Clamp(Ice_XStep, -150, 150);
+		
+		//Reset the Ice Position to Link's Actual Position if he's hurt or hopping out of water.
+		if(Link->Action == LA_GOTHURTLAND || Link->Action == LA_HOPPING)
+		{
+			Ice_X = Link->X;
+			Ice_Y = Link->Y;
+		}
+		
+		//Initialize variables for solidity checking.
+		int newx = (Ice_X + Ice_XStep/100)<<0;
+		int newy = (Ice_Y + Ice_YStep/100)<<0;
+		
+		//Vertical Edge
+		if(newx < Ice_X<<0)
+		{
+			for(int y = Ice_Y+Cond(0, 0, 8); y < (Ice_Y<<0) + 16 && Ice_XStep != 0; y++)
+			{
+				if(Screen->isSolid(newx, y))
+				Ice_XStep = 0;
+			}
+		}
+		else if(newx > Ice_X<<0)
+		{
+			for(int y = Ice_Y+8; y < (Ice_Y<<0) + 16 && Ice_XStep != 0; y++)
+			{
+				if(Screen->isSolid(newx+15, y))
+				Ice_XStep = 0;
+			}
+		}
+		
+		//Horizontal Edge
+		if(newy < Ice_Y<<0)
+		{
+			for(int x = Ice_X; x < (Ice_X<<0) + 16 && Ice_YStep != 0; x++)
+			{
+				if(Screen->isSolid(x, newy+Cond(0, 0, 8)))
+				{
+					Ice_YStep = 0;
+				}
+			}
+		}
+		else if(newy > Ice_Y<<0)
+		{
+			for(int x = Ice_X; x < (Ice_X<<0) + 16 && Ice_YStep != 0; x++)
+			{
+				if(Screen->isSolid(x, newy+15))
+				{
+					Ice_YStep = 0;
+				}
+			}
+		}
+		
+		Ice_X += Ice_XStep/100;
+		Ice_Y += Ice_YStep/100;
+		Link->X = Ice_X;
+		Link->Y = Ice_Y;
+	}
+	else
+	{
+		int iX = (Ice_Input[DIR_LEFT]?-1:0) + (Ice_Input[DIR_RIGHT]?1:0);
+		int iY = (Ice_Input[DIR_UP]?-1:0) + (Ice_Input[DIR_DOWN]?1:0);
+		if(iX!=0&&iY!=0)
+		{
+			iX *= 0.7071;
+			iY *= 0.7071;
+		}
+		Ice_XStep = iX * 100;
+		Ice_YStep = iY * 100;
+	}
+}
+
+//Function used to check if Link is over a ice combo.
+bool OnIce()
+{
+    if(Link->Z != 0)
+        return false;
+    else
+    {
+        int comboLoc = ComboAt(Link->X + 8, Link->Y + 12);
+        if(Screen->ComboT[comboLoc] == 142)
+            return true;
+        else if(Screen->LayerScreen(1) != -1){ 
+        	if (GetLayerComboT(1, comboLoc) == 142) return true;
+        }
+		else if(Screen->LayerScreen(2) != -1){ 
+        	if (GetLayerComboT(2, comboLoc) == 142) return true;
+        }
+        else
+            return false;
+    }
+}
+
+//Returns true, if keyboard input is moving Link.
+bool Link_Walking()
+{
+    if(UsingItem(I_HAMMER)) return false;
+    else return (Link->Action == LA_WALKING || Link->Action == LA_CHARGING || Link->Action == LA_SPINNING);
+}
+
+// ======================== GLOBAL ========================
+
+global script RMglobal{
+	void run()
+	{
+		bool Ice_Input[4];
+		TraceS("@Running globl");
+		// Initialize variables used to listen on screen changes
+		int curscreen = -1; int lastScreen = Game->GetCurScreen();
+		int lastMap = Game->GetCurMap();
+		int oldscreen = Game->GetCurScreen();
+		StartGhostZH();
+		Setup_IceCombos();
+		genericdata gd = RunGenericScript(CheckGenericScript("BestiaryEvent"));
+        //gd->DataSize = BED_SIZE;
+		
+		while (true)
+		{
+			UpdateGhostZH1();
+			PushAnimation();
+			MooshPit_Update();
+			speedChanger();
+			infiniteCounterCheck();
+			EquipButtonItems(1);
+			
+			// Grid Notes
+			if(Link->PressEx3){
+				Game->LoadGenericData(CheckGenericScript("GridNotes"))->RunFrozen();
+			}
+			
+			//printf("%d %d %d %d\n",Link->ItemA, Link->ItemB, Link->ItemX, Link->ItemY);
+			//Shield Selection
+			//if((Link->PressEx3) && Player->Item[170] == false){
+			//	ShieldSelection();
+			//}
+			
+			Update_IceCombos(oldscreen, Ice_Input);
+			oldscreen = Game->GetCurScreen();
+			
+			if(lastScreen != Game->GetCurScreen() || lastMap != Game->GetCurMap())
+			{
+				onScreenChange();
+				lastScreen = Game->GetCurScreen();
+				lastMap = Game->GetCurMap();
+			}
+			Waitdraw();
+			UpdateGhostZH2();
+			// Keep track of screen changes
+			// Run a Barrier script on every screen change
+			if (Game->GetCurScreen() != curscreen)
+			{
+				curscreen = Game->GetCurScreen();
+				Barriers_NewScreen();
+			}
+			//LREx1Ex2ItemSwitch();
+			oldscreen = Game->GetCurScreen();
+			Waitframe();
+				
+		}
+			
+	}
+}
+
+global script Init
+{
+	void run()
+	{
+		MooshPit_Init();
+		
+		// Initialize Generic Variables
+		RunGenericScript(CheckGenericScript("DamageNumbersGeneric"));
+		RunGenericScript(CheckGenericScript("GlobalSubscreenBitmaps"));
+		RunGenericScript(CheckGenericScript("EquipBackup"));
+		RunGenericScript(CheckGenericScript("BossRetryVariables"));
+	}
+}
+
+global script onContinue	//Run this on both onSaveLoad and onContinue
+{
+    void run()
+    {
+		dMapMidiChange();
+		
+		// Let Link Move again if F6-ing out mid-pause
+		Game->Suspend[susptLINK] = false;
+		Game->Suspend[susptGUYS] = false;
+		Game->Suspend[susptEWEAPONS] = false;
+		
+		// Initialize Generic Variables
+		RunGenericScript(CheckGenericScript("DamageNumbersGeneric"));
+		RunGenericScript(CheckGenericScript("GlobalSubscreenBitmaps"));
+		RunGenericScript(CheckGenericScript("EquipBackup"));
+		RunGenericScript(CheckGenericScript("BossRetryVariables"));
+		
+		//Change Cure Tome's Graphic
+		Game->LoadItemData(226)->Tile = 23759;
+		Game->LoadItemData(226)->SetDisplayName("Cure Tome");
+		
+		//Vodka Effects Remove
+		if (Player->Item[252]){Player->Item[252]=false;}
+		
+		//Change Shields to reflect current equipped one
+		Game->LoadItemData(135)->Level = 1;
+		Game->LoadItemData(shield_sel)->Level = 2;
+    }
+}
+
+
+global script onSaveAndExit	//Runs when on the F6 screen and exiting
+{
+    void run()
+    {
+		EquipButtonItems(0);
+    }
+}
+
+
+	

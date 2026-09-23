@@ -1,0 +1,171 @@
+namespace MenuInputHandler
+{
+    enum MenuInputHandlerFlags
+    {
+        MIHF_SINGLE_TIMER = 0x1,
+        MIHF_ALLOW_OPPOSING_DIRS = 0x2
+    };
+
+    class MenuInputHandler
+    {
+        int ButtonTimer[14];
+        int ButtonTimerTarget[14];
+        bool Pressed[14];
+        int QueuedPresses[14];
+        int TimerBase;
+        int TimerMin;
+        int TimerAccel;
+        int MaxQueue;
+        long ButtonSet;
+        int Flags;
+
+        // Set up an input handler. 
+        // buttonList[] is an array literal of CB_ constants to be tracked
+        // timer is the number of frames you can hold the button before the input re-fires.
+        // flags is the combination of the following bitflags:
+        //    MIHF_SINGLE_TIMER: All buttons use a single timer instead of individual ones
+        //    MIHF_ALLOW_OPPOSING_DIRS: Opposite directional inputs do not cancel out
+        // pressQueue is the max length of the queue for button presses it will hold
+        MenuInputHandler(int buttonList, int timer, int flags=0, int pressQueue=MAX_INT)
+        {
+            for(int i=0; i<14; ++i)
+            {
+                ButtonTimerTarget[i] = timer;
+            }
+            TimerBase = timer;
+            int buttonCount = SizeOfArray(buttonList);
+            for(int i=0; i<buttonCount; ++i)
+            {
+                ButtonSet |= 1L<<buttonList[i];
+            }
+            MaxQueue = pressQueue;
+            Flags = flags;
+        }
+
+        // Set the acceleration for hold timers
+        void SetHoldAcceleration(int accel, int min)
+        {
+            TimerMin = min;
+            TimerAccel = accel;
+        }
+
+        // Updates the pressed state of buttons for the frame. Always call this before IsPressed()
+        // If updateQueue is true, button presses will be added to a queue (such as for buffering presses during an animation)
+        void Update(bool updateQueue=false)
+        {
+            bool wasSomethingPressed;
+            bool wasSomethingReset;
+            int lowestTargetTimer = MAX_INT;
+            for(int i=0; i<14; ++i)
+            {
+                if(ButtonSet&(1L<<i))
+                {
+                    Pressed[i] = false;
+                    if(Input->Button[i])
+                        ++ButtonTimer[i];
+                    else
+                    {
+                        if(ButtonTimer[i])
+                            wasSomethingReset = true;
+                        ButtonTimer[i] = 0;
+                        ButtonTimerTarget[i] = TimerBase;
+                    }
+                    // If the button hit its timer target or was pressed normally, flag it as fired
+                    if(Input->Press[i]||ButtonTimer[i]>=ButtonTimerTarget[i])
+                    {
+                        // Only presses get queued since the alternative sounds a little frustrating
+                        if(Input->Press[i]&&updateQueue)
+                            QueuedPresses[i] = Min(QueuedPresses[i]+1, MaxQueue);
+                        if(TimerBase>0)
+                        {
+                            wasSomethingPressed = true;
+                            ButtonTimer[i] = 0;
+                            ButtonTimerTarget[i] = Max(ButtonTimerTarget[i]-TimerAccel, TimerMin);
+                            Pressed[i] = true;
+                        }
+                    }
+                    // Keep the lowest target timer so if timers sync it won't reset
+                    if(ButtonTimerTarget[i]<lowestTargetTimer)
+                        lowestTargetTimer = ButtonTimerTarget[i];
+                }
+            }
+            // Keep timers synced?
+            if(Flags&MIHF_SINGLE_TIMER)
+            {
+                if(wasSomethingPressed)
+                {
+                    for(int i=0; i<14; ++i)
+                    {
+                        if(ButtonSet&(1L<<i))
+                        {
+                            ButtonTimer[i] = 0;
+                            ButtonTimerTarget[i] = lowestTargetTimer;
+                        }
+                    }
+                }
+                if(wasSomethingReset)
+                {
+                    for(int i=0; i<14; ++i)
+                    {
+                        if(ButtonSet&(1L<<i))
+                        {
+                            ButtonTimer[i] = 0;
+                        }
+                    }
+                }
+            }
+            // Prevent opposite directions from incrementing timers?
+            if(!(Flags&MIHF_ALLOW_OPPOSING_DIRS))
+            {
+                if(ButtonTimer[CB_UP]&&ButtonTimer[CB_DOWN])
+                {
+                    ButtonTimer[CB_UP] = 0;
+                    ButtonTimer[CB_DOWN] = 0;
+                    Pressed[CB_UP] = false;
+                    Pressed[CB_DOWN] = false;
+                }
+                if(ButtonTimer[CB_LEFT]&&ButtonTimer[CB_RIGHT])
+                {
+                    ButtonTimer[CB_LEFT] = 0;
+                    ButtonTimer[CB_RIGHT] = 0;
+                    Pressed[CB_LEFT] = false;
+                    Pressed[CB_RIGHT] = false;
+                }
+                // Directional queued inputs also cancel each other out
+                while(QueuedPresses[CB_UP]&&QueuedPresses[CB_DOWN])
+                {
+                    --QueuedPresses[CB_UP];
+                    --QueuedPresses[CB_DOWN];
+                }
+                while(QueuedPresses[CB_LEFT]&&QueuedPresses[CB_RIGHT])
+                {
+                    --QueuedPresses[CB_LEFT];
+                    --QueuedPresses[CB_RIGHT];
+                }
+            }
+        }
+
+        // Returns true if one of the following is true:
+        //    - A button was just pressed this frame
+        //    - A button's held timer has hit its target this frame
+        //    - Button presses have been queued
+        bool ButtonFired(int btn)
+        {
+            if(btn<CB_UP||btn>CB_EX4)
+            {
+                printf("MenuInputHandler Error: Unsupported button (%d)\n", btn);
+                return false;
+            }
+            if(Pressed[btn])
+            {
+                return true;
+            }
+            if(QueuedPresses[btn])
+            {
+                --QueuedPresses[btn];
+                return true;
+            }
+            return false;
+        }
+    }
+}

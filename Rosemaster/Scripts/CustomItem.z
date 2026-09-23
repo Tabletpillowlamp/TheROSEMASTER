@@ -1,0 +1,363 @@
+item script Wand2{
+			
+	void run(int speed, int cost, int speedDif){
+		if (Link->MP >= cost * Game->Generic[GEN_MAGICDRAINRATE] / 2){ 
+			Waitframes(16);
+			Link->MP -= cost * Game->Generic[GEN_MAGICDRAINRATE] / 2;
+			Game->PlaySound(84);
+			//lweapon fire = FireLWeaponDegAngle(LW_MAGIC,Link->X,Link->Y,DirAngle(Link->Dir)+(i*10),speed,16,98,84);
+			if(Link->Item[242]){ //Eyes of God
+				for(int i = -3; i <= 3; i++){
+					if(i!=0){
+						lweapon fire = FireLWeaponDegAngle(LW_MAGIC,Link->X,Link->Y,DirAngle(Link->Dir)+(i*8),speed,16,98,25);
+					}
+					else{
+						lweapon fire = FireLWeaponDir(LW_MAGIC,Link->X,Link->Y,Link->Dir,speed,16,98,25);
+					}
+				}
+			}
+			else{
+				for(int i = -2; i <= 2; i++){
+					if(i!=0){
+						lweapon fire = FireLWeaponDegAngle(LW_MAGIC,Link->X,Link->Y,DirAngle(Link->Dir)+(i*10),speed,12,98,25);
+					}
+					else{
+						lweapon fire = FireLWeaponDir(LW_MAGIC,Link->X,Link->Y,Link->Dir,speed,12,98,25);
+					}
+				}
+			}
+		}
+		else{
+			Game->PlaySound(68);
+		}
+	}
+
+}
+
+item script limbBoost{
+	void run(int dummy, int countBoost, int amount){
+		if(Screen->D[7] != -1 && Link->Item[253]){
+			if(countBoost == 1){
+				if(Game->Counter[countBoost] + amount >= 9999){
+					Game->DCounter[countBoost] = 9999;
+				}
+				Game->DCounter[countBoost] += amount;
+			}
+			else{
+				Game->Counter[countBoost] += amount;
+			}
+		}
+	}
+}
+
+item script Firebrand{
+	void run(int mpRegen, bool createFires, int fireBrand, int DBlade){
+		// Create fires that inherit the regen property
+		if(createFires)
+		{
+			RunFFCScript(Game->GetFFCScript("FirebrandFire"), {mpRegen});
+		}
+		// Wait for the sword swing to finish
+		lweapon sword;
+        while(NumLWeaponsOf(LW_SWORD)==0)
+        {
+            Waitframe();
+        }
+        sword = LoadLWeaponOf(LW_SWORD);
+        while(sword->isValid())
+        {
+            for(int i=Screen->NumNPCs(); i>0; --i)
+            {
+                npc n = Screen->LoadNPC(i);
+                if(n->HitBy[HIT_BY_LWEAPON_PTR]==sword && n->ID!=177)
+                {
+					if(DBlade == 1){
+						int ranRupee = Rand(0,4);
+						if(ranRupee == 0){
+							Game->Counter[1] += 1;
+						}
+					}
+					else{
+						Link->MP = Min(Link->MP+mpRegen, Link->MaxMP);
+					}
+                }
+            }
+            Waitframe();
+        }
+	}
+}
+
+ffc script FirebrandFire
+{
+	void run(int mpRegen)
+	{
+		Game -> PlaySound (13);
+		lweapon fires[3];
+		fires[0] = NextToLink(LW_FIRE,0);
+		fires[0]->Dir = Link->Dir;
+		fires[0]->Step = 150+Rand(50);
+		fires[0]->UseSprite(12);
+		fires[0]->Damage = 4;
+		
+		fires[1] = NextToLink(LW_FIRE,0);
+		fires[1]->Dir = Link->Dir;
+		fires[1]->Step = 150+Rand(50);
+		fires[1]->UseSprite(12);
+		fires[1]->Damage = 4;	
+		
+		fires[2] = NextToLink(LW_FIRE,0);
+		fires[2]->Dir = Link->Dir;
+		fires[2]->Step = 150+Rand(50);
+		fires[2]->UseSprite(12);
+		fires[2]->Damage = 4;
+		while(true)
+		{
+			bool alive;
+			for(int j=0; j<3; ++j)
+			{
+				if(fires[j]->isValid())
+				{
+					alive = true;
+					for(int i=Screen->NumNPCs(); i>0; --i)
+					{
+						npc n = Screen->LoadNPC(i);
+						if(n->HitBy[HIT_BY_LWEAPON_PTR]==fires[j])
+						{
+							Link->MP = Min(Link->MP+mpRegen, Link->MaxMP);
+						}
+					}
+				}
+			}
+			if(!alive)
+				break;
+            Waitframe();
+		}
+		this->Data = 0;
+	}
+}
+
+itemdata script ManaStaff
+{
+    void run(int dummy, int mpRegen, int fireBrand)
+    {
+        lweapon sword;
+        while(NumLWeaponsOf(LW_SWORD)==0)
+        {
+            Waitframe();
+        }
+        sword = LoadLWeaponOf(LW_SWORD);
+		if(fireBrand){
+			
+			lweapon fireone = NextToLink(LW_FIRE,0);
+			fireone->Dir = Link->Dir;
+			fireone->Step = 120+Rand(70);
+			fireone->UseSprite(12);
+			fireone->Damage = 8;	
+			
+			lweapon firetwo = NextToLink(LW_FIRE,0);
+			firetwo->Dir = Link->Dir;
+			firetwo->Step = 120+Rand(70);
+			firetwo->UseSprite(12);
+			firetwo->Damage = 8;
+			
+			lweapon firethree = NextToLink(LW_FIRE,0);
+			firethree->Dir = Link->Dir;
+			firethree->Step = 120+Rand(70);
+			firethree->UseSprite(12);
+			firethree->Damage = 8;
+			
+			lweapon fyre;
+			fyre = LoadLWeaponOf(LW_FIRE);
+			
+			while(sword->isValid()){
+				for(int i=Screen->NumNPCs(); i>0; --i){
+					npc n = Screen->LoadNPC(i);
+					if( (n->HitBy[HIT_BY_LWEAPON_PTR]==sword || n->HitBy[HIT_BY_LWEAPON_PTR]==fyre) && Link->MP < Link->MaxMP)
+					{
+					   Link->MP += mpRegen;
+					}
+				}
+				Waitframe();
+			}
+			
+		}
+		else{
+			while(sword->isValid())
+			{
+				for(int i=Screen->NumNPCs(); i>0; --i)
+				{
+					npc n = Screen->LoadNPC(i);
+					if( n->HitBy[HIT_BY_LWEAPON_PTR]==sword && Link->MP < Link->MaxMP)
+					{
+					   // Link->MP = Min(Link->MP+mpRegen, Link->MaxMP);
+					   Link->MP += mpRegen;
+					}
+				}
+				Waitframe();
+			}
+		}
+    }
+}
+
+item script Ignis{
+	
+	void run(int cost){
+		
+		if (Link->MP >= cost){ 
+		
+			Link->MP -= cost * Game->Generic[GEN_MAGICDRAINRATE];
+			Game -> PlaySound (13);
+			int args[8] = {137, 30, 0};
+			RunFFCScript(56, args);
+			
+			lweapon fire1 = NextToLink(LW_FIRE,-12,-12);
+			lweapon fire2 = NextToLink(LW_FIRE,-32,-32);
+			lweapon fire3 = NextToLink(LW_FIRE,-52,-52);
+			
+			if(Link->Dir == DIR_UP){
+				lweapon fire4 = CreateLWeaponAt(LW_FIRE, CenterLinkX()-28, CenterLinkY()-56);
+				lweapon fire5 = CreateLWeaponAt(LW_FIRE, CenterLinkX()+12, CenterLinkY()-56);
+				fire4->UseSprite(12);
+				fire5->UseSprite(12);
+				fire4->Step = 0;
+				fire5->Step = 0;
+				fire4->Damage = 12;			
+				fire5->Damage = 12;
+			}
+			else if(Link->Dir == DIR_DOWN){
+				lweapon fire4 = CreateLWeaponAt(LW_FIRE, CenterLinkX()-28, CenterLinkY()+40);
+				lweapon fire5 = CreateLWeaponAt(LW_FIRE, CenterLinkX()+12, CenterLinkY()+40);
+				fire4->UseSprite(12);
+				fire5->UseSprite(12);
+				fire4->Step = 0;
+				fire5->Step = 0;
+				fire4->Damage = 12;			
+				fire5->Damage = 12;
+			}
+			else if(Link->Dir == DIR_LEFT){
+				lweapon fire4 = CreateLWeaponAt(LW_FIRE, CenterLinkX()-56, CenterLinkY()-28);
+				lweapon fire5 = CreateLWeaponAt(LW_FIRE, CenterLinkX()-56, CenterLinkY()+12);
+				fire4->UseSprite(12);
+				fire5->UseSprite(12);
+				fire4->Step = 0;
+				fire5->Step = 0;
+				fire4->Damage = 12;			
+				fire5->Damage = 12;				
+			}
+			else{
+				lweapon fire4 = CreateLWeaponAt(LW_FIRE, CenterLinkX()+40, CenterLinkY()-28);
+				lweapon fire5 = CreateLWeaponAt(LW_FIRE, CenterLinkX()+40, CenterLinkY()+12);	
+				fire4->UseSprite(12);
+				fire5->UseSprite(12);
+				fire4->Step = 0;
+				fire5->Step = 0;
+				fire4->Damage = 12;			
+				fire5->Damage = 12;
+			}
+			
+			fire1->UseSprite(12);
+			fire2->UseSprite(81);
+			fire3->UseSprite(12);
+	
+			fire1->Damage = 12;			
+			fire2->Damage = 30;			
+			fire3->Damage = 12;			
+	
+			fire1->Step = 0;
+			fire2->Step = 0;
+			fire3->Step = 0;
+	
+			Waitframes(60);
+			
+		}
+		else{
+			Game -> PlaySound (68);
+		}
+		
+	}
+	
+}
+
+
+
+item script Hammer2{
+	void run(){
+		Waitframes(15);
+		Screen->Quake = 20;
+		
+		int shinePow = 8;
+		
+		if(Link->Item[242]){ //Eyes of God
+			shinePow = 16;
+		}
+			
+		lweapon fire1 = NextToLink(LW_BEAM,0);
+		if(Link->Dir == DIR_DOWN){fire1->Dir = 6;}
+		else if(Link->Dir == DIR_RIGHT){fire1->Dir = 5;}
+		else{fire1->Dir = 4;}
+		fire1->Step = 500;
+		fire1->UseSprite(172);
+		fire1->Damage = shinePow;
+
+		lweapon fire2 = NextToLink(LW_BEAM,0);
+		if(Link->Dir == DIR_UP){fire2->Dir = 5;}
+		else if(Link->Dir == DIR_LEFT){fire2->Dir = 6;}
+		else{fire2->Dir = 7;}
+		fire2->Step = 500;
+		fire2->UseSprite(172);
+		fire2->Damage = shinePow;
+		
+		if(Link->Item[242]){ //Eyes of God
+			lweapon fire3 = NextToLink(LW_BEAM,0);
+			if(Link->Dir == DIR_DOWN){fire3->Dir = 5;}
+			else if(Link->Dir == DIR_RIGHT){fire3->Dir = 6;}
+			else{fire3->Dir = 7;}
+			fire3->Step = 500;
+			fire3->UseSprite(172);
+			fire3->Damage = shinePow;
+
+			lweapon fire4 = NextToLink(LW_BEAM,0);
+			if(Link->Dir == DIR_UP){fire4->Dir = 6;}
+			else if(Link->Dir == DIR_LEFT){fire4->Dir = 5;}
+			else{fire4->Dir = 4;}
+			fire4->Step = 500;
+			fire4->UseSprite(172);
+			fire4->Damage = shinePow;
+			
+			lweapon fire5 = NextToLink(LW_BEAM,0);
+			fire5->Dir = 4; fire5->Step = 250;
+			fire5->UseSprite(172); fire5->Damage = shinePow;
+			
+			lweapon fire6 = NextToLink(LW_BEAM,0);
+			fire6->Dir = 5; fire6->Step = 250;
+			fire6->UseSprite(172); fire6->Damage = shinePow;
+			
+			lweapon fire7 = NextToLink(LW_BEAM,0);
+			fire7->Dir = 6; fire7->Step = 250;
+			fire7->UseSprite(172); fire7->Damage = shinePow;
+			
+			lweapon fire8 = NextToLink(LW_BEAM,0);
+			fire8->Dir = 7; fire8->Step = 250;
+			fire8->UseSprite(172); fire8->Damage = shinePow;
+			
+			}
+			
+			Waitframes(16);
+	}
+}
+
+generic script CrystalBookTransform
+{
+	 void run()
+    {
+		this->ExitState[GENSCR_ST_CHANGE_SCREEN] = true;
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		//Checks to see if Crystal Book is used and running.
+		while(true)
+		{
+			Waitframe();
+		}
+	}
+}
+

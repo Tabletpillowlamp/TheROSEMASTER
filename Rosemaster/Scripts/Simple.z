@@ -1,0 +1,2393 @@
+ffc script Signpost{
+    void run(int m,int input){
+        int loc = ComboAt(this->X,this->Y);
+        while(true){
+            while(!AgainstComboBase(loc) || !SelectPressInput(input)) Waitframe();
+            SetInput(input,false);
+            Screen->Message(m);
+            Waitframe();
+        }
+    }
+    bool AgainstComboBase(int loc){
+        return Link->Z == 0 && (Link->Dir == DIR_UP && Link->Y == ComboY(loc)+8 && Abs(Link->X-ComboX(loc)) < 8);
+    }
+}
+
+
+item script Message{
+	void run(int m){
+		int item_message[] = "ItemMessageFFC";
+		int script_num = Game->GetFFCScript(item_message);
+		int args[8] = {m, 0, 0, 0, 0, 0, 0, 0};
+		RunFFCScript(script_num, args);
+	}
+}
+
+ffc script RemoveFairy{
+	void run(){
+		for (int i=1; i <= 4; ++i){
+			if(Game->BottleState[i] == 6 || Game->BottleState[i] == 7){
+				Game->BottleState[i] = 0;
+			}
+		}
+	}
+}
+
+ffc script DirectionSet{ //0 = Up, 1 = Down, 2 = Left, 3 = Right
+	void run(int dir, int wait){
+		Waitframes(wait);
+		Link->Dir = dir;
+	}
+}
+
+item script MessageSpecial{
+	void run(){
+		Game->Counter[32] += 1;
+		int m;
+		int item_message[] = "ItemMessageFFC";
+		int script_num = Game->GetFFCScript(item_message);
+		if ( Game->Generic[GEN_HEARTPIECES] == 0 ) {m = 232;}
+		else if ( Game->Generic[GEN_HEARTPIECES] == 1 ) {m = 233;}
+		else if ( Game->Generic[GEN_HEARTPIECES] == 2 ) {m = 234;}
+		else if ( Game->Generic[GEN_HEARTPIECES] == 3 ) {m = 235;}
+		
+		int args[8] = {m, 0, 0, 0, 0, 0, 0, 0};
+		RunFFCScript(script_num, args);
+	}
+}
+
+ffc script ItemMessageFFC
+{
+	void run(int m)
+	{
+		Waitframe();
+		Screen->Message(m);
+	}
+}
+
+ffc script GiveItem
+{
+	void run(int m)
+	{
+		item shpitm = CreateItemAt(m, Link->X, Link->Y);
+	}
+}
+
+ffc script DragonMusic{
+	void run(int bmidi, int nmidi, int type){
+		int color = 1; int stringLeft = 7843; int stringDragGet = 7849;
+		while(true){
+			if(Screen->D[2] < 0||Screen->SecretsTriggered()){
+				if(Screen->SecretsTriggered()){
+					if (Screen->D[2] == -3){
+						for(int i = 0; i <= 360; i++){
+							if(i == 50 || i == 150 || i == 270){
+								Game->PlaySound(89);
+								if(type==1){color = 0xB9;}
+								else if(type==2){color = 0xA4;} else if(type==3){color = 0x88;}
+								else if(type==4){color = 0x78;} else if(type==5){color = 0x74;}
+								else if(type==6){color = 0x72;} else if(type==7){color = 0x84;}
+								RunFFCScript(56, {color, 40, 0});
+							}
+							if(i == 210){
+								Screen->Message(stringLeft + Game->Counter[33]);
+							}
+							if(i == 330){
+								if(nmidi < 0){ //Green Dragon nMusic
+									if(Game->Counter[11] < 8){Game->PlayMIDI(69);}
+									else{Game->PlayMIDI(71);}
+								}
+								else{Game->PlayMIDI(nmidi);}
+								Screen->Message(stringDragGet + type);
+							}
+							Game->SkipF6 = true; Link->InputStart = false; Link->PressStart = false;
+							Link->InputMap = false; Link->PressMap = false;
+							Link->InputL = false; Link->PressL = false;
+							Link->InputR = false; Link->PressR = false;
+							NoAction(); Waitframe();
+						}
+						Screen->D[2] = 4;
+					}
+					if(nmidi < 0){ //Green Dragon nMusic
+						if(Game->Counter[11] < 8){Game->PlayMIDI(69);}
+						else{Game->PlayMIDI(71);}
+					}
+					else{Game->PlayMIDI(nmidi);}
+				}
+				else{
+					Game->SkipF6 = true; Link->InputStart = false; Link->PressStart = false;
+					Link->InputMap = false; Link->PressMap = false;
+					Link->InputL = false; Link->PressL = false;
+					Link->InputR = false; Link->PressR = false;
+					NoAction(); Game->PlayMIDI(0);
+				}
+			}
+			else{
+				Game->PlayMIDI(bmidi);
+				Link->PressMap = false; Link->InputMap = false;
+			}
+			Waitframe();
+		}
+	}
+}
+
+ffc script EnemyMusic
+{
+	void run(int bmidi, int nmidi, int mainBoss)
+	{
+		if (mainBoss != 0){
+			while(true){
+				if (Screen->D[2] < 0){
+					if (Screen->SecretsTriggered()){
+						if (Screen->D[2] == -2){
+							Screen->D[2] = 3;
+						}
+						Game->PlayMIDI(nmidi);
+					}
+					else{
+						Game->PlayMIDI(0);
+					}
+				}
+				else{
+					if (Screen->SecretsTriggered()){
+						Game->PlayMIDI(nmidi);
+					}
+					else {
+						Game->PlayMIDI(bmidi);
+						Link->PressMap = false; Link->InputMap = false;
+					}
+				}
+				Waitframe();
+			}
+		}
+		else{
+			while(true)
+			{
+				if (Screen->NumNPCs() != 0)
+				{
+					Game->PlayMIDI(bmidi);
+				}
+				else
+				{
+					Game->PlayMIDI(nmidi);
+				}
+				Waitframe();
+			}
+		}
+	}
+}
+
+ffc script MusicSecret
+{
+	void run(int smidi)
+	{
+		while(true)
+		{
+			if (Screen->SecretsTriggered())
+			{
+				Game->PlayMIDI(smidi);
+			}
+			Waitframe();
+		}
+	}
+}
+
+item script GhostZHClockScript
+{
+	void run(int duration)
+	{
+		if(duration<=0)
+		__ghzhData[__GHI_CLOCK_TIMER]=-1;
+		else
+		__ghzhData[__GHI_CLOCK_TIMER]=duration;
+	}
+}
+
+ffc script ButtonDisabler
+{
+    void run(int contin)
+	{
+        while(true){
+			if(contin==0){
+				Game->SkipF6 = true;
+			}
+            Link->InputStart = false; Link->PressStart = false;
+            Link->InputMap = false; Link->PressMap = false;
+			Link->InputL = false; Link->PressL = false;
+			Link->InputR = false; Link->PressR = false;
+            NoAction();
+            Waitframe();
+        }
+    }
+}
+
+//Instructions:
+//1. Make a new combo with inherent flag 16 (or any secret flag)
+//2. Set this FFC to the above combo
+//3. When secrets are triggered by blocks, this script will make it permanent
+ffc script blockPermSecrets{
+	void run(){
+		int thisCombo = this->Data;
+		while(!Screen->State[ST_SECRET]){
+			if(this->Data != thisCombo) Screen->State[ST_SECRET] = true;
+			Waitframe();
+		}
+	}
+}
+
+ffc script fairyBotCheck{
+	void run(int type){ //Type = 0 -> Fairy + Golden, Type = 1 -> Golden Only, Type = 2 -> Remove All
+		if(type == 0){
+			if(	(Game->BottleState[1] == 6 || Game->BottleState[1] == 7) &&
+				(Game->BottleState[2] == 6 || Game->BottleState[2] == 7) &&
+				(Game->BottleState[3] == 6 || Game->BottleState[3] == 7) &&
+				(Game->BottleState[4] == 6 || Game->BottleState[4] == 7) ){
+					this->Data = 71; //Auto Warp B
+				}
+		}
+		else if(type == 1){
+			if(Game->BottleState[1] == 7 && Game->BottleState[2] == 7 && Game->BottleState[3] == 7 && Game->BottleState[4] == 7){
+				this->Data = 71;
+			}
+		}
+		else{
+			Game->BottleState[1] = 0;
+			Game->BottleState[2] = 0;
+			Game->BottleState[3] = 0;
+			Game->BottleState[4] = 0;
+		}
+	}
+}
+
+//import "std.zh"
+
+//VERSION A BY DEMONLINK:
+
+const int COMPASS_BEEP = 77; //Set this to the SFX id you want to hear when you have the compass,
+
+//Instructions:
+//1.- Compile and add this to your ZQuest buffer.
+//2.- Add an FFC with this script attached to the screen where you want to hear the compass beep. 
+//3.- Let the script do the rest.
+
+//How does it work:
+//The script checks if ANY of the following has been done:
+//a) Item or Special Item has been picked up.
+//b) Any type of chest has been opened.
+//c) If NOTHING of the above has been done, the script runs. Otherwise, no SFX is heard. 
+
+ffc script CompassBeep{
+     void run(){
+          if(!Screen->State[ST_ITEM] &&
+             !Screen->State[ST_CHEST] &&
+             !Screen->State[ST_LOCKEDCHEST] &&
+             !Screen->State[ST_BOSSCHEST] &&
+             !Screen->State[ST_SPECIALITEM] && (Game->LItems[Game->GetCurLevel()] & LI_COMPASS)){ 
+               Game->PlaySound(COMPASS_BEEP);
+          }
+     }
+}
+
+ffc script SpinAttackCheck{
+	void run(int sfx){
+		if ( Screen->State[ST_SECRET] )
+			Quit();
+		bool spin;
+		while(true){
+			if ( Link->Action == LA_SPINNING )
+				spin = true;
+			if ( !Link->Action == LA_SPINNING && spin ) {
+				if ( sfx == 0 )
+					Game->PlaySound(27);
+				if ( sfx > 0 )
+					Game->PlaySound(sfx);
+				Screen->TriggerSecrets();
+				Screen->State[ST_SECRET] = true;
+				Quit();
+			}
+			Waitframe();
+		}
+	}
+}
+
+ffc script EnemySpawner
+{
+    void run(int enemyID, int interval, int maxEnemies)
+    {
+        npc enemy;
+        
+        if(interval <= 0) // Just in case
+        {
+            interval = 1;
+        }
+        
+        while(true)
+        {
+			Waitframes(interval);
+				
+			if(Screen->NumNPCs() < maxEnemies)
+			{
+				Game->PlaySound(56);
+				enemy = Screen->CreateNPC(enemyID);
+				if(enemy->isValid())
+				{
+					enemy->X = this->X;
+					enemy->Y = this->Y;
+				}
+			}
+        }
+    }
+}
+
+ffc script ConnectingLine
+{
+    void run()
+    {
+        while(true)
+        {
+            // The line will flash because a random color is selected each frame
+            Screen->Line(0, this->X + 8, this->Y + 8, Link->X + 8, Link->Y + 8, Rand(16), 1, 0, 0, 0, 128);
+            Waitframe();
+        }
+    }
+}
+
+ffc script DirectionSwitch
+{
+    void run()
+    {
+	    while(true)
+	    {
+		    if(Link->InputLeft)
+		    {
+			    Link->InputRight = true;
+				Link->InputLeft = false;
+		    }
+		    else if(Link->InputRight)
+		    {
+			    Link->InputLeft = true;
+			    Link->InputRight = false;
+		    }
+		   else if(Link->InputUp)
+		    {
+			    Link->InputDown = true;
+			    Link->InputUp = false;
+		    }
+		   else if(Link->InputDown)
+		    {
+			    Link->InputUp = true;
+			    Link->InputDown = false;
+		    }	
+		    Waitframe();
+	    }
+    }
+}
+
+item script CrossFlames{
+
+void run(int flamesprite, int speed, int damage, int soundeffect, int quake, int flameCount, int waitLag){
+
+Link->Action = LA_ATTACKING;
+	Game -> PlaySound (soundeffect);
+	if (quake==1){
+		int args[8] = {10, 40, 0};
+		RunFFCScript(56, args);
+		Screen->Quake = 30;
+	}
+	for(int i; i < flameCount; i++){
+		lweapon fire = CreateLWeaponAt(LW_FIRE, Link->X, Link->Y);
+		fire->Dir = i;
+		fire->Step = speed * 1.5;
+		fire->Angular = true;
+		fire->Angle = DegtoRad(i*(360/flameCount));
+		fire->UseSprite(flamesprite);
+		fire->Damage = damage;
+	}
+
+        //The above format for each flame can be imitated for more flames, or removed for fewer flames.
+Waitframes(waitLag);
+}
+
+}
+
+ffc script WavyFFC
+{
+    void run(int wavy_amnt)
+    {
+        while(true)
+        {
+            Screen->Wavy = wavy_amnt;
+            Waitframe();
+        }
+    }
+}
+
+ffc script Biggerer{
+	void run(int bigwidth, int bigheight, int layer){
+		while(true){
+			for(int wi=0; wi<=bigwidth-1; wi++){
+				for(int hi=0; hi<=bigheight-1; hi++){
+					Screen->FastTile(layer, this->X+16*wi, this->Y+16*hi, Game->ComboTile(this->Data)+wi+20*hi, this->CSet, 128);
+				}
+			}
+			Waitframe();
+		}
+	}
+}
+
+ffc script PortalTile
+{
+    void run(int comboid, int x, int y)
+    {
+		while(true){
+			if(LinkCollision(this)&&(Screen->ComboD[ComboAt(this->X, this->Y)] == comboid))
+			{
+				
+				Screen->TriggerCombo(0, ComboAt(this->X,this->Y));
+					
+				Game->PlaySound(120);
+				Link->X = x;
+				Link->Y = y;
+			}	
+			Waitframe();
+		}
+	}
+}
+
+item script CureTome{
+	void run(){
+		genericdata gd = Game->LoadGenericData(CheckGenericScript("CureTomeGen"));
+		if(!gd->Running)
+		{
+			gd->Running = true;
+		}
+		Waitframes(50);
+	}
+}
+
+generic script CureTomeGen
+{
+    void run()
+    {
+		this->ExitState[GENSCR_ST_CONTINUE] = true;
+		this->ExitState[GENSCR_ST_RELOAD] = true;
+		
+		if( Link->MP >= (16 * (Game->Generic[GEN_MAGICDRAINRATE]/2)) ){
+			Game->PlaySound(35);
+			for(int i=0; i<48; i++){
+				FastCombo(6,Link->X,Link->Y-18,9446,10,OP_OPAQUE);
+				Link->Action=LA_NONE;
+				Link->Action=LA_ATTACKING;
+				Waitframe();
+			}
+			Link->Action=LA_NONE;
+			Link->MP -= (16 * (Game->Generic[GEN_MAGICDRAINRATE]/2));
+			Game->PlaySound(124);
+			RunFFCScript(56, {0xA8, 40, 0});
+			Link->HP += 320;
+		}
+		
+		itemdata idat = Game->LoadItemData(226);
+		idat->Tile = 23819;
+		idat->SetDisplayName("Cure Tome (Used)");
+		
+		while(true)
+		{
+			Waitframe();
+		}
+	}
+	
+}
+
+item script BottleEffects{
+	void run(int dummy, int id){
+		//White Potion
+		if(Game->BottleState[id]==9){
+			bitmap b = Game->CreateBitmap(16,16);
+			b->Own();
+			Game->PlaySound(35);
+			Waitframe();
+			int args[8] = {9, 60, 0};
+			RunFFCScript(56, args);
+			Game->PlaySound(124);
+			for(int i = 0; i<360; i++){
+				b->Clear(0);
+				b->FastTile(0,0,0,Link->Tile,6,OP_OPAQUE);
+				if(i%4 < 2){
+					b->ReplaceColors(0,0x01,0x01,0xFF);
+					b->Blit(SPLAYER_PLAYER_DRAW,RT_SCREEN,0,0,16,16,Link->X,Link->Y-Link->Z,16,16,0,0,0,BITDX_NORMAL,0,true);
+				}
+				FastCombo(6,240,0,15331,11,OP_OPAQUE);
+				Hero->InvFrames = 8;
+				Waitframe();
+				if (i==300){
+					RunFFCScript(56, args);
+					Game->PlaySound(124);
+				}
+			}
+		}
+		//Black Potion
+		if(Game->BottleState[id]==10){
+			Game->PlaySound (35);
+			Waitframe();
+			int args[8] = {15, 60, 0};
+			RunFFCScript(56, args);
+			Game->PlaySound(89);
+			Screen->Wavy = 15;
+			npc enemys;
+			for(int i = 1; i<=Screen->NumNPCs(); i++){
+				enemys = Screen->LoadNPC(i); 
+				enemys->HP-=64; 
+			}
+		}
+		//	Seashell Vodka (+1 effect for every 500 Seashells)
+		//	1. Increased Speed, Power, and Defense
+		//	2. Completely refill health
+		//  3. Completely refill magic
+		//  4. Regenerating Health
+		//  5. Ring of Beams
+		//  6. Screenwide Attack
+		//  7. Invincibility
+		//  8. Spawn Ammo
+		//  3500 Seashells - All effects activate.
+		//  4500 Seashells - Effects last for 6 seconds.
+		//  6000 Seashells - Effects last for 7 seconds.
+		if(Game->BottleState[id]==11){
+			bitmap b = Game->CreateBitmap(16,16);
+			b->Own();
+			Game->PlaySound (35);	
+			Waitframe();
+			int args[8] = {10, 60, 0};
+			int effect1 = 0;
+			int effect2 = 0;
+			int effect3 = 0;
+			int effect4 = 0;
+			int effect5 = 0;
+			int effect6 = 0;
+			int effect7 = 0;
+			int effect8 = 0;
+			int RNG = 0;
+			int num = 1;
+			int tim = 300;
+			
+			//Seashell Check
+			if(Game->Counter[14]>=3500){num = 8;}
+			else if(Game->Counter[14]>=3000){num = 7;}
+			else if(Game->Counter[14]>=2500){num = 6;}
+			else if(Game->Counter[14]>=2000){num = 5;}
+			else if(Game->Counter[14]>=1500){num = 4;}
+			else if(Game->Counter[14]>=1000){num = 3;}
+			else if(Game->Counter[14]>=500){num = 2;}
+			
+			//Generate Randomness
+			for(int i=0; i<num; ++i){
+				RNG = Rand(1,8);
+				while(RNG < 10){
+					if((RNG==1)&&(effect1==0)){
+						effect1 = 1;
+						RNG = 10;
+					}
+					else if((RNG==2)&&(effect2==0)){
+						effect2 = 1;
+						RNG = 10;
+					}
+					else if((RNG==3)&&(effect3==0)){
+						effect3 = 1;
+						RNG = 10;
+					}
+					else if((RNG==4)&&(effect4==0)){
+						effect4 = 1;
+						RNG = 10;
+					}
+					else if((RNG==5)&&(effect5==0)){
+						effect5 = 1;
+						RNG = 10;
+					}
+					else if((RNG==6)&&(effect6==0)){
+						effect6 = 1;
+						RNG = 10;
+					}
+					else if((RNG==7)&&(effect7==0)){
+						effect7 = 1;
+						RNG = 10;
+					}
+					else if((RNG==8)&&(effect8==0)){
+						effect8 = 1;
+						RNG = 10;
+					}
+					else{
+						RNG = Rand(1,8);
+					}
+				}
+			}
+			
+			//Effects
+			RunFFCScript(56, args);
+			Game->PlaySound(124);
+			
+			if(effect1){
+				Player->Item[252]=true;
+			}
+			if(effect2){
+				Link->HP = Link->MaxHP;
+			}
+			if(effect3){
+				Link->MP = Link->MaxMP;
+			}
+			if(effect6){
+				Game->PlaySound(89);
+				Screen->Wavy = 15;
+				npc enemys;
+				for(int i = 1; i<=Screen->NumNPCs(); i++){
+					enemys = Screen->LoadNPC(i); //Targets those enemies.
+					enemys->HP-=32; 
+				}
+			}
+			if(effect8){
+				CreateItemAt(73, ((Link->X)-24), ((Link->Y)-24));
+				CreateItemAt(80, ((Link->X)+24), ((Link->Y)-24));
+				CreateItemAt(154, ((Link->X)-24), ((Link->Y)+24));
+				CreateItemAt(60, ((Link->X)+24), ((Link->Y)+24));
+			}
+			if(Game->Counter[14]>=4500){tim = 360;}
+			if(Game->Counter[14]>=6000){tim = 720;}
+			if(effect1||effect4||effect5||effect7){
+				for(int i = 0; i<tim; i++){
+					if(effect1){
+						FastCombo(6,240,0,15590,7,OP_OPAQUE);
+					}
+					if(effect4){
+						if(i%2){Link->HP += 1;}
+						if(effect1){
+							FastCombo(6,224,0,15556,8,OP_OPAQUE);
+						}
+						else{
+							FastCombo(6,240,0,15556,8,OP_OPAQUE);
+						}
+					}
+					if(effect7){
+						b->Clear(0);
+						b->FastTile(0,0,0,Link->Tile,6,OP_OPAQUE);
+						if(i%4 < 2){
+							b->ReplaceColors(0,0x01,0x01,0xFF);
+							b->Blit(SPLAYER_PLAYER_DRAW,RT_SCREEN,0,0,16,16,Link->X,Link->Y-Link->Z,16,16,0,0,0,BITDX_NORMAL,0,true);
+						}
+						Hero->InvFrames = 8;
+						if(effect1&&effect4){
+							FastCombo(6,208,0,15331,11,OP_OPAQUE);
+						}
+						else if(effect1||effect4){
+							FastCombo(6,224,0,15331,11,OP_OPAQUE);
+						}
+						else{
+							FastCombo(6,240,0,15331,11,OP_OPAQUE);
+						}
+					}
+					if((effect5)&&(i%60==0)){
+						for(int i; i < 15; i++){
+						Game->PlaySound(32);
+						lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+						magic->Angular = true;
+						magic->Angle = DegtoRad(i*24);
+						magic->Step = 420;
+						magic->UseSprite(183);
+						magic->Damage = 22;
+						}
+					}
+					Waitframe();
+					if (i==(tim-60)){
+						RunFFCScript(56, args);
+						Game->PlaySound(124);
+					}
+				}
+			}
+			Player->Item[252]=false;
+		}
+	}
+}
+
+generic script bottleDiscard{
+	void run(){
+		
+		//Setup Bottles
+		int bot1 = 29; int bot2 = 195;
+		int bot3 = 189; int bot4 = 219;
+		int bType[5];
+		for(int i = 1; i <= 4; i++){
+			bType[i] = Game->BottleState[i];
+		}
+		//Graphics and Text
+		int bDes1[255]; int bDes2[255];
+		int bDes3[255]; int bDes4[255];
+		int bDes0[255]; sprintf(bDes0,"");
+		int bGrap[5];
+		
+		int sel1 = 0; int sel2 = 0;
+		int fontT = 1; int fontS = 2; int fontC = 69;
+		int cursorG = 61; int cX = 40; int cY = 128; int ccX = 40; int ccY = 128;
+		int selText = bDes0;
+		
+		//Menu Loop First Selection
+		while(true){
+			Screen->Rectangle(6, 0, 0, 256, 176, 15, 1, 0, 0, 0, true, OP_TRANS);
+			Screen->Rectangle(6, 44, 78, 212, 146, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			FastTile(6,52,96,9020,8,OP_OPAQUE); FastTile(6,68,96,9021,8,OP_OPAQUE);
+			FastTile(6,52,112,9040,8,OP_OPAQUE); FastTile(6,68,112,9041,8,OP_OPAQUE);
+			FastTile(6,92,96,9020,8,OP_OPAQUE); FastTile(6,108,96,9021,8,OP_OPAQUE);
+			FastTile(6,92,112,9040,8,OP_OPAQUE); FastTile(6,108,112,9041,8,OP_OPAQUE);
+			FastTile(6,132,96,9020,8,OP_OPAQUE); FastTile(6,148,96,9021,8,OP_OPAQUE);
+			FastTile(6,132,112,9040,8,OP_OPAQUE); FastTile(6,148,112,9041,8,OP_OPAQUE);
+			FastTile(6,172,96,9020,8,OP_OPAQUE); FastTile(6,188,96,9021,8,OP_OPAQUE);
+			FastTile(6,172,112,9040,8,OP_OPAQUE); FastTile(6,188,112,9041,8,OP_OPAQUE);
+			Screen->DrawString(6, 96, 80, fontT, 1, -1, 0, "Discard Bottles", OP_OPAQUE);
+			for(int i = 1; i <= 4; i++){
+				switch(Game->BottleState[i]){
+					case 0: 
+						bGrap[i] = 21788;
+						if (i==1){sprintf(bDes1,"None");}
+						else if (i==2){sprintf(bDes2,"None");}
+						else if (i==3){sprintf(bDes3,"None");}
+						else if (i==4){sprintf(bDes4,"None");}
+						break;
+					case 1: 
+						bGrap[i] = 21789;
+						if (i==1){sprintf(bDes1,"Red Potion");}
+						else if (i==2){sprintf(bDes2,"Red Potion");}
+						else if (i==3){sprintf(bDes3,"Red Potion");}
+						else if (i==4){sprintf(bDes4,"Red Potion");}
+						break;
+					case 2: 
+						bGrap[i] = 21790;
+						if (i==1){sprintf(bDes1,"Green Potion");}
+						else if (i==2){sprintf(bDes2,"Green Potion");}
+						else if (i==3){sprintf(bDes3,"Green Potion");}
+						else if (i==4){sprintf(bDes4,"Green Potion");}
+						break;
+					case 3: 
+						bGrap[i] = 21791; 
+						if (i==1){sprintf(bDes1,"Yellow Potion");}
+						else if (i==2){sprintf(bDes2,"Yellow Potion");}
+						else if (i==3){sprintf(bDes3,"Yellow Potion");}
+						else if (i==4){sprintf(bDes4,"Yellow Potion");}
+						break;
+					case 4: 
+						bGrap[i] = 21792; 
+						if (i==1){sprintf(bDes1,"Blue Potion");}
+						else if (i==2){sprintf(bDes2,"Blue Potion");}
+						else if (i==3){sprintf(bDes3,"Blue Potion");}
+						else if (i==4){sprintf(bDes4,"Blue Potion");}
+						break;
+					case 5: 
+						bGrap[i] = 21793; 
+						if (i==1){sprintf(bDes1,"Crystal Potion");}
+						else if (i==2){sprintf(bDes2,"Crystal Potion");}
+						else if (i==3){sprintf(bDes3,"Crystal Potion");}
+						else if (i==4){sprintf(bDes4,"Crystal Potion");}
+						break;
+					case 6: 
+						bGrap[i] = 21794; 
+						if (i==1){sprintf(bDes1,"Fairy");}
+						else if (i==2){sprintf(bDes2,"Fairy");}
+						else if (i==3){sprintf(bDes3,"Fairy");}
+						else if (i==4){sprintf(bDes4,"Fairy");}
+						break;
+					case 7: 
+						bGrap[i] = 21795; 
+						if (i==1){sprintf(bDes1,"Golden Fairy");}
+						else if (i==2){sprintf(bDes2,"Golden Fairy");}
+						else if (i==3){sprintf(bDes3,"Golden Fairy");}
+						else if (i==4){sprintf(bDes4,"Golden Fairy");}
+						break;
+					case 8: 
+						bGrap[i] = 21796; 
+						if (i==1){sprintf(bDes1,"Supplement Goop");}
+						else if (i==2){sprintf(bDes2,"Supplement Goop");}
+						else if (i==3){sprintf(bDes3,"Supplement Goop");}
+						else if (i==4){sprintf(bDes4,"Supplement Goop");}
+						break;
+					case 9: 
+						bGrap[i] = 21797;
+						if (i==1){sprintf(bDes1,"White Potion");}
+						else if (i==2){sprintf(bDes2,"White Potion");}
+						else if (i==3){sprintf(bDes3,"White Potion");}
+						else if (i==4){sprintf(bDes4,"White Potion");}
+						break;
+					case 10: 
+						bGrap[i] = 21798; 
+						if (i==1){sprintf(bDes1,"Black Potion");}
+						else if (i==2){sprintf(bDes2,"Black Potion");}
+						else if (i==3){sprintf(bDes3,"Black Potion");}
+						else if (i==4){sprintf(bDes4,"Black Potion");}
+						break;
+					case 11: 
+						bGrap[i] = 21799; 
+						if (i==1){sprintf(bDes1,"Seashell Vodka");}
+						else if (i==2){sprintf(bDes2,"Seashell Vodka");}
+						else if (i==3){sprintf(bDes3,"Seashell Vodka");}
+						else if (i==4){sprintf(bDes4,"Seashell Vodka");}
+						break;
+				}
+			}
+			//Cancel if Link has no Bottle
+			if(!Link->Item[bot1]){bType[1] = -1; bGrap[1] = 34;}
+			if(!Link->Item[bot2]){bType[2] = -1; bGrap[2] = 34;}
+			if(!Link->Item[bot3]){bType[3] = -1; bGrap[3] = 34;}
+			if(!Link->Item[bot4]){bType[4] = -1; bGrap[4] = 34;}
+			FastTile(6,60,104,bGrap[1],8,OP_OPAQUE);
+			FastTile(6,100,104,bGrap[2],8,OP_OPAQUE);
+			FastTile(6,140,104,bGrap[3],8,OP_OPAQUE);
+			FastTile(6,180,104,bGrap[4],8,OP_OPAQUE);
+			
+			if(sel2 == 0){
+				if (sel1 == 0){
+					cX = 44; cY = 128; selText = bDes0;
+				}
+				else if (sel1 == 1){
+					cX = 44; cY = 104; selText = bDes1;
+					if(!Link->Item[bot1]){selText = bDes0;}
+				}
+				else if (sel1 == 2){
+					cX = 84; cY = 104; selText = bDes2;
+					if(!Link->Item[bot2]){selText = bDes0;}
+				}
+				else if (sel1 == 3){
+					cX = 124; cY = 104; selText = bDes3;
+					if(!Link->Item[bot3]){selText = bDes0;}
+				}
+				else if (sel1 == 4){
+					cX = 164; cY = 104; selText = bDes4;
+					if(!Link->Item[bot4]){selText = bDes0;}
+				}
+				Screen->DrawString(6, 60, 132, fontC, 6, -1, 0, "Cancel", OP_OPAQUE);
+				Screen->DrawString(6, 196, 132, fontS, 136, -1, TF_RIGHT, selText, OP_OPAQUE);
+				if(Link->PressUp){
+					Game->PlaySound(5);
+					if (sel1 == 0){sel1 = 1;}
+					else if (sel1 == 1||sel1 == 2||sel1 == 3||sel1 == 4){sel1 = 0;}
+				}
+				if(Link->PressDown){
+					Game->PlaySound(5);
+					if (sel1 == 0){sel1 = 1;}
+					else if (sel1 == 1||sel1 == 2||sel1 == 3||sel1 == 4){sel1 = 0;}
+				}
+				if(Link->PressLeft){
+					Game->PlaySound(5);
+					if (sel1 == 0){sel1 = 4;}
+					else if (sel1 == 1){sel1 = 4;}
+					else if (sel1 == 2){sel1 = 1;}
+					else if (sel1 == 3){sel1 = 2;}
+					else if (sel1 == 4){sel1 = 3;}
+				}
+				if(Link->PressRight){
+					Game->PlaySound(5);
+					if (sel1 == 0){sel1 = 1;}
+					else if (sel1 == 1){sel1 = 2;}
+					else if (sel1 == 2){sel1 = 3;}
+					else if (sel1 == 3){sel1 = 4;}
+					else if (sel1 == 4){sel1 = 1;}
+				}
+				if(Link->PressB){
+					Quit();
+				}
+				if(Link->PressA){
+					if (sel1 == 0){Quit();}
+					else{
+						if(Game->BottleState[sel1] <= 0){
+							Game->PlaySound(68);
+						}
+						else{
+							Game->PlaySound(91);
+							sel2 = 1;
+						}
+					}
+				}
+			}
+			else{	//Confirmation
+				Screen->DrawString(6, 60, 132, fontC, 6, -1, 0, "Discard?", OP_OPAQUE);
+				if (sel2 == 1){
+					ccX = 120; ccY = 128;
+				}
+				else if (sel2 == 2){
+					ccX = 160; ccY = 128;
+				}
+				Screen->DrawString(6, 136, 134, fontS, 136, -1, 0, "No", OP_OPAQUE);
+				Screen->DrawString(6, 176, 134, fontS, 136, -1, 0, "Yes", OP_OPAQUE);
+				if(Link->PressLeft||Link->PressRight){
+					Game->PlaySound(5);
+					sel2 += 1;
+					if (sel2 > 2){sel2 = 1;}
+				}
+				if(Link->PressB||(Link->PressA&&sel2==1)){
+					Game->PlaySound(5);
+					sel2 = 0;
+				}
+				if (Link->PressA&&sel2==2){
+					Game->PlaySound(94);
+					Game->BottleState[sel1] = 0;
+					sel2 = 0;
+				}
+				FastTile(6,ccX,ccY,cursorG,11,OP_OPAQUE);
+			}
+			FastTile(6,cX,cY,cursorG,8,OP_OPAQUE);
+			
+			
+			Waitframe();
+			
+		}
+	}
+}
+
+ffc script setCounter{
+	void run(int counter, int amount, int type){
+		// Type = 0: Set
+		// Type = 1: Add
+		// Type = 2: Sub
+		if(type == 0){
+			Game->Counter[counter] = amount;
+		}
+		else if(type == 1){
+			Game->Counter[counter] += amount;
+		}
+		else{
+			if(counter==1){ //rupees
+				Game->DCounter[counter] -= amount;
+			}
+			else{
+				Game->Counter[counter] -= amount;
+			}
+		}
+	}
+}
+
+ffc script SidewarpSecretChange
+{
+    void run(int dmap, int screen, int dir, int type)
+    {
+        while (!Screen->State[ST_SECRET])
+        {
+            Waitframe();
+        }
+        Screen->SetSideWarp(dir, screen, dmap, type);
+    }
+}
+
+ffc script screenDataChange{
+	void run(int id,int v, int Dragon){
+		if (id < 0){
+			SetLevelItem(id *= -1, LI_TRIFORCE,1);
+		}
+		else{
+			if (Screen->D[2] >= 0 || Dragon == 1){
+				Screen->D[id] = v;
+			}
+		}
+	}
+}
+
+ffc script changeDmapSettings{
+	void run(int type){
+		if (type == 0){
+			dMapMidiChange();
+		}
+		else if (type == 1) { //Before Skillmore Battle in Chapter 6
+			changeDMapProperties(119, 87, 14);
+		}
+	}
+}
+
+ffc script LinkItemModifier{
+	void run(int type){
+		if (type == 0){	//Setting up Moogle Costume for scenario choose
+		
+			Link->Item[210] = true; //Adding Moogle Costume
+			
+			//====== Switch Costume ======
+			Game->LoadItemData(135)->Level = 1;	//None
+			Game->LoadItemData(93)->Level = 1; 	//Small Shield
+			Game->LoadItemData(8)->Level = 1; 		//Big Shield
+			Game->LoadItemData(212)->Level = 1;	//Baby Link
+			Game->LoadItemData(211)->Level = 1;	//Linkle
+			Game->LoadItemData(213)->Level = 1;	//Chocobo
+			Game->LoadItemData(136)->Level = 1;	//Knight's Armor
+			Game->LoadItemData(65)->Level = 1; 	//Orange Dragon
+			Game->LoadItemData(105)->Level = 1;	//Purple Dragon
+			Game->LoadItemData(12)->Level = 1;		//Black Dragon
+			
+			Game->LoadItemData(210)->Level = 2;	
+			shield_sel = 210;
+			//=========================
+			
+		}
+		
+		else if (type == 1) { //Removing all potions for Solarette scenario (NO LONGER USED)
+		
+			for (int i=1; i <= 4; ++i){
+				Game->BottleState[i] = 0;
+			}
+		
+		}
+		
+		else if (type == 2) { //Removing all items for Chapter 8
+		
+			//Reset Bottles
+			for (int i=1; i <= 4; ++i){
+				Game->BottleState[i] = 0;
+			}
+			
+			//Removing Items
+			Link->Item[3] = false; 		// Bombs
+			Link->Item[5] = false; 		// Link's Sword
+			Link->Item[6] = false; 		// Master Sword
+			Link->Item[10] = false; 	// Lantern
+			Link->Item[15] = false; 	// Wooden Bow
+			Link->Item[23] = false; 	// Boomerang
+			Link->Item[24] = false; 	// Magic Boomerang
+			Link->Item[25] = false; 	// Magic Rod
+			Link->Item[31] = false; 	// Ocarina
+			Link->Item[32] = false; 	// Bombchus
+			Link->Item[52] = false; 	// Hookshot
+			Link->Item[53] = false; 	// Lens of Truth
+			Link->Item[54] = false; 	// Megaton Hammer
+			Link->Item[126] = false; 	// Pegasus Boots
+			Link->Item[147] = false; 	// Warp Ring
+			Link->Item[108] = false; 	// Gun
+			Link->Item[155] = false; 	// Lens of Judgement
+			Link->Item[183] = false; 	// Bug-Catching Net
+			Link->Item[201] = false; 	// Fairy Lamp (From Aurelia)
+			Link->Item[227] = false;	// Kunai (From Cain)
+			
+			Link->Item[74] = false; 	// Quiver L1
+			Link->Item[75] = false; 	// Quiver L2
+			Link->Item[81] = false; 	// Bomb Bag L1
+			Link->Item[82] = false; 	// Bomb Bag L2
+			Link->Item[148] = false; 	// Bombchu Bag L1
+			Link->Item[149] = false; 	// Bomchu Bag L2
+			Link->Item[51] = false; 	// Flippers
+			Link->Item[19] = false; 	// Bracelets
+			Link->Item[174] = false; 	// Cross Ring
+			Link->Item[169] = false; 	// Medical Kit
+			
+			Link->Item[7] = false; 		// Verdant Longblade
+			Link->Item[121] = false; 	// Invincibility Cloak
+			Link->Item[235] = false; 	// Inferno Rod
+			
+			//Rupee Reset and Save
+			Game->Counter[39] = Game->Counter[1];
+			Game->Counter[1] = 0;
+			
+			//Reset Counters
+			Game->Counter[2] = 0;		//Bombs
+			Game->MCounter[2] = 0;	
+			Game->Counter[3] = 0;		//Arrows
+			Game->MCounter[3] = 0;	
+			Game->Counter[6] = 0;		//Super Bombs
+			Game->MCounter[6] = 0;	
+			Game->Counter[7] = 0;		//Bombchus
+			Game->MCounter[7] = 0;	
+			
+			//====== Switch Costume ======
+			Game->LoadItemData(210)->Level = 1;	//Changing Moogle Outfit
+			Game->LoadItemData(135)->Level = 2;	
+			shield_sel = 135;
+			//=========================
+		
+		}
+		
+		else if (type == 3) { //Remove Temp Costumes
+			Link->Item[234] = false;
+			Link->Item[251] = false;
+		}
+		
+		else if (type == 4) { //Reset Score for Minigame
+			Game->Counter[17] = 0;
+		}		
+		
+		else if (type == 5) { //+1 Score (Final Level Pot Maze)
+			Game->Counter[17] += 1;
+		}	
+
+		else if (type == 6) { //Reset ROSEMASTER Charge for Final Boss
+			Game->Counter[10] = 0;
+		}			
+		
+		else if (type == 7) { //Set Strings for Final Lotz Battle
+			messagedata md01 = Game->LoadMessageData(7601);
+			messagedata md02 = Game->LoadMessageData(7602);
+			messagedata md03 = Game->LoadMessageData(7603);
+			messagedata md04 = Game->LoadMessageData(7604);
+			messagedata md05 = Game->LoadMessageData(7605);
+			messagedata md06 = Game->LoadMessageData(7606);
+			messagedata md07 = Game->LoadMessageData(7607);
+			messagedata md08 = Game->LoadMessageData(7608);
+			messagedata md09 = Game->LoadMessageData(7609);
+			messagedata md10 = Game->LoadMessageData(7610);
+			
+			md01->PortraitTile = 55246; md01->Y = 120; md01->PortraitY = 125;
+			char32 str01[1000];
+			sprintf(str01, "You should know very well that I was the one behind the %c%c%cROSEMASTER%c%c%c Project.",sc(1),sc(8),sc(5),sc(1),sc(0),sc(1));
+			md01->Set(str01);
+			md01->Next = 7602;
+			md02->PortraitTile = 55246; md02->Y = 120; md02->PortraitY = 125;
+			md02->Set("I should have every right to wield this magnificant weapon!");
+			md02->Next = 0;
+			
+			md03->PortraitTile = 55246; md03->Y = 120; md03->PortraitY = 125;
+			char32 str03[1000];
+			sprintf(str03, "Let's face it, the weak don't deserve resources. %cI had to do what I must in Hinnow Village.",sc(30));
+			md03->Set(str03);
+			md03->Next = 7604;
+			md04->PortraitTile = 55246; md04->Y = 120; md04->PortraitY = 125;
+			char32 str04[1000];
+			sprintf(str04, "They are weak, and we live by the %c%c%claw of the jungle%c%c%c. Strong men like me deserve %c%c%cEVERYTHING%c%c%c!",sc(1),sc(8),sc(12),sc(1),sc(0),sc(1),sc(1),sc(8),sc(12),sc(1),sc(0),sc(1));
+			md04->Set(str04);
+			md04->Next = 0;
+			
+			md05->PortraitTile = 55246; md05->Y = 120; md05->PortraitY = 125;
+			md05->Set("Loyalty is a sign of weakness. Which was why I left to Hyrule. I saw an opportunity here, for me.");
+			md05->Next = 0;
+			
+			md06->PortraitTile = 55246; md06->Y = 120; md06->PortraitY = 125;
+			char32 str06[1000];
+			sprintf(str06, "A man is nothing if he isn't stacked with %c%c%crupees%c%c%c. %cThat's why I made a business deal with Malo!",sc(1),sc(7),sc(8),sc(1),sc(0),sc(1),sc(30));
+			md06->Set(str06);
+			md06->Next = 0;
+			
+			md07->PortraitTile = 55246; md07->Y = 120; md07->PortraitY = 125;
+			char32 str07[1000];
+			sprintf(str07, "Do you see how every Hyrulean here is on their phone? %cMan, they're so easy to manipulate!",sc(30));
+			md07->Set(str07);
+			md07->Next = 0;
+			
+			md08->PortraitTile = 55246; md08->Y = 120; md08->PortraitY = 125;
+			char32 str08[1000];
+			sprintf(str08, "I don't understand why you're trying to take me down. %cAre you just jealous, little boy?",sc(30));
+			md08->Set(str08);
+			md08->Next = 7609;
+			md09->PortraitTile = 55246; md09->Y = 120; md09->PortraitY = 125;
+			md09->Set("If you would've just bought my financial course, we could've ruled the world together with ease!");
+			md09->Next = 0;
+			
+			md10->PortraitTile = 55246; md10->Y = 120; md10->PortraitY = 125;
+			char32 str10[1000];
+			sprintf(str10, "The Tsarina has been defeated. I'm the only ruler left. %cI'm the best leader this world ever had!",sc(30));
+			md10->Set(str10);
+			md10->Next = 0;
+					
+		}
+		
+		else if (type == 8) { //Defeated Cucco Man
+			Game->Counter[17] = 999;
+		}	
+		
+		else if (type == 9) { // Set Continue Screen to Link's Room in Elignita Capital. (After Lotz and Zelda Cutscene)
+			Game->ContinueDMap = 4;
+			Game->ContinueScreen = 0x10;
+			Game->LastEntranceDMap = 4;
+			Game->LastEntranceScreen = 0x10;	
+		}	
+		
+	}
+	int sc (int value){
+		return value + 1;
+	}
+}
+
+item script Ch7Rupees{	//Regain Rupees
+	void run(int m){
+		// Gain 500 rupees regardless of past rupee count
+		if(Game->Counter[39] < 500){
+			Game->DCounter[1] += 500;
+		}
+		else{
+			Game->DCounter[1] += Game->Counter[39];
+		}
+		int item_message[] = "ItemMessageFFC";
+		int script_num = Game->GetFFCScript(item_message);
+		int args[8] = {m, 0, 0, 0, 0, 0, 0, 0};
+		RunFFCScript(script_num, args);
+	}
+}
+
+ffc script zodiacBoss{	//Randomize and Warp to Random Zodiac Boss
+	void run(int id, int amount){
+		if (id==0){
+			for (int i=1; i<=12; ++i){
+				int rng = Rand(1,12);
+				while(rng!=0){
+					if((rng==1)&&(Game->Counter[19]==0)){
+						Game->Counter[19] = i;
+						rng = 0;
+					}
+					else if((rng==2)&&(Game->Counter[20]==0)){
+						Game->Counter[20] = i;
+						rng = 0;
+					}
+					else if((rng==3)&&(Game->Counter[21]==0)){
+						Game->Counter[21] = i;
+						rng = 0;
+					}
+					else if((rng==4)&&(Game->Counter[22]==0)){
+						Game->Counter[22] = i;
+						rng = 0;
+					}
+					else if((rng==5)&&(Game->Counter[23]==0)){
+						Game->Counter[23] = i;
+						rng = 0;
+					}
+					else if((rng==6)&&(Game->Counter[24]==0)){
+						Game->Counter[24] = i;
+						rng = 0;
+					}
+					else if((rng==7)&&(Game->Counter[25]==0)){
+						Game->Counter[25] = i;
+						rng = 0;
+					}
+					else if((rng==8)&&(Game->Counter[26]==0)){
+						Game->Counter[26] = i;
+						rng = 0;
+					}
+					else if((rng==9)&&(Game->Counter[27]==0)){
+						Game->Counter[27] = i;
+						rng = 0;
+					}
+					else if((rng==10)&&(Game->Counter[28]==0)){
+						Game->Counter[28] = i;
+						rng = 0;
+					}
+					else if((rng==11)&&(Game->Counter[29]==0)){
+						Game->Counter[29] = i;
+						rng = 0;
+					}
+					else if((rng==12)&&(Game->Counter[30]==0)){
+						Game->Counter[30] = i;
+						rng = 0;
+					}
+					else{
+						rng = Rand(1,12);
+					}
+				}
+			}
+		}
+		else if (id==1){ //Zodiac Reset
+			Game->Counter[31] = amount;
+		}
+		else if (id==2){ //Zodiac 1 Battle
+			int z0;
+			Waitframes(60);
+			if(Game->Counter[31]<3){
+				if(Game->Counter[31]==0){z0=19;}
+				if(Game->Counter[31]==1){z0=20;}
+				if(Game->Counter[31]==2){z0=21;}
+				if(Game->Counter[z0]==1){Link->WarpEx({WT_IWARP,291,9,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==2){Link->WarpEx({WT_IWARP,291,25,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==3){Link->WarpEx({WT_IWARP,291,41,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==4){Link->WarpEx({WT_IWARP,291,57,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==5){Link->WarpEx({WT_IWARP,291,73,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==6){Link->WarpEx({WT_IWARP,291,89,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==7){Link->WarpEx({WT_IWARP,291,105,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==8){Link->WarpEx({WT_IWARP,291,121,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==9){Link->WarpEx({WT_IWARP,291,123,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==10){Link->WarpEx({WT_IWARP,291,91,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==11){Link->WarpEx({WT_IWARP,291,59,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==12){Link->WarpEx({WT_IWARP,291,27,-1,-1,WARPEFFECT_NONE,25,4});}
+			}
+			else{
+				Link->WarpEx({WT_IWARP,291,56,-1,-1,WARPEFFECT_NONE,25,0});
+			}
+		}
+		else if (id==3){ //Zodiac 2 Battle
+			int z0;
+			Waitframes(60);
+			if(Game->Counter[31]<6){
+				if(Game->Counter[31]==3){z0=22;}
+				if(Game->Counter[31]==4){z0=23;}
+				if(Game->Counter[31]==5){z0=24;}
+				if(Game->Counter[z0]==1){Link->WarpEx({WT_IWARP,294,7,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==2){Link->WarpEx({WT_IWARP,294,23,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==3){Link->WarpEx({WT_IWARP,294,39,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==4){Link->WarpEx({WT_IWARP,294,55,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==5){Link->WarpEx({WT_IWARP,294,71,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==6){Link->WarpEx({WT_IWARP,294,87,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==7){Link->WarpEx({WT_IWARP,294,103,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==8){Link->WarpEx({WT_IWARP,294,119,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==9){Link->WarpEx({WT_IWARP,294,121,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==10){Link->WarpEx({WT_IWARP,294,89,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==11){Link->WarpEx({WT_IWARP,294,57,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==12){Link->WarpEx({WT_IWARP,294,25,-1,-1,WARPEFFECT_NONE,25,4});}
+			}
+			else{
+				Link->WarpEx({WT_IWARP,294,117,-1,-1,WARPEFFECT_NONE,25,0});
+			}
+		}
+		else if (id==4){ //Zodiac 3 Battle
+			int z0;
+			Waitframes(60);
+			if(Game->Counter[31]<9){
+				if(Game->Counter[31]==6){z0=25;}
+				if(Game->Counter[31]==7){z0=26;}
+				if(Game->Counter[31]==8){z0=27;}
+				if(Game->Counter[z0]==1){Link->WarpEx({WT_IWARP,295,10,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==2){Link->WarpEx({WT_IWARP,295,26,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==3){Link->WarpEx({WT_IWARP,295,42,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==4){Link->WarpEx({WT_IWARP,295,58,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==5){Link->WarpEx({WT_IWARP,295,74,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==6){Link->WarpEx({WT_IWARP,295,90,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==7){Link->WarpEx({WT_IWARP,295,106,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==8){Link->WarpEx({WT_IWARP,295,122,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==9){Link->WarpEx({WT_IWARP,295,124,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==10){Link->WarpEx({WT_IWARP,295,92,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==11){Link->WarpEx({WT_IWARP,295,60,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==12){Link->WarpEx({WT_IWARP,295,28,-1,-1,WARPEFFECT_NONE,25,4});}
+			}
+			else{
+				Link->WarpEx({WT_IWARP,295,57,-1,-1,WARPEFFECT_NONE,25,0});
+			}
+		}
+		else if (id==5){ //Zodiac 4 Battle
+			int z0;
+			Waitframes(60);
+			if(Game->Counter[31]<12){
+				if(Game->Counter[31]==9){z0=28;}
+				if(Game->Counter[31]==10){z0=29;}
+				if(Game->Counter[31]==11){z0=30;}
+				if(Game->Counter[z0]==1){Link->WarpEx({WT_IWARP,297,10,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==2){Link->WarpEx({WT_IWARP,297,26,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==3){Link->WarpEx({WT_IWARP,297,42,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==4){Link->WarpEx({WT_IWARP,297,58,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==5){Link->WarpEx({WT_IWARP,297,74,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==6){Link->WarpEx({WT_IWARP,297,90,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==7){Link->WarpEx({WT_IWARP,297,106,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==8){Link->WarpEx({WT_IWARP,297,122,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==9){Link->WarpEx({WT_IWARP,297,124,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==10){Link->WarpEx({WT_IWARP,297,92,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==11){Link->WarpEx({WT_IWARP,297,60,-1,-1,WARPEFFECT_NONE,25,4});}
+				if(Game->Counter[z0]==12){Link->WarpEx({WT_IWARP,297,28,-1,-1,WARPEFFECT_NONE,25,4});}
+			}
+			else{
+				Link->WarpEx({WT_IWARP,297,57,-1,-1,WARPEFFECT_NONE,25,0});
+			}
+		}
+	}
+}
+
+ffc script donkiFloorArriveDelay{
+	void run(int wait){
+			int destF1 = 0x51; int destF2 = 0x41;
+			int destF3 = 0x31; int destF4 = 0x21;
+			int donkiDmap = 333; int arrivalType = destF1;
+			Waitframes(wait);
+			switch(Game->Counter[17]){
+				case 1:
+					arrivalType = destF2;
+					break;
+				case 2:
+					arrivalType = destF3;
+					break;
+				case 3:
+					arrivalType = destF4;
+					break;
+			}
+			Link->WarpEx({WT_IWARP,donkiDmap,arrivalType,-1,-1,WARPEFFECT_NONE,25,4});
+	}
+}
+
+npc script NoCollisionShooter
+{
+    void run()
+    {
+        this->CollDetection = false;
+    }
+}
+
+// Number of frames and A.Speed for animations
+// Walking
+CONFIG TERRORPIN_FRAMES_WALK = 2;
+CONFIG TERRORPIN_ASPEED_WALK = 8;
+// Flipped over
+CONFIG TERRORPIN_FRAMES_FLIP = 2;
+CONFIG TERRORPIN_ASPEED_FLIP = 8;
+
+// Settings for the enemy's flip arc
+CONFIG TERRORPIN_FLIP_JUMP = 2.4; // Initial jump
+CONFIG TERRORPIN_FLIP_BOUNCES = 2; // Extra bounces
+CONFIG TERRORPIN_FLIP_DECAY = 0.3; // Decay of the jump value for each bounce
+CONFIG TERRORPIN_FLIP_SPEED_MULT = 1.0; // Multiplier for the enemy's movement speed in mid air
+
+// Settings for 8-way fireballs
+CONFIG TERRORPIN_FIREBALL_STEP = 250;
+CONFIG SFX_TERRORPIN_FIREBALL = SFX_FIREBALL;
+
+@InitD0("Hammer Distance"),
+@InitDHelp0("Distance in pixels the enemy detects hammer hits for. 40 by default."),
+@InitD1("Flip Time"),
+@InitDHelp1("How many frames the enemy stays flipped for. 180 by default."),
+@InitD2("Can Reflip?"),
+@InitDHelp2("If true, the hammer can still flip the enemy when vulnerable."),
+@InitD3("Firing Min Steps"),
+@InitDHelp3("If >0, the enemy takes this many steps before firing (minimum)."),
+@InitD4("Firing Max Steps"),
+@InitDHelp4("If >0, the enemy takes this many steps before firing (maximum).")
+npc script Terrorpin
+{
+    using namespace NPCAnim;
+    using namespace GhostBasedMovement;
+    enum Animations
+    {
+        ANIM_WALK,
+        ANIM_FLIP
+    };
+    void run(int hammerDist, int flipTime, bool canReflip, int fireMin, int fireMax)
+    {
+        Waitspawn(this);
+        
+        if(!hammerDist)
+            hammerDist = 40;
+        if(!flipTime)
+            flipTime = 180;
+        AnimHandler aptr = new AnimHandler(this);
+        aptr->AddAnim(ANIM_WALK, 0, TERRORPIN_FRAMES_WALK, TERRORPIN_ASPEED_WALK, 0);
+        aptr->AddAnim(ANIM_FLIP, TERRORPIN_FRAMES_WALK, TERRORPIN_FRAMES_FLIP, TERRORPIN_ASPEED_FLIP, 0);
+
+        int defenses[MAX_DEFENSE];
+        for(int i=0; i<MAX_DEFENSE; ++i)
+        {
+            defenses[i] = this->Defense[i];
+            this->Defense[i] = i==NPCD_HAMMER?NPCDT_IGNORE:NPCDT_BLOCK;
+        }
+
+        int counter = -1;
+        while(true)
+        {
+            int fireTimer = Rand(fireMin, fireMax);
+            int oldPos = ComboAt(this->X+8, this->Y+8);
+            int pos = oldPos;
+            // Walking
+            while(true)
+            {
+                pos = ComboAt(this->X+8, this->Y+8);
+                if(pos!=oldPos)
+                {
+                    oldPos = pos;
+                    if(fireTimer)
+                    {
+                        --fireTimer;
+                        if(!fireTimer)
+                        {
+                            fireTimer = Rand(fireMin, fireMax);
+                            for(int j=0; j<48; ++j)
+                            {
+                                if(DetectHammer(this, hammerDist, false))
+                                    break;
+                                if(j==16)
+                                {
+                                    for(int i=0; i<8; ++i)
+                                    {
+                                        eweapon e = FireEWeaponDir(WeaponTypeToID(this->Weapon), this->X, this->Y, i, TERRORPIN_FIREBALL_STEP, this->WeaponDamage, this->WeaponSprite, SFX_TERRORPIN_FIREBALL);
+                                    }
+                                }
+                                Waitframe(this);
+                            }
+                        }
+                    }
+                }
+                counter = ConstWalk4(this, counter);
+                if(DetectHammer(this, hammerDist, false))
+                    break;
+                Waitframe(this);
+            }
+            // Flipping
+            aptr->PlayAnim(ANIM_FLIP);
+            int jump = TERRORPIN_FLIP_JUMP;
+            this->Dir = AngleDir4(Angle(Link->X, Link->Y, this->X, this->Y));
+            for(int i=0; i<TERRORPIN_FLIP_BOUNCES+1; ++i)
+            {
+                this->Jump = jump;
+                jump *= TERRORPIN_FLIP_DECAY;
+                while(this->Jump>0||this->Z>0)
+                {
+                    this->Move(OppositeDir(this->Dir), this->Step/100*TERRORPIN_FLIP_SPEED_MULT);
+                    Waitframe(this);
+                }
+            }
+            // Make vulnerable
+            for(int i=0; i<MAX_DEFENSE; ++i)
+                this->Defense[i] = defenses[i];
+            int frames = flipTime;
+            while(true)
+            {
+                if(frames)
+                    --frames;
+                if(frames<60)
+                {
+                    this->DrawXOffset = (frames%4<2)?-1:1;
+                }
+                if(frames==0||(canReflip&&DetectHammer(this, hammerDist, true)))
+                    break;
+                Waitframe(this);
+            }
+            this->DrawXOffset = 0;
+            // Make invulnerable
+            for(int i=0; i<MAX_DEFENSE; ++i)
+                this->Defense[i] = i==NPCD_HAMMER?NPCDT_IGNORE:NPCDT_BLOCK;
+            // Flipping
+            aptr->PlayAnim(ANIM_WALK);
+            jump = TERRORPIN_FLIP_JUMP;
+            this->Dir = AngleDir4(Angle(this->X, this->Y, Link->X, Link->Y));
+            for(int i=0; i<TERRORPIN_FLIP_BOUNCES+1; ++i)
+            {
+                this->Jump = jump;
+                jump *= TERRORPIN_FLIP_DECAY;
+                while(this->Jump>0||this->Z>0)
+                {
+                    this->Move(this->Dir, this->Step/100*TERRORPIN_FLIP_SPEED_MULT);
+                    Waitframe(this);
+                }
+            }
+            // Slide back onto the grid
+            int tX = GridX(this->X+8);
+            int tY = GridY(this->Y+8);
+            int safety = Ceiling(32/(this->Step/100));
+            while(safety&&Distance(this->X, this->Y, tX, tY)>this->Step/100)
+            {
+                --safety;
+                this->MoveAtAngle(Angle(this->X, this->Y, tX, tY), this->Step/100);
+                Waitframe(this);
+            }
+            counter = -1;
+        }
+    }
+    bool DetectHammer(npc this, int hammerDist, bool checkInvFrames)
+    {
+        if(this->HitBy[HIT_BY_LWEAPON])
+            return false;
+        if(checkInvFrames&&this->InvFrames)
+            return false;
+        for(int i=Screen->NumLWeapons(); i>0; --i)
+        {
+            lweapon l = Screen->LoadLWeapon(i);
+            if(l->ID==LW_HAMMER)
+            {
+                if((l->Tile-l->OriginalTile)%3==2)
+                {
+                    int cx = l->X+l->HitWidth/2;
+                    int cy = l->Y+l->HitHeight/2;
+                    if(Distance(this->X+8, this->Y+8, cx, cy)<hammerDist)
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+}
+
+generic script freezeScreenGeneric{
+	void run(int frames, int sfx, int flashColor, int flashFrames){
+		Game->PlaySound(sfx);
+		while(flashFrames > 0 && flashColor > 0){
+			if(Link->Item[47]){
+				if(flashFrames % 40 < 20){
+					Screen->Rectangle(6, 0, 0, 256, 172, flashColor, 1, 0, 0, 0, true, 64);
+				}
+			}
+			else{
+				if(flashFrames % 2 == 0){
+					Screen->Rectangle(6, 0, 0, 256, 172, flashColor, 1, 0, 0, 0, true, 64);
+				}
+			}
+			flashFrames--;
+			frames--;
+			Waitframe();
+		}
+		if(frames > 0){
+			Waitframes(frames);
+		}
+	}
+}
+
+generic script donkiElevator{
+	void run(){
+		int fontE = 69; int warping = 0;
+		int floorCur[255]; int floorOp1[255];
+		int floorOp2[255]; int floorOp3[255];
+		int floorCurText; int floorOp1Text;
+		int floorOp2Text; int floorOp3Text;
+		int curPos = 0; int cy = 64;
+		int donkiDmap = 333; int goUp = 0x00; int goDown = 0x10; int goDir = 0;
+		int op1Go = 0; int op2Go = 0; int op3Go = 0;
+		bool opUp1 = true; bool opUp2 = true; bool opUp3 = true;
+		switch(Game->Counter[17]){
+			case 0:
+				sprintf(floorCur,"1F"); sprintf(floorOp1,"2F");
+				sprintf(floorOp2,"3F"); sprintf(floorOp3,"4F");
+				opUp1 = true; opUp2 = true; opUp3 = true;
+				op1Go = 1; op2Go = 2; op3Go = 3;
+				break;
+			case 1:
+				sprintf(floorCur,"2F"); sprintf(floorOp1,"1F");
+				sprintf(floorOp2,"3F"); sprintf(floorOp3,"4F");
+				opUp1 = false; opUp2 = true; opUp3 = true;
+				op1Go = 0; op2Go = 2; op3Go = 3;
+				break;
+			case 2:
+				sprintf(floorCur,"3F"); sprintf(floorOp1,"1F");
+				sprintf(floorOp2,"2F"); sprintf(floorOp3,"4F");
+				opUp1 = false; opUp2 = false; opUp3 = true;
+				op1Go = 0; op2Go = 1; op3Go = 3;
+				break;
+			case 3:
+				sprintf(floorCur,"4F"); sprintf(floorOp1,"1F");
+				sprintf(floorOp2,"2F"); sprintf(floorOp3,"3F");
+				opUp1 = false; opUp2 = false; opUp3 = false;
+				op1Go = 0; op2Go = 1; op3Go = 2;
+				break;
+		}
+		floorCurText = floorCur; floorOp1Text = floorOp1;
+		floorOp2Text = floorOp2; floorOp3Text = floorOp3;
+		while(true){
+			
+			Screen->DrawString(6, 13, 35, fontE, 0x79, -1, 0, "Current:", OP_OPAQUE);
+			Screen->DrawString(6, 12, 34, fontE, 0x01, -1, 0, "Current:", OP_OPAQUE);
+			Screen->DrawString(6, 59, 35, fontE, 0x79, -1, 0, floorCurText, OP_OPAQUE);
+			Screen->DrawString(6, 58, 34, fontE, 0x78, -1, 0, floorCurText, OP_OPAQUE);
+			Screen->DrawString(6, 21, 51, fontE, 0x79, -1, 0, "Go to...", OP_OPAQUE);
+			Screen->DrawString(6, 20, 50, fontE, 0x01, -1, 0, "Go to...", OP_OPAQUE);
+			
+			Screen->DrawString(6, 21, 65, fontE, 0x89, -1, 0, "Cancel", OP_OPAQUE);
+			Screen->DrawString(6, 20, 64, fontE, 0x88, -1, 0, "Cancel", OP_OPAQUE);
+			
+			Screen->DrawString(6, 21, 81, fontE, 0x89, -1, 0, floorOp1Text, OP_OPAQUE);
+			Screen->DrawString(6, 20, 80, fontE, 0x88, -1, 0, floorOp1Text, OP_OPAQUE);
+			Screen->DrawString(6, 21, 97, fontE, 0x89, -1, 0, floorOp2Text, OP_OPAQUE);
+			Screen->DrawString(6, 20, 96, fontE, 0x88, -1, 0, floorOp2Text, OP_OPAQUE);
+			Screen->DrawString(6, 21, 113, fontE, 0x89, -1, 0, floorOp3Text, OP_OPAQUE);
+			Screen->DrawString(6, 20, 112, fontE, 0x88, -1, 0, floorOp3Text, OP_OPAQUE);
+			
+			switch(curPos){
+				case 0: cy = 60; break;
+				case 1: cy = 76; break;
+				case 2: cy = 92; break;
+				case 3: cy = 108; break;
+			}
+			FastTile(6,4,cy,61,8,OP_OPAQUE);
+			
+			if(Link->PressUp){
+				Game->PlaySound(5);
+				if(curPos == 0){ curPos = 3; }
+				else{ curPos -= 1; }
+			}
+			if(Link->PressDown){
+				Game->PlaySound(5);
+				if(curPos == 3){ curPos = 0; }
+				else{ curPos += 1; }
+			}
+			
+			if(Link->PressB||(Link->PressA && curPos==0)){
+				break;
+			}
+			
+			if(Link->PressA && curPos>0){
+				if(curPos == 1){
+					if(opUp1){goDir = goUp;}else{goDir = goDown;}
+					Game->Counter[17] = op1Go;
+				}
+				else if(curPos == 2){
+					if(opUp2){goDir = goUp;}else{goDir = goDown;}
+					Game->Counter[17] = op2Go;
+				}
+				else{
+					if(opUp3){goDir = goUp;}else{goDir = goDown;}
+					Game->Counter[17] = op3Go;
+				}
+				warping = 1;
+				break;
+			}
+			Waitframe();
+		}
+		if(warping==1){Link->WarpEx({WT_IWARP,donkiDmap,goDir,-1,-1,WARPEFFECT_NONE,25,4});};
+	}
+}
+
+eweapon script ArcingSummon
+{
+    void run(int tX, int tY, int enemyID)
+    {
+        this->MoveFlags[NPCMV_OBEYS_GRAVITY] = true;
+        this->Jump = AW_PredictJumpFromDurationBruteForce(Distance(this->X, this->Y, tX, tY)/(this->Step/100), 0.16, 3.2, 0);
+        while(this->Z>0||this->Jump>0)
+        {
+            Waitframe();
+        }
+        if(enemyID)
+        {
+            if(!Screen->isSolid(tX+8, tY+8))
+            {
+                npc n = CreateNPCAt(enemyID, tX, tY);
+            }
+        }
+        else
+        {
+            this->Step = 0;
+            Waitframe();
+        }
+        this->Remove();
+    }
+    // Predicts the duration of a jump from its force
+    int AW_PredictDurationFromJump(int jump, int grav, int terminalv, int z=0)
+    {
+        int frames;
+        while(z>0||jump>0)
+        {
+            z += jump;
+            if(jump>=-terminalv)
+                jump -= grav;
+            ++frames;
+        }
+        return frames;
+    }
+    // Predicts the force of a jump from its duration
+    // This uses logic from ghost.zh and is not perfectly accurate
+    int AW_PredictJumpFromDuration(int frames, int grav, int terminalv)
+    {
+        if(frames<2)
+            frames = 2;
+        int ret=0;
+        
+        // Every increase in velocity of GH_GRAVITY means two frames in the air.
+        // This might overshoot by a frame, but that's all right.
+        while(ret<=terminalv)
+        {
+            ret+=grav;
+            frames-=2;
+            if(frames<=0)
+                return ret;
+        }
+        
+        // Needs to exceed terminal velocity. Slightly trickier here, because
+        // an increase of GH_GRAVITY may mean more than two more frames in the air.
+        int excess=0; // Distance left to fall after reaching TV
+        while(frames>excess/terminalv)
+        {
+            ret+=grav;
+            excess+=ret-terminalv;
+            frames-=2;
+        }
+        
+        return ret;
+    }
+    // Predicts the force of a jump from its duration
+    // This uses brute forcing in addition to the ghost method to narrow down a more accurate jump value
+    int AW_PredictJumpFromDurationBruteForce(int frames, int grav, int terminalv, int z)
+    {
+        if(frames<2)
+            frames = 2;
+            
+        int ret = AW_PredictJumpFromDuration(Distance(0, 0, frames, z), grav, terminalv);
+        int low = ret;
+        int high = ret;
+        int durLow = AW_PredictDurationFromJump(low, grav, terminalv, z);
+        int durHigh = durLow;
+        
+        int closest = ret;
+        int durClosest;
+        
+        for(int i=0; i<10; ++i)
+        {
+            if(durLow==frames)
+                return low;
+            if(durHigh==frames)
+                return high;
+            if(durLow>durHigh)
+            {
+                int tmp = low;
+                int durtmp = durLow;
+                low = high;
+                durLow = durHigh;
+                high = tmp;
+                durHigh = durtmp;
+            }
+            if(durLow<frames&&durHigh>frames)
+            {
+                closest = (low+high)/2;
+                durClosest = AW_PredictDurationFromJump(closest, grav, terminalv, z);
+                if(durClosest<frames)
+                {
+                    low = closest;
+                    durLow = durClosest;
+                }
+                else{
+                    high = closest;
+                    durHigh = durClosest;
+                }
+            }
+            else if(durHigh<frames)
+            {
+                int pct = frames/durLow;
+                high *= pct;
+                durHigh = AW_PredictDurationFromJump(high, grav, terminalv, z);
+            }
+            else if(durLow>frames)
+            {
+                int pct = frames/durHigh;
+                low *= pct;
+                durLow = AW_PredictDurationFromJump(low, grav, terminalv, z);
+            }
+        }
+        return closest;
+    }
+}
+
+ffc script ContinueScreenSet{
+	void run(int touch, int Exception, int touchID){ // Touch means Link must touch the FCC in order to spawn again.
+		// Exception 1: Lotz Battle in Chapter 3 in Elignita Capital
+		if(Exception == 1 && Game->Counter[12] < 8){
+			Waitframe();
+		}
+		// Excpetion 2: Ord Desert First Entrance
+		else if(Exception == 2){
+			Game->ContinueDMap = 27;
+			Game->ContinueScreen = 0x0F;
+			Game->LastEntranceDMap = 27;
+			Game->LastEntranceScreen = 0x0F;
+		}
+		// Excpetion 3: Ord Desert Second Entrance
+		else if(Exception == 3){
+			Game->ContinueDMap = 27;
+			Game->ContinueScreen = 0x4C;
+			Game->LastEntranceDMap = 27;
+			Game->LastEntranceScreen = 0x4C;
+		}
+		// Excpetion 4: Sealed Realm Shadgoon Village
+		else if(Exception == 4){
+			Game->ContinueDMap = 237;
+			Game->ContinueScreen = 0x74;
+			Game->LastEntranceDMap = 237;
+			Game->LastEntranceScreen = 0x74;
+		}
+		else{
+			if(touch){
+				while (Distance(Hero->X, Hero->Y, Screen->WarpReturnX[touchID], Screen->WarpReturnY[touchID]) > 4){
+					Waitframe();
+				}
+			}
+			Game->ContinueDMap = Game->GetCurDMap();
+			Game->ContinueScreen = Game->GetCurScreen();
+			Game->LastEntranceDMap = Game->GetCurDMap();
+			Game->LastEntranceScreen = Game->GetCurScreen();
+		}
+	}
+}
+
+ffc script ToggleEasyMode{	//0 = OFF, 1 = ON
+	void run(int id, int dragon){
+		switch(id){
+			case 0:
+				Link->Item[203] = false;
+				if(Link->Item[41]){
+					Link->Item[167] = true;
+					Game->Counter[37] = 1;
+				}
+				break;
+			case 1:
+				if(dragon == 0 || !Screen->SecretsTriggered()){
+					Link->Item[203] = true;
+					if(Link->Item[167]){
+						Game->Counter[37] = 2;
+						Link->Item[167] = false;
+					}
+				}
+				break;
+		}
+	}
+}
+
+ffc script DeathDisabler{
+	void run(int autowarp){
+		while(true){
+			if ( Link->HP <= 0 &&
+			     (Game->BottleState[1] != 6 && Game->BottleState[1] != 7) && 
+				 (Game->BottleState[2] != 6 && Game->BottleState[2] != 7) && 
+				 (Game->BottleState[3] != 6 && Game->BottleState[3] != 7) && 
+				 (Game->BottleState[4] != 6 && Game->BottleState[4] != 7) ){
+				Link->HP = Link->MaxHP;
+				Link->MP = Link->MaxMP;
+				this->Data = autowarp;
+				Quit();
+			}
+			Waitframe();
+		}
+	}
+}	
+
+ffc script HostBar{
+	void run(int id, int wait){
+		switch(id){
+			case 0: //Link moves down if he declines
+				int targetY = 120;
+				Waitframes(wait);
+				while(Link->Y <= targetY){
+					Link->InputDown = true;
+					Waitframe();
+				}
+				Waitframes(30);
+				Link->WarpEx({WT_IWARP,338,0x70,-1,-1,WARPEFFECT_NONE,25,4,1});
+				break;
+			case 1: //Check to see if Link has the right costumes
+				if( Game->LoadItemData(211)->Level == 2 || Game->LoadItemData(239)->Level == 2 || Game->LoadItemData(105)->Level == 2 ){
+					Link->WarpEx({WT_IWARP,338,0x01,-1,-1,WARPEFFECT_NONE,25,4,0});
+				}
+				break;
+			case 2: //Second Time Check (Link must have the same costume)
+				if( (Game->LoadItemData(211)->Level == 2 && Game->Counter[38] == 1) || (Game->LoadItemData(239)->Level == 2 && Game->Counter[38] == 2) || (Game->LoadItemData(105)->Level == 2 && Game->Counter[38] == 3) ){
+					Link->WarpEx({WT_IWARP,338,0x11,-1,-1,WARPEFFECT_NONE,25,4,0});
+				}
+				break;
+			case 3: //Set Shad Counter
+				if(shield_sel == 211){ // Linkle
+					Game->Counter[38] = 1;
+				}
+				else if(shield_sel == 239){ // Lana
+					Game->Counter[38] = 2;
+				}
+				else{	// Purple Dragon
+					Game->Counter[38] = 3;
+				}
+				break;
+			case 4: //Can't press start to open menu
+				while(true){
+					Link->InputStart = false; Link->PressStart = false;
+					Waitframe();
+				}
+				break;
+			case 5: //Link exits the Bar
+				int targetY = 72;
+				Waitframes(60);
+				while(Link->Y <= targetY){
+					Link->InputDown = true;
+					Waitframe();
+				}
+				Link->Dir = DIR_UP;
+				while(Screen->D[1] == 0){
+					Waitframe();
+				}
+				Waitframes(60);
+				while(true){
+					Link->InputDown = true;
+					Waitframe();
+				}
+				break;
+			case 6: //Secrets check for 2nd visit
+				if (Screen->SecretsTriggered()){
+					Link->WarpEx({WT_IWARP,338,0x10,-1,-1,WARPEFFECT_NONE,25,4,0});
+				}
+				break;
+			case 7: //Secrets check for 3rd visit
+				if (Screen->SecretsTriggered()){
+					Link->WarpEx({WT_IWARP,338,0x21,-1,-1,WARPEFFECT_NONE,25,4,0});
+				}
+				break;
+		}
+	}
+}
+
+ffc script KillLink{
+	void run(int wait){
+		Waitframes(wait);
+		Link->Kill(true);
+	}
+}
+
+ffc script SkywardTreeSatellite{
+	void run(int type){
+		if(type == 1){ //Warp if Counter is 4 Unlocks main door
+			Game->Counter[40] += 1;
+			Waitframes(180);
+			if(Screen->D[1] == 1){ //Cain
+				Game->Counter[16] = 49;
+			}
+			else if(Screen->D[1] == 2){ //Ciela
+				Game->Counter[16] = 53;
+			}
+			else if(Screen->D[1] == 3){ //Aurelia
+				Game->Counter[16] = 81;
+			}
+			else if(Screen->D[1] == 4){ //Ingrid
+				Game->Counter[16] = 85;
+			}
+			//Warp
+			if(Game->Counter[40] >= 4){
+				Link->WarpEx({WT_IWARP,341,5,16,128,WARPEFFECT_ZAP,25,0});
+			}
+		}
+		else if(type == 2){ //Warp back after door unlocks
+			Waitframes(10);
+			int mapWarp = Game->Counter[16];
+			int xPos = 128;
+			if(mapWarp == 49 || mapWarp == 81){
+				xPos = 112;
+			}
+			//Warp
+			int wflags;
+			wflags |= WARP_FLAG_SETENTRANCEDMAP;
+			wflags |= WARP_FLAG_SETCONTINUEDMAP;
+			Link->WarpEx({WT_IWARP,340,mapWarp,xPos,88,WARPEFFECT_WAVE,25,wflags});
+		}
+	}
+}
+
+ffc script DreadTower{
+	void run(int type, int id1, int id2, int id3){
+		int cMin = 41;	int cSec = 42; int cFra = 43;
+		int bMin = 44;	int bSec = 45; int bFra = 46;
+		if(type == 0){ //Timer Running (id1 = 1, no stop sec)
+			while(!(Screen->SecretsTriggered()&&id1==0)&&!(Game->Counter[cMin]==99&&Game->Counter[cSec]>=59&&Game->Counter[cFra]>=59)){
+				Waitframe();
+				if(Game->Counter[cFra] >= 59){
+					if(Game->Counter[cSec] >= 59){
+						Game->Counter[cMin]++;
+						Game->Counter[cSec] = 0;
+					}
+					else{
+						Game->Counter[cSec]++;
+					}
+					Game->Counter[cFra] = 0;
+				}
+				else{
+					Game->Counter[cFra]++;
+				}
+			}
+		}
+		else if(type == 1){ //Reset Current Timer
+			Game->Counter[41] = 0;
+			Game->Counter[42] = 0;
+			Game->Counter[43] = 0;
+		}
+		else if(type == 2){ //Entering a new floor (id1 = x, id2 = y)
+			//Move Link either until he's in position or 4 seconds have passed
+			for(int i=0; i<=240&&(Link->X!=id1||Link->Y!=id2); i++){
+				//Prevent moving around while moving Link into position
+				Link->InputStart = false; Link->PressStart = false;
+				Link->InputMap = false; Link->PressMap = false;
+				PegasusBoots::UserInterruptDash();
+				NoAction();
+				//Apply inputs that should be active
+				if(Abs(Link->X-id1)<=2){
+					Link->X = id1;
+				}
+				else{
+					if(Link->X<id1)
+						Link->InputRight = true;
+					else if(Link->X>id1)
+						Link->InputLeft = true;
+				}
+				if(Abs(Link->Y-id2)<=2){
+					Link->Y = id2;
+				}
+				else{
+					if(Link->Y<id2)
+						Link->InputDown = true;
+					else if(Link->Y>id2)
+						Link->InputUp = true;
+				}
+				Waitframe();
+			}
+			
+			//Close Door
+			if(id3 > 0){
+				Game->PlaySound(9);
+			}
+			if(id3 == 1){ //Door Up
+				Game->LoadTempScreen(0)->ComboD[ComboAt(112,16)] = 4118;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(128,16)] = 4119;
+			}
+			else if(id3 == 2){ //Door Down
+				Game->LoadTempScreen(0)->ComboD[ComboAt(112,144)] = 4122;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(128,144)] = 4123;
+			}
+			else if(id3 == 3){ //Door Left
+				Game->LoadTempScreen(0)->ComboD[ComboAt(16,64)] = 4116;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(16,80)] = 4120;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(16,96)] = 4124;
+			}
+			else if(id3 == 4){ //Door Right
+				Game->LoadTempScreen(0)->ComboD[ComboAt(224,64)] = 4117;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(224,80)] = 4121;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(224,96)] = 4125;
+			}
+			else if(id3 == 5){ //Sideview Left
+				Game->LoadTempScreen(0)->ComboD[ComboAt(0,112)] = 17792;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(0,128)] = 17792;
+			}
+			else if(id3 == 6){ //Sideview Down
+				Game->LoadTempScreen(0)->ComboD[ComboAt(96,160)] = 15871;
+			}
+			else if(id3 == 7){ //Sideview Right
+				Game->LoadTempScreen(0)->ComboD[ComboAt(240,112)] = 17806;
+				Game->LoadTempScreen(0)->ComboD[ComboAt(240,128)] = 17806;
+			}
+		}
+		else if(type == 3){ //Saving Best Time
+			Waitframes(60);
+			if(!Screen->SecretsTriggered() || Game->Counter[cMin] < Game->Counter[bMin]){
+				Game->Counter[bMin] = Game->Counter[cMin];
+				Game->Counter[bSec] = Game->Counter[cSec];
+				Game->Counter[bFra] = Game->Counter[cFra];
+			}
+			else if (Game->Counter[cMin] == Game->Counter[bMin] && Game->Counter[cSec] < Game->Counter[bSec]){
+				Game->Counter[bSec] = Game->Counter[cSec];
+				Game->Counter[bFra] = Game->Counter[cFra];	
+			}
+			else if (Game->Counter[cSec] == Game->Counter[bSec] && Game->Counter[cFra] < Game->Counter[bFra]){
+				Game->Counter[bFra] = Game->Counter[cFra];
+			}
+		}
+		else if(type == 4){ //Display Best Time
+			if(Screen->SecretsTriggered()){
+				int bestMin[256]; int bestSec[256]; int bestFra[256];
+				
+				if(Game->Counter[bMin] == 0){sprintf(bestMin,"00");}
+				else if(Game->Counter[bMin] < 10){sprintf(bestMin,"0%d",Game->Counter[bMin]);}
+				else{sprintf(bestMin,"%d",Game->Counter[bMin]);}
+				
+				if(Game->Counter[bSec] == 0){sprintf(bestSec,"00");}
+				else if(Game->Counter[bSec] < 10){sprintf(bestSec,"0%d",Game->Counter[bSec]);}
+				else{sprintf(bestSec,"%d",Game->Counter[bSec]);}
+				
+				if(Game->Counter[bFra] == 0){sprintf(bestFra,"00");}
+				else if(Game->Counter[bFra] < 10){sprintf(bestFra,"0%d",Game->Counter[bFra]);}
+				else{sprintf(bestFra,"%d",Game->Counter[bFra]);}
+				
+				while(true){
+					Screen->DrawString(2, 129, 30, FONT_SUBSCREEN3, 0x88, -1, TF_NORMAL, bestMin, OP_OPAQUE, SHD_SHADOWED, 0x89);
+					Screen->DrawString(2, 142, 30, FONT_SUBSCREEN3, 0x88, -1, TF_NORMAL, ":", OP_OPAQUE, SHD_SHADOWED, 0x89);
+					Screen->DrawString(2, 146, 30, FONT_SUBSCREEN3, 0x88, -1, TF_NORMAL, bestSec, OP_OPAQUE, SHD_SHADOWED, 0x89);
+					Screen->DrawString(2, 159, 30, FONT_SUBSCREEN3, 0x88, -1, TF_NORMAL, ":", OP_OPAQUE, SHD_SHADOWED, 0x89);
+					Waitframe();
+					Screen->DrawString(2, 163, 30, FONT_SUBSCREEN3, 0x88, -1, TF_NORMAL, bestFra, OP_OPAQUE, SHD_SHADOWED, 0x89);
+				}
+			}
+		}
+		else if(type == 5){ //Purple Glory Squad Card
+			int id1; int id2; int warpScreen;
+			if(Link->Item[151]){
+				warpScreen = 102;
+			}
+			else{
+				warpScreen = 118;
+			}
+			
+			if(Link->Y <= 64){
+				id1 = 112; id2 = 64;
+				while(Link->X!=id1||Link->Y!=id2){
+					//Prevent moving around while moving Link into position
+					Link->InputStart = false; Link->PressStart = false;
+					Link->InputMap = false; Link->PressMap = false;
+					PegasusBoots::UserInterruptDash();
+					NoAction();
+					//Apply inputs that should be active
+					if(Abs(Link->X-id1)<=2){
+						Link->X = id1;
+					}
+					else{
+						if(Link->X<id1)
+							Link->InputRight = true;
+						else if(Link->X>id1)
+							Link->InputLeft = true;
+					}
+					if(Abs(Link->Y-id2)<=2){
+						Link->Y = id2;
+					}
+					else{
+						if(Link->Y<id2)
+							Link->InputDown = true;
+						else if(Link->Y>id2)
+							Link->InputUp = true;
+					}
+					Waitframe();
+				}
+				while(Link->Y!=96){
+					Link->InputStart = false; Link->PressStart = false;
+					Link->InputMap = false; Link->PressMap = false;
+					PegasusBoots::UserInterruptDash();
+					NoAction();
+					if(Abs(Link->Y-96)<=2){
+						Link->Y = 96;
+					}
+					else{
+						if(Link->Y<96)
+							Link->InputDown = true;
+						else if(Link->Y>96)
+							Link->InputUp = true;
+					}
+					Waitframe();
+				}
+			}
+			id1 = 128; id2 = 104;
+			while(Link->X!=id1||Link->Y!=id2){
+				//Prevent moving around while moving Link into position
+				Link->InputStart = false; Link->PressStart = false;
+				Link->InputMap = false; Link->PressMap = false;
+				PegasusBoots::UserInterruptDash();
+				NoAction();
+				//Apply inputs that should be active
+				if(Abs(Link->X-id1)<=2){
+					Link->X = id1;
+				}
+				else{
+					if(Link->X<id1)
+						Link->InputRight = true;
+					else if(Link->X>id1)
+						Link->InputLeft = true;
+				}
+				if(Abs(Link->Y-id2)<=2){
+					Link->Y = id2;
+				}
+				else{
+					if(Link->Y<id2)
+						Link->InputDown = true;
+					else if(Link->Y>id2)
+						Link->InputUp = true;
+				}
+				Waitframe();
+			}
+			Link->Dir = DIR_UP;
+			Waitframes(60);
+			Link->WarpEx({WT_IWARP,357,warpScreen,-1,-1,WARPEFFECT_NONE,25,4});
+		}
+		else if(type == 6){ //Display Seth Shop
+			int sethInvest[256];
+			
+			sprintf(sethInvest,"%d",Game->Counter[13]);
+			
+			int colorA = 0x84; int colorB = 0x85;
+			
+			if(Game->Counter[13] >= 6000){ // Gun Reward
+				colorA = 0x78; colorB = 0x79;
+			}
+			else if(Game->Counter[13] >= 4000){ // 500 Rupee Reward
+				colorA = 0x88; colorB = 0x89;
+			}
+			else if(Game->Counter[13] >= 2000){ // 50 Seashell Reward
+				colorA = 0x89; colorB = 0x8A;
+			}
+			
+			while(true){
+				Screen->DrawString(2, 168, 14, FONT_SUBSCREEN3, colorA, -1, TF_CENTERED, sethInvest, OP_OPAQUE, SHD_SHADOWED, colorB);
+				Waitframe();
+			}
+		}
+	}
+}
+
+ffc script timerDisplay{
+	void run(int secs){
+		int onesTimer = 25791;
+		int tensTimer = 25811;
+		int timerX = 192;
+		int timerY = 0;
+		int winCset = 7;
+		int i2 = secs;
+		
+		for(int i=secs*60; i>0; i--){
+			if(i!=secs*60&&i%60==0){
+				i2-=1;
+				if(i2 <= 5){Game->PlaySound(5);}
+			}
+			if(i2 <= 5){winCset = 8;}
+			FastTile(3, timerX, timerY, tensTimer-Floor(i2/10), winCset, OP_OPAQUE);
+			FastTile(3, timerX+16, timerY, onesTimer-(i2%10), winCset, OP_OPAQUE);
+			Waitframe();
+		}
+		
+		FastTile(3, timerX, timerY, "", 7, OP_OPAQUE);
+		
+	}
+}
+
+ffc script Debugger{	//Testing purposes only
+	void run(int id){
+		Game->PlaySound(70);
+		if (id==0){	//Zodiac and Chest Counter set
+			Game->MCounter[18] = 999;
+			Game->MCounter[19] = 12;
+			Game->MCounter[20] = 12;
+			Game->MCounter[21] = 12;
+			Game->MCounter[22] = 12;
+			Game->MCounter[23] = 12;
+			Game->MCounter[24] = 12;
+			Game->MCounter[25] = 12;
+			Game->MCounter[26] = 12;
+			Game->MCounter[27] = 12;
+			Game->MCounter[28] = 12;
+			Game->MCounter[29] = 12;
+			Game->MCounter[30] = 12;
+			Game->MCounter[31] = 12;
+		}
+		else if (id == 1){	//Swap Counter 10 with 32, ZC bug
+			Game->Counter[32] = 32;
+			Game->MCounter[32] = 32;
+			Game->Counter[10] = 0;
+			Game->MCounter[10] = 100;
+		}
+		else if (id == 2){ //Set RM Charge
+			Game->Counter[10] = 50;
+		}
+		else if (id == 3){ //Set Dragon Defeated Counter
+			Game->MCounter[33] = 7;
+		}
+		else if (id == 4){ //Set Extra Progress and other counters
+			Game->MCounter[34] = 99; Game->Counter[34] = 37;
+			Game->MCounter[35] = 99; Game->Counter[35] = 12;
+			Game->MCounter[36] = 12; Game->Counter[36] = 12;
+		}		
+		else if (id == 5){ //Activate DN Script
+			Game->MCounter[37] = 4;
+			Game->Counter[37] = 2;
+		}
+		else if (id == 6){ //Golden Dragon
+			Link->Item[232] = true;
+		}
+		else if (id == 7){ //Heart Pieces
+			Game->Generic[GEN_HEARTPIECES] = 1;
+			Game->MCounter[0] = 304;
+			Game->Counter[32] = 29;
+		}
+		else if (id == 8){ //Remove Omega
+			Link->Item[240] = false;
+			Game->Counter[1] += 2000;
+		}
+		else if (id == 9){ //Satellite Activated Counter
+			Game->MCounter[40] = 4;
+		}
+		else if (id == 10){ //Timer Set
+			Game->MCounter[41] = 99;
+			Game->MCounter[42] = 60;
+			Game->MCounter[43] = 60;
+			Game->MCounter[44] = 99;
+			Game->MCounter[45] = 60;
+			Game->MCounter[46] = 60;
+		}
+		else if (id == 11){ //Starlight Express
+			for(int i=48; i<=67; ++i){
+				Game->MCounter[i] = 999;
+			}
+		}
+		else if (id == 12){ //Astral Tower Postgame
+			Game->MCounter[68] = 9999;
+			Game->MCounter[69] = 9999;
+		}
+		else if (id == 13){
+			 // printf("-------------------------\n");
+			Link->ItemA = 127;
+			Link->ItemB = 196;
+		}
+		else if (id == 14){
+			while(true){
+				if(Screen->D[5] & 4){printf("%d\n",Screen->D[5]);}
+				//printf("%d\n",Screen->D[5]);
+				Waitframe();
+			}
+		}
+	}
+}
+
+

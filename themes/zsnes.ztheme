@@ -1,0 +1,42 @@
+[Theme]
+//////////////////////////////////////////////////////// = 
+// = VGA Colours 1 to 8
+//////////////////////////////////////////////////////// = 
+color_1 = E000
+color_2 = 4040C8
+color_3 = 3030B8
+color_4 = 2020A8
+color_5 = 88
+color_6 = 0
+color_7 = 585450
+color_8 = A8A8E0
+ztheme_ver = 1
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////// = 
+// = System Elements
+//////////////////////////////////////////////////////// = 
+jcbox = 4
+jclight = 2
+jcmedlt = 3
+jcmeddark = 4
+jcdark = 8
+jcboxfg = 8
+jctitlel = 7
+jctitler = 7
+jctitlefg = 1
+jctextbg = 6
+jctextfg = 1
+jcselbg = 4
+jcselfg = 1
+
+jccursormisc = 1
+jccursoroutline = 1
+jccursorlight = 3
+jccursordark = 4

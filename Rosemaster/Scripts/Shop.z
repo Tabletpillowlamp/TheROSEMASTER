@@ -1,0 +1,537 @@
+//D0: ID of the item
+//D1: Price of the item
+//D2: Message that plays when the item is bought
+//D3: Message that plays when you don't have enough rupees
+//D4: Input type 0=A 1=B 2=L 3=R
+ffc script SimpleShop{
+    void run(int itemID, int price, int m, int n, int input, int bottle, int unique, int seth){
+        int loc = ComboAt(this->X,this->Y);
+		int bot1 = 29;
+		int bot2 = 195;
+		int bot3 = 189;
+		int bot4 = 219;
+		if((itemID!=11)||(Player->Item[222]==true)){
+			while(true){
+				while(!AgainstComboBase(loc) || !SelectPressInput(input)){
+					Waitframe();
+					if(((Link->Y <= ComboY(loc)+16)&&(Link->Y>=ComboY(loc))) && Abs(Link->X-ComboX(loc)) < 8){
+						itemDisplayName(itemID, bottle);
+					}
+				}
+				SetInput(input,false);
+				if((!Game->DCounter[CR_RUPEES])&&(seth!=2))
+				{
+					if(Game->Counter[CR_RUPEES] >= price)
+					{
+						if(bottle == 0)
+						{
+							if ((unique == 1) && Link->Item[itemID])	//Already owned the item
+							{
+								Screen->Message(n+154);
+							}
+							else if ( (itemID == 139) && (Link->Item[51]) )	//Concert Ticket
+							{
+								Screen->Message(n+154);
+							}						
+							else
+							{
+								if ((Game->Counter[0] >= Game->MCounter[0]) && ((itemID == 2) || (itemID == 160) || (itemID == 34) || (itemID == 69)))	//Health
+								{
+									Screen->Message(n+154);
+								}
+								if ((Game->Counter[4] >= Game->MCounter[4]) && ((itemID == 59) || (itemID == 60)))	//Magic
+								{
+									Screen->Message(n+154);
+								}
+								else if ((Game->Counter[2] >= Game->MCounter[2]) && ((itemID == 77) || (itemID == 78) || (itemID == 79)|| (itemID == 80)))	//Bombs
+								{
+									Screen->Message(n+154);
+								}
+								else if ((Game->Counter[3] >= Game->MCounter[3]) && ((itemID == 70) || (itemID == 71) || (itemID == 72)|| (itemID == 73)))	//Arrows
+								{
+									Screen->Message(n+154);
+								}
+								else if ((Game->Counter[6] >= Game->MCounter[6]) && (itemID == 48))	//Super Bombs
+								{
+									Screen->Message(n+154);
+								}
+								else if ((Game->Counter[7] >= Game->MCounter[7]) && ((itemID == 152) || (itemID == 153) || (itemID == 173) || (itemID == 154)))	//Bombchus
+								{
+									Screen->Message(n+154);
+								}
+								else
+								{
+									item shpitm = CreateItemAt(itemID, Link->X, Link->Y);
+									shpitm->Pickup = IP_HOLDUP;
+									Game->DCounter[CR_RUPEES] -= price;
+									if (seth == 1){Game->Counter[13] += price;}
+									Screen->Message(m);
+								}
+							}
+						}
+						else
+						{
+							if(Game->BottleState[1] == 0)
+							{
+								Game->DCounter[CR_RUPEES] -= price;
+								Game->BottleState[1] = itemID;
+								Hero->Action = LA_HOLD1LAND;
+								Hero->HeldItem = bot1;
+								holdUpBottle(itemID);
+								if (seth == 1){Game->Counter[13] += price;}
+							}
+							else if(Game->BottleState[2] == 0 && Link->Item[bot2])
+							{
+								Game->DCounter[CR_RUPEES] -= price;
+								Game->BottleState[2] = itemID;
+								Hero->Action = LA_HOLD1LAND;
+								Hero->HeldItem = bot2;
+								holdUpBottle(itemID);
+								if (seth == 1){Game->Counter[13] += price;}
+							}
+							else if(Game->BottleState[3] == 0 && Link->Item[bot3])
+							{
+								Game->DCounter[CR_RUPEES] -= price;
+								Game->BottleState[3] = itemID;
+								Hero->Action = LA_HOLD1LAND;
+								Hero->HeldItem = bot3;
+								holdUpBottle(itemID);
+								if (seth == 1){Game->Counter[13] += price;}
+							}
+							else if(Game->BottleState[4] == 0 && Link->Item[bot4])
+							{
+								Game->DCounter[CR_RUPEES] -= price;
+								Game->BottleState[4] = itemID;
+								Hero->Action = LA_HOLD1LAND;
+								Hero->HeldItem = bot4;
+								holdUpBottle(itemID);
+								if (seth == 1){Game->Counter[13] += price;}
+							}
+							else
+							{
+								Screen->Message(n+154);
+							}
+						}
+					}
+					else
+					{
+						Screen->Message(n);
+					}
+					
+				}
+				else if(seth==2){
+					if(Game->Counter[14] >= price){
+						Game->Counter[14] -= price;
+						item shpitm = CreateItemAt(itemID, Link->X, Link->Y);
+						shpitm->Pickup = IP_HOLDUP;
+						
+					}
+					else {
+						Screen->Message(4815);
+					}
+				}
+				Waitframe();
+			}
+		}
+    }
+	void holdUpBottle(int id){
+		Game->PlaySound(20);
+		Waitframes(1);
+		botMessage(id);
+		}
+	void botMessage(int bt){
+		if(bt == 1){
+			Screen->Message(160);
+		}
+		else if(bt == 2){
+			Screen->Message(161);
+		}
+		else if(bt == 3){
+			Screen->Message(162);
+		}
+		else if(bt == 4){
+			Screen->Message(163);
+		}
+		else if(bt == 5){
+			Screen->Message(164);
+		}
+		else if(bt == 6){
+			Screen->Message(165);
+		}
+		else if(bt == 7){
+			Screen->Message(166);
+		}
+		else if(bt == 8){
+			Screen->Message(167);
+		}
+		else if(bt == 9){
+			Screen->Message(6969);
+		}
+		else if(bt == 10){
+			Screen->Message(6970);
+		}
+		else if(bt == 11){
+			Screen->Message(7144);
+		}
+	}
+	void itemDisplayName(int id, int bot){
+		int nameX = 0;
+		int nameY0 = 136;
+		int nameY1 = 144;
+		int nameY2 = 152;
+		int nameY3 = 160;
+		
+		int fontH = 7;
+		int fontB = 69;		
+		
+		if (bot == 0){
+			switch(id)
+			{
+				case 8:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x84, -1, 0, "Big Shield", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Blocks stronger projectiles.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 10:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x84, -1, 0, "Lantern", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Shoot out a damaging flame.", OP_OPAQUE);
+					break;
+				case 17:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 1, -1, 0, "White Tunic", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Cut the damage you take in half.", OP_OPAQUE);
+					break;
+				case 19:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x82, -1, 0, "Bracelet", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Push heavy rocks and blocks.", OP_OPAQUE);
+					break;
+				case 24:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x84, -1, 0, "Magic Boomerang", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Throw a boomerang with increased range.", OP_OPAQUE);
+					break;
+				case 31:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x74, -1, 0, "Ocarina", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Trigger secrets and warp to dungeons.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "you have previously been to.", OP_OPAQUE);
+					break;
+				case 37:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x88, -1, 0, "Mirror Shield", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Reflects certain projectiles.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 48:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x84, -1, 0, "Super Bomb", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a bomb bag.", OP_OPAQUE);
+					break;
+				case 50:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x88, -1, 0, "Aegis Staff", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Create a runic safe spot that", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "can block projectiles.", OP_OPAQUE);
+					break;
+				case 51:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x74, -1, 0, "Flippers", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Allows you to swim on water.", OP_OPAQUE);
+					break;
+				case 53:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x74, -1, 0, "Lens of Truth", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Reveals secret paths or triggers.", OP_OPAQUE);
+					break;
+				case 58:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x7D, -1, 0, "Deku Shield", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Mido wants you to have this.", OP_OPAQUE);
+					break;
+				case 72:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x7D, -1, 0, "10 Arrows", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a quiver.", OP_OPAQUE);
+					break;
+				case 73:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x7D, -1, 0, "30 Arrows", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a quiver.", OP_OPAQUE);
+					break;
+				case 75:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x7D, -1, 0, "Medium Quiver", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Hold up to 60 Arrows.", OP_OPAQUE);
+					break;
+				case 79:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x74, -1, 0, "10 Bombs", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a bomb bag.", OP_OPAQUE);
+					break;
+				case 80:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x74, -1, 0, "20 Bombs", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a bomb bag.", OP_OPAQUE);
+					break;
+				case 81:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x74, -1, 0, "Small Bomb Bag", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Hold up to 20 Bombs.", OP_OPAQUE);
+					break;
+				case 82:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x74, -1, 0, "Medium Bomb Bag", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Hold up to 50 Bombs.", OP_OPAQUE);
+					break;
+				case 91:
+					Rectangle(6, 0, nameY0-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY0, fontH, 0xB8, -1, 0, "Air Strike Caller", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontB, 1, -1, 0, "Call air support to drop bombs", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "from above!", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a bomb bag.", OP_OPAQUE);
+					break;
+				case 93:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x74, -1, 0, "Small Shield", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Blocks some projectiles.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 108:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0xB4, -1, 0, "Gun", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Shoots fast & powerful bullets.", OP_OPAQUE);
+					break;
+				case 115:
+					Rectangle(6, 0, nameY3-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontH, 0x74, -1, 0, "10 Seashells", OP_OPAQUE);
+					break;
+				case 116:
+					Rectangle(6, 0, nameY3-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontH, 0x74, -1, 0, "50 Seashells", OP_OPAQUE);
+					break;
+				case 117:
+					Rectangle(6, 0, nameY3-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontH, 0x74, -1, 0, "100 Seashells", OP_OPAQUE);
+					break;
+				case 121:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x84, -1, 0, "Invincibility Cloak", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Become invulnerable for a short time.", OP_OPAQUE);
+					break;
+				case 122:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0xB9, -1, 0, "Bronze Glory Card", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Trading card for the Glory Squad game.", OP_OPAQUE);
+					break;
+				case 136:
+					Rectangle(6, 0, nameY0-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY0, fontH, 0x68, -1, 0, "Knight's Armor", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontB, 1, -1, 0, "Enhanced power & defense at the", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "cost of speed.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 139:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0xA8, -1, 0, "Concert Ticket", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Grants entry to Bella's concert.", OP_OPAQUE);
+					break;
+				case 148:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x89, -1, 0, "Small Bombchu Bag", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Hold up to 20 Bombchus.", OP_OPAQUE);
+					break;
+				case 150:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x89, -1, 0, "Large Bombchu Bag", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Hold up to 100 Bombchus.", OP_OPAQUE);
+					break;
+				case 155:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x84, -1, 0, "Lens of Judgement", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Views secrets in a larger scope.", OP_OPAQUE);
+					break;
+				case 168:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x68, -1, 0, "Bunny Gear", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Gain super speed and move much faster.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 153:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x72, -1, 0, "5 Bombchus", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a bombchu bag.", OP_OPAQUE);
+					break;
+				case 154:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x72, -1, 0, "20 Bombchus", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a bombchu bag.", OP_OPAQUE);
+					break;
+				case 173:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x72, -1, 0, "10 Bombchus", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires a bombchu bag.", OP_OPAQUE);
+					break;
+				case 174:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x84, -1, 0, "Cross Ring", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Spin attack shoots four cross beams.", OP_OPAQUE);
+					break;
+				case 183:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0xB3, -1, 0, "Bug Catching Net", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Put fairies into bottles with this.", OP_OPAQUE);
+					break;
+				case 187:
+					Rectangle(6, 0, nameY0-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY0, fontH, 0xB4, -1, 0, "Business Suit", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontB, 1, -1, 0, "Lose rupees instead of hearts when", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "damaged.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 210:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x68, -1, 0, "Moogle Costume", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Become an cute little Moogle, kupo.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 211:
+					Rectangle(6, 0, nameY0-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY0, fontH, 0x68, -1, 0, "Linkle Costume", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontB, 1, -1, 0, "Become nimble and increase the shot of", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "your bow.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 212:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x68, -1, 0, "Baby Link Costume", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Become what you were many years ago.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 213:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 1, -1, 0, "Chocobo Costume", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Become the much beloved chocobo.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 227:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0xB3, -1, 0, "Kunai", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Shoot a short-ranged weapon that", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "can block projectiles.", OP_OPAQUE);
+					break;
+				case 235:
+					Rectangle(6, 0, nameY2-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontH, 0x84, -1, 0, "Inferno Wand", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 1, -1, 0, "Shoot out a breath of powerful fire.", OP_OPAQUE);
+					break;
+				case 239:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x73, -1, 0, "Lana Outfit", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Press L to fire a circular shot.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				case 240:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0xB4, -1, 0, "Omega Tank", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Press L to fire laser beams.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8B, -1, 0, "Equip through the subscreen menu.", OP_OPAQUE);
+					break;
+				
+			}
+		}
+		else{
+			switch(id)
+			{
+				case 1:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x84, -1, 0, "Red Potion", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Restores ten hearts.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 2:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x78, -1, 0, "Green Potion", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Fully restore your magic.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 3:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x88, -1, 0, "Yellow Potion", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Fully restore your hearts.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 4:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0x74, -1, 0, "Blue Potion", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Restores all magic & ten hearts.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 5:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0xA8, -1, 0, "Crystal Potion", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Fully restore your hearts & magic.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 6:
+					Rectangle(6, 0, nameY0-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY0, fontH, 0x83, -1, 0, "Bottled Fairy", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontB, 1, -1, 0, "Restore half your hearts. Activates", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "upon death.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 7:
+					Rectangle(6, 0, nameY0-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY0, fontH, 0x88, -1, 0, "Bottled Golden Fairy", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontB, 1, -1, 0, "Fully restore your hearts. Activates", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "upon death.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 8:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0xB8, -1, 0, "Supplement Goop", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Refills bomb, arrow, and bombchu counter.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 9:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0xB2, -1, 0, "White Potion", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Become invincible for a short time.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 10:
+					Rectangle(6, 0, nameY1-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontH, 0xB4, -1, 0, "Black Potion", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "Deal big damage to all enemies on screen.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+				case 11:
+					Rectangle(6, 0, nameY0-2, 256, 168, 15, 1, 0, 0, 0, 1, OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY0, fontH, 0x74, -1, 0, "Seashell Vodka", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY1, fontB, 1, -1, 0, "Activates random powerful effects.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY2, fontB, 1, -1, 0, "More effects for every 500 seashells.", OP_OPAQUE);
+					Screen->DrawString(6, nameX, nameY3, fontB, 0x8C, -1, 0, "Requires: Empty Bottle", OP_OPAQUE);
+					break;
+			}
+		}
+	}
+    bool AgainstComboBase(int loc){
+        return Link->Z == 0 && (Link->Dir == DIR_UP && Link->Y == ComboY(loc)+8 && Abs(Link->X-ComboX(loc)) < 8);
+    }
+}
+
+//!!These functions should only be included in your script file once!!
+bool SelectPressInput(int input){
+    if(input == 0) return Link->PressA;
+    else if(input == 1) return Link->PressB;
+    else if(input == 2) return Link->PressL;
+    else if(input == 3) return Link->PressR;
+}
+void SetInput(int input, bool state){
+    if(input == 0) Link->InputA = state;
+    else if(input == 1) Link->InputB = state;
+    else if(input == 2) Link->InputL = state;
+    else if(input == 3) Link->InputR = state;
+}

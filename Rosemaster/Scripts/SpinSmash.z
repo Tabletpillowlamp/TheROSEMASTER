@@ -1,0 +1,737 @@
+const float SPINSMASH_JUMP = 4.0;
+const float SPINSMASH_MOVESPEED = 0;
+
+const int SFX_SPINSMASH_JUMP = 54;
+const int SFX_SPINSMASH_FALL = 38;
+const int SFX_SPINSMASH_QUAKE = 3;
+
+const int SPINSMASH_RADIUS = 64;
+const int SPINSMASH_STUN = 180;
+
+const int DAMAGE_MULT_SPINSMASH_SHOCKWAVE = 1;
+
+generic script SpinSmash
+{
+	void run()
+	{
+		//int spinTimer = 20;
+		int pressed = 0;
+		while(true)
+		{
+			WaitTo(SCR_TIMING_POST_GLOBAL_ACTIVE);
+
+			//Costume Special Moves
+			if(Link->PressL&&Screen->ShowingMessage==0&&
+			  (!Link->Item[170]&&!Link->Item[216]&&!Link->Item[112]&&!Link->Item[199]&&!Link->Item[120]
+			   &&!Link->Item[225]&&!Link->Item[248]&&!Link->Item[234]&&!Link->Item[251])){
+				  /*
+				if ((Game->LoadItemData(168)->Level == 2) && ((Game->Counter[4] >= 8)||(Link->Item[241]&&Game->Counter[4] >= 4))){	//Ninja Gear
+					if (Link->Item[241]){
+						Game->Counter[4]-=4;
+					}
+					else{
+						Game->Counter[4]-=8;
+					}
+					int power = 6;
+					if(Link->Item[243]){
+						power = 18;
+					}
+					Game->PlaySound(108);
+					lweapon star = CreateLWeaponAt(2, Link->X, Link->Y);
+					star->Dir = Link->Dir;
+					star->Step = 600;
+					star->UseSprite(100);
+					star->Damage = power;
+					Waitframes(40);
+				}
+				*/
+				if ((Game->LoadItemData(239)->Level == 2) && ((Game->Counter[4] >= 48)||(Link->Item[241]&&Game->Counter[4] >= 24))){	//Lana Outfit
+					if (Link->Item[241]){
+						Game->Counter[4]-=24;
+					}
+					else{
+						Game->Counter[4]-=48;
+					}
+					Game->PlaySound(35);
+					for(int i = 1; i <= 40; i++){
+						Link->Action=LA_NONE;
+						Link->Action=LA_ATTACKING;
+						Waitframe();
+					}
+					Link->Action=LA_NONE;
+					RunFFCScript(56, {10, 40, 0});
+					
+					// Calculating Power = Power is num heart pieces
+					int power = Ceiling(Link->MaxHP / 16);
+					
+					int rad1 = 20; int rad2 = 18;
+					if(Link->Item[243]){
+						rad1 = 30; rad2 = 12;
+						power += 12;
+					}
+					for(int i; i < rad1; i++){
+						Game->PlaySound(32);
+						lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+						magic->Angular = true;
+						magic->Angle = DegtoRad(i*rad2);
+						magic->Step = 400;
+						magic->UseSprite(183);
+						magic->Damage = power;
+						magic->Weapon = LW_SWORD;
+					}
+					Waitframes(80);
+				}
+				else if ((Game->LoadItemData(240)->Level == 2) && ((Game->Counter[4] >= 32)||(Link->Item[241]&&Game->Counter[4] >= 16))){	//Omega Tank
+					if (Link->Item[241]){
+						Game->Counter[4]-=16;
+					}
+					else{
+						Game->Counter[4]-=32;
+					}
+					Game->PlaySound(35);
+					Waitframes(60);
+					RunFFCScript(56, {10, 40, 0});
+					
+					// Calculating Power = Power is Sealed Weapons Collected Times two
+					int power = 2;
+					if(Game->Counter[36] > 0){
+						power = Game->Counter[36] * 2;
+					}
+					
+					int numShots = 18; int speed = 450;
+					if(Link->Item[243]){
+						numShots = 25; speed = 550;
+						power += 6;
+					}
+					for(int i; i < numShots; i++){
+						Game->PlaySound(78);
+						lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+						magic->Dir = Link->Dir;
+						magic->Step = speed;
+						magic->UseSprite(176);
+						magic->Damage = power;
+						magic->Weapon = LW_SWORD;
+						Waitframes(8);
+					}
+					Waitframes(80);
+				}
+				else if (Game->LoadItemData(12)->Level == 2){ //Black Dragon
+					float jumpSpeed = SPINSMASH_JUMP ;int delay = 16; int fallSpeed = 4;
+					if(Link->Item[243]){
+						jumpSpeed = 3.0; delay = 8; fallSpeed = 8;
+					}
+					Link->Action = LA_NONE;
+					Game->PlaySound(SFX_JUMP);
+					Link->Jump = jumpSpeed;
+					while(Link->Jump>0){
+						WaitTo(SCR_TIMING_POST_GLOBAL_ACTIVE);
+						if(!Screen->ShowingMessage){
+							MoveLink(SPINSMASH_MOVESPEED);
+							Link->Dir = DIR_DOWN;
+							NoAction();
+						}
+						Waitframe();
+					}
+					for(int i=0; i<delay; ++i)
+					{
+						WaitTo(SCR_TIMING_POST_GLOBAL_ACTIVE);
+						if(!Screen->ShowingMessage) {
+							MoveLink(SPINSMASH_MOVESPEED);
+							Link->Dir = DIR_DOWN;
+							Link->Action = LA_NONE;
+							Link->Action = LA_ATTACKING;
+							Link->Jump = 0;
+							NoAction();
+						}
+						Waitframe();
+					}
+					Game->PlaySound(SFX_SPINSMASH_FALL);
+					while(Link->Z>0)
+					{
+						WaitTo(SCR_TIMING_POST_GLOBAL_ACTIVE);
+						if(!Screen->ShowingMessage) {
+							Link->Dir = DIR_DOWN;
+							Link->Action = LA_NONE;
+							Link->Action = LA_ATTACKING;
+							Link->Jump = 0;
+							Link->Z -= fallSpeed;
+							NoAction();
+						}
+						Waitframe();
+					}
+					Game->PlaySound(SFX_SPINSMASH_QUAKE);
+					Screen->Quake = 10;
+					for(int i=Screen->NumNPCs(); i>0; --i){
+						npc n = Screen->LoadNPC(i);
+						if(n->Z==0&&Distance(CenterX(n), CenterY(n), CenterLinkX(), CenterLinkY())<SPINSMASH_RADIUS){
+							lweapon dmg = CreateLWeaponAt(LW_SCRIPT10, CenterX(n), CenterY(n));
+							if(DAMAGE_MULT_SPINSMASH_SHOCKWAVE){
+								int quakeJumpDmg = 16;
+								if(Link->Item[243]){quakeJumpDmg = 28;}
+								dmg->Damage = quakeJumpDmg;
+								dmg->Weapon = LW_SWORD;
+								dmg->Dir = -1;
+								dmg->DrawYOffset = -1000;
+								dmg->Timeout = 2;
+							}
+						}
+					}
+				}
+				else if (Game->LoadItemData(105)->Level == 2 && ( Link->MP >= (40 * (Game->Generic[GEN_MAGICDRAINRATE]/2)) || Link->Item[243] ) ){ //Purple Dragon
+					if(!Link->Item[243]){Link->MP -= 40 * (Game->Generic[GEN_MAGICDRAINRATE]/2);}
+					Game->PlaySound(35);
+					int delay1 = 40; int delay2 = 80; int power = 16;
+					if(Link->Item[243]){
+						delay1 = 20; delay2 = 60; power = 28;	
+					}
+					for(int i = 1; i <= delay1; i++){
+						Link->Action=LA_NONE;
+						Link->Action=LA_ATTACKING;
+						Waitframe();
+					}
+					Screen->Quake = 10;
+					for(int i = 1; i <= delay2; i++){
+						if(i <= 50 && i%2 == 0){
+							lweapon dmg = FireLWeaponDegAngle(LW_SCRIPT10,Link->X,Link->Y,DirAngle(Link->Dir)+Rand(-15,15),Rand(300,400),power,240,25);
+							dmg->Weapon = LW_SWORD;
+						}
+						if(i <= 50 && i%5 == 1){
+							Game->PlaySound(84);
+						}
+						Link->Action=LA_NONE;
+						Link->Action=LA_ATTACKING;
+						Waitframe();
+					}
+					Link->Action=LA_NONE;
+				}
+				else if (Game->LoadItemData(65)->Level == 2 && Link->MP >= (180 * (Game->Generic[GEN_MAGICDRAINRATE]/2)) ){ //Orange Dragon
+					Link->MP -= 180 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+					Game->PlaySound(35);
+					for(int i = 1; i <= 60; i++){
+						Link->Action=LA_NONE;
+						Link->Action=LA_ATTACKING;
+						Waitframe();
+					}
+					Link->Action=LA_NONE;
+					RunFFCScript(56, {0x89, 40, 0});
+					Game->PlaySound(124);
+					if(Link->Item[243]){
+						CreateItemAt(34, ((Link->X)-28), ((Link->Y)-28));
+					}
+					else{
+						CreateItemAt(160, ((Link->X)-24), ((Link->Y)-24));
+						CreateItemAt(2, ((Link->X)+24), ((Link->Y)-24));
+						CreateItemAt(2, ((Link->X)-24), ((Link->Y)+24));
+						CreateItemAt(2, ((Link->X)+24), ((Link->Y)+24));
+					}
+				}
+				else if (Game->LoadItemData(63)->Level == 2 && Link->MP >= (120 * (Game->Generic[GEN_MAGICDRAINRATE]/2)) ){ //Green Dragon
+					Link->MP -= 120 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+					Game->PlaySound(35);
+					for(int i = 1; i <= 80; i++){
+						Link->Action=LA_NONE;
+						Link->Action=LA_ATTACKING;
+						Waitframe();
+					}
+					Link->Action=LA_NONE;
+					RunFFCScript(56, {0x78, 40, 0});
+					Game->PlaySound(124);
+					int rng = Rand(0,7);
+					switch(rng){ //0&7 - Nothing
+						case 1: //HP Heal
+							Link->HP = Link->MaxHP;
+							break;
+						case 2: //MP Heal
+							Link->MP = Link->MaxMP;
+							break;
+						case 3: //Heal Half
+							Link->HP += Link->MaxHP / 2;
+							break;
+						case 4: //Half your health
+							Link->HP = Link->MaxHP / 2;
+							break;
+						case 5: //Lose all Magic
+							Link->MP = 0;
+							break;
+						case 6: //Lose all Magic and Health
+							Link->HP = 16; Link->MP = 0;
+							break;
+					}
+				}
+				else if (Game->LoadItemData(26)->Level == 2 && Link->MP >= (60 * (Game->Generic[GEN_MAGICDRAINRATE]/2)) ){ //Blue Dragon
+					Link->MP -= 60 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+					int pUpDur = 300;
+					if(Link->Item[243]){
+						pUpDur = 400;
+					}
+					Game->PlaySound(35);
+					for(int i = 1; i <= 30; i++){
+						Link->Action=LA_NONE;
+						Link->Action=LA_ATTACKING;
+						Waitframe();
+					}
+					Link->Action=LA_NONE;
+					RunFFCScript(56, {0x74, 40, 0});
+					Game->PlaySound(124);
+					Player->Item[252]=true;
+					for(int i = 1; i <= pUpDur; i++){
+						FastCombo(6,240,0,15590,7,OP_OPAQUE); Waitframe();
+					}
+					RunFFCScript(56, {0x74, 40, 0});
+					Game->PlaySound(124);
+					Player->Item[252]=false;
+				}
+				else if (Game->LoadItemData(118)->Level == 2){ //Silver Dragon
+					genericdata gd = Game->LoadGenericData(CheckGenericScript("SilverDragonExit"));
+					if(!gd->Running)
+					{
+						gd->Running = true;
+					}
+				}
+				else if (Game->LoadItemData(90)->Level == 2 && Link->MP >= (60 * (Game->Generic[GEN_MAGICDRAINRATE]/2)) ){ //Red Dragon
+					genericdata gd = Game->LoadGenericData(CheckGenericScript("RedDragonFire"));
+					if(!gd->Running)
+					{
+						Link->MP -= 60 * (Game->Generic[GEN_MAGICDRAINRATE]/2);
+						gd->Running = true;
+					}
+				}
+				else if (Game->LoadItemData(103)->Level == 2){ //Classic Mode
+					Game->PlaySound(134);
+					for(int i = 1; i <= 80; i++){
+						Link->Action=LA_NONE;
+						Link->Action=LA_HOLD2LAND;
+						Link->HeldItem=177;
+						Waitframe();
+					}
+					Link->Action=LA_NONE;
+				}
+			}
+			
+			//Custom Sword Technique
+			//Charge Beam
+			if (Link->Item[95]&&(Link->Action == LA_CHARGING)
+				&&( ( (Link->ItemA==5||Link->ItemA==6||Link->ItemA==7||Link->ItemA==36||Link->ItemA==127||Link->ItemA==109||Link->ItemA==171||Link->ItemA==193)
+				&& (Link->PressB||Link->PressEx1||Link->PressEx2||Link->PressR||Link->PressEx4) )
+				|| ((Link->ItemB==5||Link->ItemB==6||Link->ItemB==7||Link->ItemB==36||Link->ItemB==127||Link->ItemB==109||Link->ItemB==171||Link->ItemB==193)
+				&& (Link->PressA||Link->PressEx1||Link->PressEx2||Link->PressR||Link->PressEx4) )
+				|| ((Link->ItemX==5||Link->ItemX==6||Link->ItemX==7||Link->ItemX==36||Link->ItemX==127||Link->ItemX==109||Link->ItemX==171||Link->ItemX==193)
+				&& (Link->PressA||Link->PressB||Link->PressEx2||Link->PressR||Link->PressEx4) )
+				|| ((Link->ItemY==5||Link->ItemY==6||Link->ItemY==7||Link->ItemY==36||Link->ItemY==127||Link->ItemY==109||Link->ItemY==171||Link->ItemY==193)
+				&& (Link->PressA||Link->PressB||Link->PressEx1||Link->PressR||Link->PressEx4) )
+				) )
+			{
+				int shineSpeed = 400;
+				if(Link->Item[242]){ //Eyes of God
+					shineSpeed = 550;
+				}
+				Game->PlaySound(70);
+				lweapon shine = CreateLWeaponAt(2, Link->X, Link->Y);
+				shine->Dir = Link->Dir;
+				shine->Step = shineSpeed;
+				shine->UseSprite(187);
+				if		(Link->Item[127]){shine->Damage = 16;}
+				else if	(Link->Item[36]||Link->Item[193]){shine->Damage = 8;}
+				else if	(Link->Item[7]||Link->Item[171]){shine->Damage = 4;}
+				else if	(Link->Item[6]||Link->Item[109]){shine->Damage = 2;}
+				else	{shine->Damage = 1;}
+				
+				if(Link->Item[242]){ //Eyes of God
+					int shine2Damage = 1;
+					if		(Link->Item[127]){shine2Damage = 16;}
+					else if	(Link->Item[36]||Link->Item[193]){shine2Damage = 8;}
+					else if	(Link->Item[7]||Link->Item[171]){shine2Damage = 4;}
+					else if	(Link->Item[6]||Link->Item[109]){shine2Damage = 2;}
+					else	{shine2Damage = 1;}
+					for(int i = -1; i <= 1; i++){
+						if(i!=0){
+							lweapon shine = FireLWeaponDegAngle(LW_BEAM,Link->X,Link->Y,DirAngle(Link->Dir)+(i*12),shineSpeed,shine2Damage,187,25);
+						}
+					}
+				}
+				
+				if(!Link->Item[222]){
+					Waitframes(40);
+				}
+				
+			}
+			
+			//Cancel Spin
+			if((Link->Action==LA_SPINNING) && (Link->PressR||Link->PressEx4) ){
+				Link->Action=LA_NONE;
+				if (Link->Item[20]){	//Levin Treasure
+					Game->PlaySound(102);
+					if(Link->Item[242]){ //Eyes of God
+						for(int i; i < 18; i++){
+							lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+							magic->Angular = true;
+							magic->Angle = DegtoRad(i*20);
+							magic->Step = 440;
+							magic->UseSprite(206);
+							magic->Damage = 22;
+							magic->Weapon = LW_SWORD;
+						}
+						for(int i; i < 9; i++){
+							lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+							magic->Angular = true;
+							magic->Angle = DegtoRad(i*40);
+							magic->Step = 220;
+							magic->UseSprite(206);
+							magic->Damage = 22;
+							magic->Weapon = LW_SWORD;
+						}
+					}
+					else{
+						for(int i; i < 12; i++){
+							lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+							magic->Angular = true;
+							magic->Angle = DegtoRad(i*30);
+							magic->Step = 400;
+							magic->UseSprite(206);
+							magic->Damage = 18;
+							magic->Weapon = LW_SWORD;
+						}
+					}
+				}
+			}
+			
+			
+			if( (Link->Item[97]) && (Link->Action==LA_SPINNING))
+			{
+				//--spinTimer;
+				//Sword
+				if(((Link->ItemA==5||Link->ItemA==6||Link->ItemA==7||Link->ItemA==36||Link->ItemA==127||Link->ItemA==109||Link->ItemA==171||Link->ItemA==193)&&Link->PressA)
+				||((Link->ItemB==5||Link->ItemB==6||Link->ItemB==7||Link->ItemB==36||Link->ItemB==127||Link->ItemB==109||Link->ItemB==171||Link->ItemB==193)&&Link->PressB)
+				||((Link->ItemX==5||Link->ItemX==6||Link->ItemX==7||Link->ItemX==36||Link->ItemX==127||Link->ItemX==109||Link->ItemX==171||Link->ItemX==193)&&Link->PressEx1)
+				||((Link->ItemY==5||Link->ItemY==6||Link->ItemY==7||Link->ItemY==36||Link->ItemY==127||Link->ItemY==109||Link->ItemY==171||Link->ItemY==193)&&Link->PressEx2)
+				)
+					pressed = 1;
+				//Bomb
+				if(Game->Counter[2]>0&&((Link->ItemA==3&&Link->PressA)||(Link->ItemB==3&&Link->PressB)||(Link->ItemX==3&&Link->PressEx1)||(Link->ItemY==3&&Link->PressEx2)))
+					pressed = 2;
+				//Superbomb
+				if(Game->Counter[6]>0&&((Link->ItemA==48&&Link->PressA)||(Link->ItemB==48&&Link->PressB)||(Link->ItemX==48&&Link->PressEx1)||(Link->ItemY==48&&Link->PressEx2)))
+					pressed = 3;
+				//Candle 1
+				if(((Game->Counter[4] >= 16)||(Link->Item[241]&&Game->Counter[4] >= 8))&&((Link->ItemA==10&&Link->PressA)||(Link->ItemB==10&&Link->PressB)||(Link->ItemX==10&&Link->PressEx1)||(Link->ItemY==10&&Link->PressEx2)))
+					pressed = 4;
+				//Candle 2
+				if(((Game->Counter[4] >= 32)||(Link->Item[241]&&Game->Counter[4] >= 16))&&((Link->ItemA==11&&Link->PressA)||(Link->ItemB==11&&Link->PressB)||(Link->ItemX==11&&Link->PressEx1)||(Link->ItemY==11&&Link->PressEx2)))
+					pressed = 5;
+				//Remote Bombs
+				if(Game->Counter[2]>0&&((Link->ItemA==157&&Link->PressA)||(Link->ItemB==157&&Link->PressB)||(Link->ItemX==157&&Link->PressEx1)||(Link->ItemY==157&&Link->PressEx2)))
+					pressed = 6;
+				//if(spinTimer==0&&pressed&&(Link->InputA||Link->InputB))
+				if(pressed>0&&(Link->InputA||Link->InputB||Link->InputEx1||Link->InputEx2))
+				{
+					if(pressed==2||pressed==6){
+						Game->Counter[2]-=1;
+					}
+					else if(pressed==3){
+						Game->Counter[6]-=1;
+					}
+					else if(pressed==4){
+						if (Link->Item[241]){
+							Game->Counter[4]-=8;
+						}
+						else{
+							Game->Counter[4]-=16;
+						}
+					}
+					else if(pressed==5){
+						if (Link->Item[241]){
+							Game->Counter[4]-=16;
+						}
+						else{
+							Game->Counter[4]-=32;
+						}
+
+					}
+					//spinTimer = 20;
+					int props[3];
+					GetHighestLevelSword(props);
+					Link->Action = LA_NONE;
+					Game->PlaySound(SFX_JUMP);
+					Game->PlaySound(SFX_SPINSMASH_JUMP);
+					Link->Jump = SPINSMASH_JUMP;
+					while(Link->Jump>0)
+					{
+						WaitTo(SCR_TIMING_POST_GLOBAL_ACTIVE);
+						if(!Screen->ShowingMessage) {
+							MoveLink(SPINSMASH_MOVESPEED);
+							Link->Dir = DIR_DOWN;
+							NoAction();
+						}
+						Waitframe();
+					}
+					for(int i=0; i<16; ++i)
+					{
+						WaitTo(SCR_TIMING_POST_GLOBAL_ACTIVE);
+						if(!Screen->ShowingMessage) {
+							MoveLink(SPINSMASH_MOVESPEED);
+							Link->Dir = DIR_DOWN;
+							Link->Action = LA_NONE;
+							Link->Action = LA_ATTACKING;
+							Link->Jump = 0;
+							NoAction();
+						}
+						if(pressed==1){
+							DrawDownStab(props);
+						}
+						Waitframe();
+					}
+					Game->PlaySound(SFX_SPINSMASH_FALL);
+					while(Link->Z>0)
+					{
+						WaitTo(SCR_TIMING_POST_GLOBAL_ACTIVE);
+						if(!Screen->ShowingMessage) {
+							Link->Dir = DIR_DOWN;
+							Link->Action = LA_NONE;
+							Link->Action = LA_ATTACKING;
+							Link->Jump = 0;
+							Link->Z -= 4;
+							NoAction();
+						}
+						if(pressed==1){
+							DrawDownStab(props);
+						}
+						Waitframe();
+					}
+					Game->PlaySound(SFX_SPINSMASH_QUAKE);
+					Screen->Quake = 10;
+					if(pressed==1){
+						if (Link->Item[102]||Link->Item[20]){	//Levin Ring
+							Game->PlaySound(102);
+							if(Link->Item[242]){ //Eyes of God
+								for(int i; i < 18; i++){
+									lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+									magic->Angular = true;
+									magic->Angle = DegtoRad(i*20);
+									magic->Step = 440;
+									magic->UseSprite(206);
+									magic->Damage = 22;
+									magic->Weapon = LW_SWORD;
+								}
+								for(int i; i < 9; i++){
+									lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+									magic->Angular = true;
+									magic->Angle = DegtoRad(i*40);
+									magic->Step = 220;
+									magic->UseSprite(206);
+									magic->Damage = 22;
+									magic->Weapon = LW_SWORD;
+								}
+							}
+							else{
+								for(int i; i < 12; i++){
+									lweapon magic = CreateLWeaponAt(2, Link->X, Link->Y);
+									magic->Angular = true;
+									magic->Angle = DegtoRad(i*30);
+									magic->Step = 400;
+									magic->UseSprite(206);
+									magic->Damage = 18;
+									magic->Weapon = LW_SWORD;
+								}
+							}
+							
+						}
+						for(int i=Screen->NumNPCs(); i>0; --i)
+						{
+							npc n = Screen->LoadNPC(i);
+							if(n->Z==0&&Distance(CenterX(n), CenterY(n), CenterLinkX(), CenterLinkY())<SPINSMASH_RADIUS)
+							{
+								//if(n->Defense[NPCD_BRANG]==NPCDT_NONE&&n->Stun<SPINSMASH_STUN)
+								//{
+								//	n->Stun = SPINSMASH_STUN;
+								//}
+								lweapon dmg = CreateLWeaponAt(LW_SCRIPT10, CenterX(n), CenterY(n));
+								if(DAMAGE_MULT_SPINSMASH_SHOCKWAVE)
+								{
+									if (!Link->Item[102]){
+										dmg->Damage = Ceiling(props[0]*DAMAGE_MULT_SPINSMASH_SHOCKWAVE);
+									}
+									else if(Link->Item[127]){
+										dmg->Damage = 32;
+									}
+									else if(Link->Item[102] && !Link->Item[242]){
+										dmg->Damage = 18;
+									}
+									else{
+										dmg->Damage = 22;
+									}
+									dmg->Weapon = LW_SWORD;
+									dmg->Dir = -1;
+									dmg->DrawYOffset = -1000;
+									dmg->Timeout = 2;
+								}
+							}
+						}
+					}
+					
+					else if(pressed==2){
+						lweapon blast = CreateLWeaponAt(LW_BOMBBLAST, Link->X+18, Link->Y);
+						blast->Damage = 8;
+						lweapon blast2 = CreateLWeaponAt(LW_BOMBBLAST, Link->X-18, Link->Y);
+						blast2->Damage = 8;
+						lweapon blast3 = CreateLWeaponAt(LW_BOMBBLAST, Link->X, Link->Y+18);
+						blast3->Damage = 8;
+						lweapon blast4 = CreateLWeaponAt(LW_BOMBBLAST, Link->X, Link->Y-18);
+						blast4->Damage = 8;
+					}
+					
+					else if(pressed==3){
+						if(Link->Item[242]){ //Eyes of God
+							int oX = Link->X; int oY = Link->Y;
+							for(int i = 1; i <= 3; i++){
+								lweapon blast = CreateLWeaponAt(LW_SBOMBBLAST, oX+32*i, oY);
+								blast->Damage = 48;
+								lweapon blast2 = CreateLWeaponAt(LW_SBOMBBLAST, oX-32*i, oY);
+								blast2->Damage = 48;
+								lweapon blast3 = CreateLWeaponAt(LW_SBOMBBLAST, oX, oY+32*i);
+								blast3->Damage = 48;
+								lweapon blast4 = CreateLWeaponAt(LW_SBOMBBLAST, oX, oY-32*i);
+								blast4->Damage = 48;
+								Waitframes(5);
+							}
+						}
+						else{
+							lweapon blast = CreateLWeaponAt(LW_SBOMBBLAST, Link->X+20, Link->Y);
+							blast->Damage = 48;
+							lweapon blast2 = CreateLWeaponAt(LW_SBOMBBLAST, Link->X-20, Link->Y);
+							blast2->Damage = 48;
+							lweapon blast3 = CreateLWeaponAt(LW_SBOMBBLAST, Link->X, Link->Y+20);
+							blast3->Damage = 48;
+							lweapon blast4 = CreateLWeaponAt(LW_SBOMBBLAST, Link->X, Link->Y-20);
+							blast4->Damage = 48;
+						}
+					}
+					
+					else if(pressed==4){
+						for(int i; i < 8; i++){
+							lweapon fire = CreateLWeaponAt(LW_FIRE, Link->X, Link->Y);
+							fire->Dir = i;
+							fire->Step = 100;
+							fire->Angular = true;
+							fire->Angle = DegtoRad(i*45);
+							fire->Damage = 8;
+						}
+					}
+					
+					else if(pressed==5){
+						Game->PlaySound(37);
+						if(Link->Item[242]){ //Eyes of God
+							RunFFCScript(56, {10, 50, 0});
+							Screen->Quake = 60;
+							for(int i; i < 60; i++){
+								lweapon fire = CreateLWeaponAt(LW_FIRE, Link->X, Link->Y);
+								fire->Dir = i;
+								fire->Step = 650;
+								fire->UseSprite(81);
+								fire->Angular = true;
+								fire->Angle = DegtoRad(i*6);
+								fire->Damage = 36;
+							}
+						}
+						else{
+							RunFFCScript(56, {10, 30, 0});
+							Screen->Quake = 40;
+							for(int i; i < 45; i++){
+								lweapon fire = CreateLWeaponAt(LW_FIRE, Link->X, Link->Y);
+								fire->Dir = i;
+								fire->Step = 650;
+								fire->UseSprite(81);
+								fire->Angular = true;
+								fire->Angle = DegtoRad(i*8);
+								fire->Damage = 20;
+							}
+						}
+					}
+					
+					else if(pressed==6){
+						if(Link->Item[242]){ //Eyes of God
+						int oX = Link->X; int oY = Link->Y;
+							for(int i = 1; i <= 5; i++){
+								lweapon blast = CreateLWeaponAt(LW_BOMBBLAST, oX+18*i, oY);
+								blast->Damage = 20;
+								lweapon blast2 = CreateLWeaponAt(LW_BOMBBLAST, oX-18*i, oY);
+								blast2->Damage = 20;
+								lweapon blast3 = CreateLWeaponAt(LW_BOMBBLAST, oX, oY+18*i);
+								blast3->Damage = 20;
+								lweapon blast4 = CreateLWeaponAt(LW_BOMBBLAST, oX, oY-18*i);
+								blast4->Damage = 20;
+								Waitframes(5);
+							}
+						}
+						else{
+							lweapon blast = CreateLWeaponAt(LW_BOMBBLAST, Link->X+18, Link->Y);
+							blast->Damage = 16;
+							lweapon blast2 = CreateLWeaponAt(LW_BOMBBLAST, Link->X-18, Link->Y);
+							blast2->Damage = 16;
+							lweapon blast3 = CreateLWeaponAt(LW_BOMBBLAST, Link->X, Link->Y+18);
+							blast3->Damage = 16;
+							lweapon blast4 = CreateLWeaponAt(LW_BOMBBLAST, Link->X, Link->Y-18);
+							blast4->Damage = 16;
+						}
+					}
+					
+					pressed = 0;
+				}
+			}
+			else
+			{
+				pressed = 0;
+				//spinTimer = 10;
+			}
+			Waitframe();
+		}
+	}
+	void MoveLink(float step)
+	{
+		int vx = (Link->InputLeft?-1:0) + (Link->InputRight?1:0);
+		int vy = (Link->InputUp?-1:0) + (Link->InputDown?1:0);
+		if(vx!=0&&vy!=0)
+		{
+			vx *= 0.7071;
+			vy *= 0.7071;
+		}
+		vx *= step;
+		vy *= step;
+		Link->MoveXY(vx, vy);
+	}
+	void DrawDownStab(int props)
+	{
+		int damage = props[0];
+		int til = props[1];
+		int cs = props[2];
+		if(Link->HP)
+			Screen->DrawTile(SPLAYER_PLAYER_DRAW, Link->X, Link->Y-Link->Z+12, til, 1, 1, cs, -1, -1, 0, 0, 0, FLIP_VERTICAL, true, OP_OPAQUE);
+		lweapon l = CreateLWeaponAt(LW_SCRIPT10, Link->X, Link->Y+12);
+		l->DrawYOffset = -1000;
+		l->Damage = damage;
+		l->Dir = DIR_DOWN;
+		l->Timeout = 2;
+		l->Z = Link->Z;
+		l->Extend = EXT_NOSHADOW;
+		l->Weapon = LW_SWORD;
+	}
+	int GetHighestLevelSword(int props)
+	{
+		int lv = -1;
+		for(int i=0; i<256; ++i)
+		{
+			if(Link->Item[i])
+			{
+				itemdata id = Game->LoadItemData(i);
+				if(id->Type==IC_SWORD&&id->Level>lv)
+				{
+					lv = id->Level;
+					props[0] = id->Power*2;
+					int spr = id->Sprites[0];
+					spritedata sd = Game->LoadSpriteData(spr);
+					props[1] = sd->Tile;
+					props[2] = sd->CSet;
+				}
+			}
+		}
+	}
+}

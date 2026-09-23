@@ -1,0 +1,130 @@
+const int SFX_CHOMP = 119; // Sound the chain chomp makes when it charges
+
+@InitD0("Num Links"),
+@InitDHelp0("How many chain links the chomp has. This determines its leash distance.")
+npc script Chainchomp{
+	using namespace NPCAnim;
+	void run(int numLinks){
+		if(numLinks==0)
+			numLinks = 8;
+		numLinks = Clamp(numLinks, 3, 32);
+		++numLinks;
+		int maxDist = (numLinks-1) * 8;
+		
+		Waitspawn(this);
+		
+		AnimHandler aptr = new AnimHandler(this);
+		aptr->AddAnim(0, 0, 1, 1, ADF_8WAY);
+		
+		int homeX = this->X;
+		int homeY = this->Y;
+		int chainX[33];
+		int chainY[33];
+		for(int i=0; i<33; i++){
+			chainX[i] = this->X;
+			chainY[i] = this->Y;
+		}
+		
+		int vars[16] = {chainX, chainY, numLinks};
+		int chompAngle;
+		ChompWaitframe(this, vars, 10);
+		this->MoveFlags[NPCMV_IGNORE_SOLIDITY] = true;
+		this->MoveFlags[NPCMV_OBEYS_GRAVITY] = true;
+		this->MoveFlags[NPCMV_CAN_PITFALL] = false;
+		this->MoveFlags[NPCMV_CAN_PIT_WALK] = true;
+		this->MoveFlags[NPCMV_CAN_WATERDROWN] = false;
+		this->MoveFlags[NPCMV_CAN_WATER_WALK] = true;
+		while(true){
+			int numHops = Rand(4, 6);
+			// Do 4-6 hops, keep hopping until within the home distance
+			for(int i=0; i<numHops||Distance(this->X, this->Y, homeX, homeY)>=7*vars[2]; i++){
+				if(Distance(this->X, this->Y, homeX, homeY)<maxDist)
+					chompAngle = Rand(360);
+				else
+					chompAngle = Angle(this->X, this->Y, homeX, homeY)+Rand(-45, 45);
+				this->Jump = 1;
+				while(this->Jump>0||this->Z>0){
+					this->MoveAtAngle(chompAngle, this->Step/100, SPW_FLOATER);
+					this->Dir = AngleDir8(WrapDegrees(chompAngle));
+					ChompWaitframe(this, vars);
+				}
+				// 1/3 of the time, pause after a hop
+				if(Rand(3)==0){
+					ChompWaitframe(this, vars, 20);
+				}
+			}
+			// If Link is within 40 pixels of the home distance, do a charge
+			if(Distance(Link->X, Link->Y, homeX, homeY)<maxDist+40){
+				chompAngle = Angle(this->X, this->Y, Link->X, Link->Y);
+				bool cancharge = true;
+				int X = this->X;
+				int Y = this->Y;
+				bool obeyNoEnemy = this->MoveFlags[NPCMV_IGNORE_BLOCKFLAGS];
+				this->MoveFlags[NPCMV_IGNORE_BLOCKFLAGS] = true;
+				// Project the charge to see if it passes over no enemy combos
+				for(int i=0; i<60&&Distance(this->X, this->Y, homeX, homeY)<maxDist; i++){
+					this->MoveAtAngle(chompAngle, this->Step/100*2.6666, SPW_FLOATER);
+					if(ComboFI(this->X+8, this->Y+8, 96))
+						cancharge = false;
+				}
+				this->X = X;
+				this->Y = Y;
+				this->MoveFlags[NPCMV_IGNORE_BLOCKFLAGS] = obeyNoEnemy;
+				// Do the charge if able
+				if(cancharge){
+					ChompWaitframe(this, vars, 10);
+					Game->PlaySound(SFX_CHOMP);
+					for(int i=0; i<60&&Distance(this->X, this->Y, homeX, homeY)<maxDist; i++){
+						this->MoveAtAngle(chompAngle, this->Step/100*2.6666, SPW_FLOATER);
+						this->Dir = AngleDir8(WrapDegrees(chompAngle));
+						ChompWaitframe(this, vars);
+					}
+					ChompWaitframe(this, vars, 90);
+				}
+			}
+		}
+	}
+	void UpdateChain(npc this, int vars){
+		AnimHandler aptr = GetAnimHandler(this);
+		int til = aptr->OriginalTile + 8;
+		
+		int Combo = this->Attributes[10];
+		int chainX = vars[0];
+		int chainY = vars[1];
+		int numLinks = vars[2];
+		int vX[33];
+		int vY[33];
+		int sz = SizeOfArray(chainX);
+		for(int i=1; i<numLinks-1; i++){
+			vX[i] = 0;
+			vY[i] = 0;
+			float d1 = Distance(chainX[i], chainY[i], chainX[i+1], chainY[i+1]);
+			float a1 = Angle(chainX[i], chainY[i], chainX[i+1], chainY[i+1]);
+			float d2 = Distance(chainX[i], chainY[i], chainX[i-1], chainY[i-1]);
+			float a2 = Angle(chainX[i], chainY[i], chainX[i-1], chainY[i-1]);
+			if(d1>=8||d2>=8){
+				vX[i] += VectorX(d1/4, a1) + VectorX(d2/4, a2);
+				vY[i] += VectorY(d1/4, a1) + VectorY(d2/4, a2);
+			}
+		}
+		
+		for(int i=1; i<numLinks; i++){
+			chainX[i] += vX[i];
+			chainY[i] += vY[i];
+			if(Link->HP>0)
+				Screen->FastTile(SPLAYER_EWEAP_BEHIND_DRAW, chainX[i], chainY[i], til, this->CSet, OP_OPAQUE);
+		}
+	}
+	void ChompWaitframe(npc this, int vars, int frames=1)
+	{
+		for(int i=0; i<frames; ++i)
+		{
+			int chainX = vars[0];
+			int chainY = vars[1];
+			chainX[0] = this->X;
+			chainY[0] = this->Y-this->Z;
+			UpdateChain(this, vars);
+			Waitframe(this);
+		}
+	}
+}

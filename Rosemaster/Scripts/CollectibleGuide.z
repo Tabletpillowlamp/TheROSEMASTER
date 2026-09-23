@@ -1,0 +1,1423 @@
+
+
+
+
+generic script CollectiblesGuide{
+	void run(){
+		
+		//Initialize Tiles
+		int c_CR = 86320;
+		
+		int x_HP = 86360;
+		int c_HP = 86340;
+		
+		int x_ST = 86361;
+		int c_ST = 86341;
+		
+		int x_SW   = 86362;
+		int c_SW01 = 86342;	// Remote Bombs
+		int c_SW02 = 86343;	// Alicorn Boots
+		int c_SW03 = 86344;	// Sheikah Lantern
+		int c_SW04 = 86345;	// Golden Boomerang
+		int c_SW05 = 86346;	// Advanced Bombchus
+		int c_SW06 = 86347;	// Gigaton Hammer
+		int c_SW07 = 86348;	// Rune Staff
+		int c_SW08 = 86349;	// Golden Dragoon
+		int c_SW09 = 86350;	// Grass Lamp
+		int c_SW10 = 86351;	// Eldest Cane
+		int c_SW11 = 86352;	// Platinum Bow
+		int c_SW12 = 86353;	// Master Sword
+		
+		int x_DR  = 86363;
+		int c_DR1 = 86364;	// Black Dragon
+		int c_DR2 = 86365;	// Purple Dragon
+		int c_DR3 = 86366;	// Orange Dragon
+		int c_DR4 = 86367;	// Green Dragon
+		int c_DR5 = 86368;	// Blue Dragon
+		int c_DR6 = 86369;	// White Dragon
+		int c_DR7 = 86370;	// Red Dragon
+		
+		int c_BT = 86371;	// Bottles
+		
+		// Actual Tiles
+		int HP01 = checkHP(1)?c_HP:x_HP; int HP02 = checkHP(2)?c_HP:x_HP;
+		int HP03 = checkHP(3)?c_HP:x_HP; int HP04 = checkHP(4)?c_HP:x_HP;
+		int HP05 = checkHP(5)?c_HP:x_HP; int HP06 = checkHP(6)?c_HP:x_HP;
+		int HP07 = checkHP(7)?c_HP:x_HP; int HP08 = checkHP(8)?c_HP:x_HP;
+		int HP09 = checkHP(9)?c_HP:x_HP; int HP10 = checkHP(10)?c_HP:x_HP;
+		int HP11 = checkHP(11)?c_HP:x_HP; int HP12 = checkHP(12)?c_HP:x_HP;
+		int HP13 = checkHP(13)?c_HP:x_HP; int HP14 = checkHP(14)?c_HP:x_HP;
+		int HP15 = checkHP(15)?c_HP:x_HP; int HP16 = checkHP(16)?c_HP:x_HP;
+		int HP17 = checkHP(17)?c_HP:x_HP; int HP18 = checkHP(18)?c_HP:x_HP;
+		int HP19 = checkHP(19)?c_HP:x_HP; int HP20 = checkHP(20)?c_HP:x_HP;
+		int HP21 = checkHP(21)?c_HP:x_HP; int HP22 = checkHP(22)?c_HP:x_HP;
+		int HP23 = checkHP(23)?c_HP:x_HP; int HP24 = checkHP(24)?c_HP:x_HP;
+		int HP25 = checkHP(25)?c_HP:x_HP; int HP26 = checkHP(26)?c_HP:x_HP;
+		int HP27 = checkHP(27)?c_HP:x_HP; int HP28 = checkHP(28)?c_HP:x_HP;
+		int HP29 = checkHP(29)?c_HP:x_HP; int HP30 = checkHP(30)?c_HP:x_HP;
+		int HP31 = checkHP(31)?c_HP:x_HP; int HP32 = checkHP(32)?c_HP:x_HP;
+		
+		int ST01 = checkST(1)?c_ST:x_ST; int ST02 = checkST(2)?c_ST:x_ST;
+		int ST03 = checkST(3)?c_ST:x_ST; int ST04 = checkST(4)?c_ST:x_ST;
+		int ST05 = checkST(5)?c_ST:x_ST; int ST06 = checkST(6)?c_ST:x_ST;
+		int ST07 = checkST(7)?c_ST:x_ST; int ST08 = checkST(8)?c_ST:x_ST;
+		int ST09 = checkST(9)?c_ST:x_ST; int ST10 = checkST(10)?c_ST:x_ST;
+		int ST11 = checkST(11)?c_ST:x_ST; int ST12 = checkST(12)?c_ST:x_ST;
+		int ST13 = checkST(13)?c_ST:x_ST; int ST14 = checkST(14)?c_ST:x_ST;
+		int ST15 = checkST(15)?c_ST:x_ST; int ST16 = checkST(16)?c_ST:x_ST;
+		int ST17 = checkST(17)?c_ST:x_ST; int ST18 = checkST(18)?c_ST:x_ST;
+		int ST19 = checkST(19)?c_ST:x_ST; int ST20 = checkST(20)?c_ST:x_ST;
+		
+		int SW01 = checkSW(1)?c_SW01:x_SW; int SW02 = checkSW(2)?c_SW02:x_SW;
+		int SW03 = checkSW(3)?c_SW03:x_SW; int SW04 = checkSW(4)?c_SW04:x_SW;
+		int SW05 = checkSW(5)?c_SW05:x_SW; int SW06 = checkSW(6)?c_SW06:x_SW;
+		int SW07 = checkSW(7)?c_SW07:x_SW; int SW08 = checkSW(8)?c_SW08:x_SW;
+		int SW09 = checkSW(9)?c_SW09:x_SW; int SW10 = checkSW(10)?c_SW10:x_SW;
+		int SW11 = checkSW(11)?c_SW11:x_SW; int SW12 = checkSW(12)?c_SW12:x_SW;
+		
+		int DR1 = checkDR(1)?c_DR1:x_DR; int DR2 = checkDR(2)?c_DR2:x_DR;
+		int DR3 = checkDR(3)?c_DR3:x_DR; int DR4 = checkDR(4)?c_DR4:x_DR;
+		int DR5 = checkDR(5)?c_DR5:x_DR; int DR6 = checkDR(6)?c_DR6:x_DR;
+		int DR7 = checkDR(7)?c_DR7:x_DR;
+		
+		int BT1 = checkBT(1)?c_BT:x_ST; int BT2 = checkBT(2)?c_BT:x_ST;
+		int BT3 = checkBT(3)?c_BT:x_ST; int BT4 = checkBT(4)?c_BT:x_ST;
+		
+		//Initialize other things
+		this->DataSize = 2;
+		int desc1[256]; int desc2[256];
+		
+		//Toggle Hints
+		int hintToggle = 1;
+		
+		//Cursor Positions
+		int curPos = 0; 
+		int lastCurPos = this->Data[curPos];
+		int curDir = 0;
+		int curX = 0; int curY = 0;
+		
+		// Set Default Text
+		sprintf(desc1,"");
+		sprintf(desc2,"");
+
+		// Main Menu Loop
+		while(true){
+			Screen->Rectangle(6, 0, 0, 256, 176, 0x88, 1, 0, 0, 0, true, OP_TRANS);
+			
+			// Windows
+			Screen->Rectangle(6, 16, 8, 144, 72, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			Screen->Rectangle(6, 160, 8, 240, 72, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			Screen->Rectangle(6, 16, 80, 208, 96, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			Screen->Rectangle(6, 16, 104, 128, 120, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			Screen->Rectangle(6, 144, 104, 208, 120, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			
+			Screen->Rectangle(6, 12, 128, 244, 160, 15, 1, 0, 0, 0, true, OP_OPAQUE);
+			
+			// Titles
+			Screen->DrawString(6, 16, 1, FONT_SUBSCREEN3, 0x83, -1, TF_NORMAL, "Heart Pieces", OP_OPAQUE, SHD_SHADOWED, 0x85);
+			Screen->DrawString(6, 160, 1, FONT_SUBSCREEN3, 0xB3, -1, TF_NORMAL, "Sealed Tablets", OP_OPAQUE, SHD_SHADOWED, 0xB5);
+			Screen->DrawString(6, 16, 73, FONT_SUBSCREEN3, 0x73, -1, TF_NORMAL, "Sealed Weapons", OP_OPAQUE, SHD_SHADOWED, 0x75);
+			Screen->DrawString(6, 16, 97, FONT_SUBSCREEN3, 0xA3, -1, TF_NORMAL, "Dragons", OP_OPAQUE, SHD_SHADOWED, 0xA5);
+			Screen->DrawString(6, 144, 97, FONT_SUBSCREEN3, 0x01, -1, TF_NORMAL, "Bottles", OP_OPAQUE, SHD_SHADOWED, 0x02);
+			
+			// Tiles
+			FastTile(6, 16, 8,HP01,8,OP_OPAQUE); FastTile(6, 32, 8,HP02,8,OP_OPAQUE);
+			FastTile(6, 48, 8,HP03,8,OP_OPAQUE); FastTile(6, 64, 8,HP04,8,OP_OPAQUE);
+			FastTile(6, 80, 8,HP05,8,OP_OPAQUE); FastTile(6, 96, 8,HP06,8,OP_OPAQUE);
+			FastTile(6,112, 8,HP07,8,OP_OPAQUE); FastTile(6,128, 8,HP08,8,OP_OPAQUE);
+			FastTile(6, 16,24,HP09,8,OP_OPAQUE); FastTile(6, 32,24,HP10,8,OP_OPAQUE);
+			FastTile(6, 48,24,HP11,8,OP_OPAQUE); FastTile(6, 64,24,HP12,8,OP_OPAQUE);
+			FastTile(6, 80,24,HP13,8,OP_OPAQUE); FastTile(6, 96,24,HP14,8,OP_OPAQUE);
+			FastTile(6,112,24,HP15,8,OP_OPAQUE); FastTile(6,128,24,HP16,8,OP_OPAQUE);
+			FastTile(6, 16,40,HP17,8,OP_OPAQUE); FastTile(6, 32,40,HP18,8,OP_OPAQUE);
+			FastTile(6, 48,40,HP19,8,OP_OPAQUE); FastTile(6, 64,40,HP20,8,OP_OPAQUE);
+			FastTile(6, 80,40,HP21,8,OP_OPAQUE); FastTile(6, 96,40,HP22,8,OP_OPAQUE);
+			FastTile(6,112,40,HP23,8,OP_OPAQUE); FastTile(6,128,40,HP24,8,OP_OPAQUE);
+			FastTile(6, 16,56,HP25,8,OP_OPAQUE); FastTile(6, 32,56,HP26,8,OP_OPAQUE);
+			FastTile(6, 48,56,HP27,8,OP_OPAQUE); FastTile(6, 64,56,HP28,8,OP_OPAQUE);
+			FastTile(6, 80,56,HP29,8,OP_OPAQUE); FastTile(6, 96,56,HP30,8,OP_OPAQUE);
+			FastTile(6,112,56,HP31,8,OP_OPAQUE); FastTile(6,128,56,HP32,8,OP_OPAQUE);
+			
+			FastTile(6,160, 8,ST01,8,OP_OPAQUE); FastTile(6,176, 8,ST02,8,OP_OPAQUE); FastTile(6,192, 8,ST03,8,OP_OPAQUE);
+			FastTile(6,208, 8,ST04,8,OP_OPAQUE); FastTile(6,224, 8,ST05,8,OP_OPAQUE);
+			FastTile(6,160,24,ST06,8,OP_OPAQUE); FastTile(6,176,24,ST07,8,OP_OPAQUE); FastTile(6,192,24,ST08,8,OP_OPAQUE);
+			FastTile(6,208,24,ST09,8,OP_OPAQUE); FastTile(6,224,24,ST10,8,OP_OPAQUE);
+			FastTile(6,160,40,ST11,8,OP_OPAQUE); FastTile(6,176,40,ST12,8,OP_OPAQUE); FastTile(6,192,40,ST13,8,OP_OPAQUE);
+			FastTile(6,208,40,ST14,8,OP_OPAQUE); FastTile(6,224,40,ST15,8,OP_OPAQUE);
+			FastTile(6,160,56,ST16,8,OP_OPAQUE); FastTile(6,176,56,ST17,8,OP_OPAQUE); FastTile(6,192,56,ST18,8,OP_OPAQUE);
+			FastTile(6,208,56,ST19,8,OP_OPAQUE); FastTile(6,224,56,ST20,8,OP_OPAQUE);
+			
+			FastTile(6, 16,80,SW01,8,OP_OPAQUE); FastTile(6, 32,80,SW02,8,OP_OPAQUE); FastTile(6, 48,80,SW03,8,OP_OPAQUE);
+			FastTile(6, 64,80,SW04,8,OP_OPAQUE); FastTile(6, 80,80,SW05,8,OP_OPAQUE); FastTile(6, 96,80,SW06,8,OP_OPAQUE);
+			FastTile(6,112,80,SW07,8,OP_OPAQUE); FastTile(6,128,80,SW08,8,OP_OPAQUE); FastTile(6,144,80,SW09,8,OP_OPAQUE);
+			FastTile(6,160,80,SW10,8,OP_OPAQUE); FastTile(6,176,80,SW11,8,OP_OPAQUE); FastTile(6,192,80,SW12,8,OP_OPAQUE);
+			
+			FastTile(6, 16,104,DR1,8,OP_OPAQUE); FastTile(6, 32,104,DR2,8,OP_OPAQUE); FastTile(6, 48,104,DR3,8,OP_OPAQUE);
+			FastTile(6, 64,104,DR4,8,OP_OPAQUE); FastTile(6, 80,104,DR5,8,OP_OPAQUE); FastTile(6, 96,104,DR6,8,OP_OPAQUE);
+			FastTile(6,112,104,DR7,8,OP_OPAQUE);
+			
+			FastTile(6,144,104,BT1,8,OP_OPAQUE); FastTile(6,160,104,BT2,8,OP_OPAQUE);
+			FastTile(6,176,104,BT3,8,OP_OPAQUE); FastTile(6,192,104,BT4,8,OP_OPAQUE);
+			
+			// Cursor Position and Message Set
+			if(this->Data[curPos] ==  0){		// Heart Piece 1
+				curX =  16; curY =   8;
+				sprintf(desc1,"A treasure chest is in the");
+				sprintf(desc2,"southwestern corner of Elignita Field.");
+			}
+			else if(this->Data[curPos] ==  1){	// Heart Piece 2
+				curX =  32; curY =   8;
+				sprintf(desc1,"A treasure chest is locked behind");
+				sprintf(desc2,"cracked blocks in the Moblin House.");
+			}
+			else if(this->Data[curPos] ==  2){	// Heart Piece 3
+				curX =  48; curY =   8;
+				sprintf(desc1,"One of the houses in Hinnow");
+				sprintf(desc2,"Village has a cracked wall.");
+			}
+			else if(this->Data[curPos] ==  3){	// Heart Piece 4
+				curX =  64; curY =   8;
+				sprintf(desc1,"Bring bombs to blow up blocks");
+				sprintf(desc2,"in the Forbidden Isle B1.");
+			}
+			else if(this->Data[curPos] ==  4){	// Heart Piece 5
+				curX =  80; curY =   8;
+				sprintf(desc1,"Score at least 100 points");
+				sprintf(desc2,"in the Bow and Arrow Minigame.");
+			}
+			else if(this->Data[curPos] ==  5){	// Heart Piece 6
+				curX =  96; curY =   8;
+				sprintf(desc1,"North of Ord Desert lies a");
+				sprintf(desc2,"hidden area called the Desert Cave.");
+			}
+			else if(this->Data[curPos] ==  6){	// Heart Piece 7
+				curX = 112; curY =   8;
+				sprintf(desc1,"Bring Bombchus to a lonely house in");
+				sprintf(desc2,"Elignita Field, then complete a trial.");
+			}
+			else if(this->Data[curPos] ==  7){	// Heart Piece 8
+				curX = 128; curY =   8;
+				sprintf(desc1,"A treasure chest is located somewhere");
+				sprintf(desc2,"in the Ancient Maze 1F.");
+			}
+			else if(this->Data[curPos] ==  8){	// Heart Piece 9
+				curX =  16; curY =  24;
+				sprintf(desc1,"The Graveyard Chapel has a");
+				sprintf(desc2,"secret puzzle room.");
+			}
+			else if(this->Data[curPos] ==  9){	// Heart Piece 10
+				curX =  32; curY =  24;
+				sprintf(desc1,"South of Elignita Field lies");
+				sprintf(desc2,"a hidden area called Cave 06.");
+			}
+			else if(this->Data[curPos] == 10){	// Heart Piece 11
+				curX =  48; curY =  24;
+				sprintf(desc1,"South of the Forest of Despair lies");
+				sprintf(desc2,"a hidden area called the Forest Cave.");
+			}
+			else if(this->Data[curPos] == 11){	// Heart Piece 12
+				curX =  64; curY =  24;
+				sprintf(desc1,"South of the Theatre of Lust 2F,");
+				sprintf(desc2,"a room with powerful enemies awaits.");
+			}
+			else if(this->Data[curPos] == 12){	// Heart Piece 13
+				curX =  80; curY =  24;
+				sprintf(desc1,"Near the Elignitan Outpost, a powerful");
+				sprintf(desc2,"foe awaits you in Cave 08.");
+			}
+			else if(this->Data[curPos] == 13){	// Heart Piece 14
+				curX =  96; curY =  24;
+				sprintf(desc1,"The area called Cave 09 in Elignita");
+				sprintf(desc2,"Field requires flippers to even enter.");
+			}
+			else if(this->Data[curPos] == 14){	// Heart Piece 15
+				curX = 112; curY =  24;
+				sprintf(desc1,"Score at least 200 points");
+				sprintf(desc2,"in the Bomb-omb Minigame.");
+			}
+			else if(this->Data[curPos] == 15){	// Heart Piece 16
+				curX = 128; curY =  24;
+				sprintf(desc1,"Two powerful foes await you");
+				sprintf(desc2,"in the Tower of Fiends 1F.");
+			}
+			else if(this->Data[curPos] == 16){	// Heart Piece 17
+				curX =  16; curY =  40;
+				sprintf(desc1,"Find one of the end points of the");
+				sprintf(desc2,"Ice Dungeon in Death Mountain Peak.");
+			}
+			else if(this->Data[curPos] == 17){	// Heart Piece 18
+				curX =  32; curY =  40;
+				sprintf(desc1,"In the northwestern part of Lunar");
+				sprintf(desc2,"Garden 1F sits a lone treasure chest.");
+			}
+			else if(this->Data[curPos] == 18){	// Heart Piece 19
+				curX =  48; curY =  40;
+				sprintf(desc1,"Score at least 150 points");
+				sprintf(desc2,"in the Bombchu Minigame.");
+			}
+			else if(this->Data[curPos] == 19){	// Heart Piece 20
+				curX =  64; curY =  40;
+				sprintf(desc1,"Bring lots of rupees with you to the");
+				sprintf(desc2,"Host Club in District 4 Yellow Ward.");
+			}
+			else if(this->Data[curPos] == 20){	// Heart Piece 21
+				curX =  80; curY =  40;
+				sprintf(desc1,"The northwestern building in District");
+				sprintf(desc2,"4 Green Ward hides a secret.");
+			}
+			else if(this->Data[curPos] == 21){	// Heart Piece 22
+				curX =  96; curY =  40;
+				sprintf(desc1,"North of the Outlands lies a cave that");
+				sprintf(desc2,"is blocked off by hammer pegs.");
+			}
+			else if(this->Data[curPos] == 22){	// Heart Piece 23
+				curX = 112; curY =  40;
+				if(Game->Counter[34] >= 25){
+					sprintf(desc1,"Fall from the second floor of the");
+					sprintf(desc2,"Winterfall Kremlin.");
+				}
+				else{
+					sprintf(desc1,"Fall from the second floor of ???.");
+					sprintf(desc2,"");
+				}
+			}
+			else if(this->Data[curPos] == 23){	// Heart Piece 24
+				curX = 128; curY =  40;
+				sprintf(desc1,"Bring fire to a lonely house in");
+				sprintf(desc2,"District 2, then complete a trial.");
+			}
+			else if(this->Data[curPos] == 24){	// Heart Piece 25
+				curX =  16; curY =  56;
+				sprintf(desc1,"Powerful foes await you in a secret");
+				sprintf(desc2,"room in the Hyrulean Passageway.");
+			}
+			else if(this->Data[curPos] == 25){	// Heart Piece 26
+				curX =  32; curY =  56;
+				sprintf(desc1,"A skeleton in the northwestern house");
+				sprintf(desc2,"of District 3 has a gift for you.");
+			}
+			else if(this->Data[curPos] == 26){	// Heart Piece 27
+				curX =  48; curY =  56;
+				if(Game->Counter[12] >= 26){
+					sprintf(desc1,"One of the letters in the Hyrulewood");
+					sprintf(desc2,"sign is susceptible to Super Bombs.");
+				}
+				else{
+					sprintf(desc1,"One of the letters in ???");
+					sprintf(desc2,"is susceptible to Super Bombs.");
+				}
+			}
+			else if(this->Data[curPos] == 27){	// Heart Piece 28
+				curX =  64; curY =  56;
+				if(Game->Counter[12] >= 28){
+					sprintf(desc1,"Powerful foes await you in the");
+					sprintf(desc2,"Ark of Avarice B1.");
+				}
+				else{
+					sprintf(desc1,"Powerful foes await you in ???.");
+					sprintf(desc2,"");
+				}
+			}
+			else if(this->Data[curPos] == 28){	// Heart Piece 29
+				curX =  80; curY =  56;
+				if(Link->Item[92]){
+					sprintf(desc1,"Use the Portal Rod to traverse to");
+					sprintf(desc2,"the end of Grassland Cave.");
+				}
+				else{
+					sprintf(desc1,"Use the ??? to traverse to");
+					sprintf(desc2,"the end of Grassland Cave");
+				}
+			}
+			else if(this->Data[curPos] == 29){	// Heart Piece 30
+				curX =  96; curY =  56;
+				if(Game->Counter[15] >= 6){
+					sprintf(desc1,"Solve the immaculate puzzle in");
+					sprintf(desc2,"the Lost Cave of the Lost Woods.");
+				}
+				else{
+					sprintf(desc1,"Solve the immaculate puzzle in ???.");
+					sprintf(desc2,"");
+				}
+			}
+			else if(this->Data[curPos] == 30){	// Heart Piece 31
+				curX = 112; curY =  56;
+				if(Game->Counter[15] >= 8){
+					sprintf(desc1,"Light the torches in the conveyor");
+					sprintf(desc2,"room of the Forest Temple 1F.");
+				}
+				else{
+					sprintf(desc1,"Light the torches in ???.");
+					sprintf(desc2,"");
+				}
+			}
+			else if(this->Data[curPos] == 31){	// Heart Piece 32
+				curX = 128; curY =  56;
+				if(Game->Counter[12] >= 39){
+					sprintf(desc1,"A treasure chest is hidden in");
+					sprintf(desc2,"the Great Palace B2.");
+				}
+				else{
+					sprintf(desc1,"A treasure chest is hidden in ???.");
+					sprintf(desc2,"");
+				}
+			}
+			else if(this->Data[curPos] == 32){	// Sealed Tablet 1
+				curX = 160; curY =   8;
+				sprintf(desc1,"Complete the Purple Dungeon");
+				sprintf(desc2,"in the Forest of Despair.");
+			}
+			else if(this->Data[curPos] == 33){	// Sealed Tablet 2
+				curX = 176; curY =   8;
+				sprintf(desc1,"Complete the Ice Dungeon");
+				sprintf(desc2,"in Death Mountain Peak.");
+			}
+			else if(this->Data[curPos] == 34){	// Sealed Tablet 3
+				curX = 192; curY =   8;
+				sprintf(desc1,"Complete the Dark Dungeon");
+				sprintf(desc2,"in Grass Land.");
+			}
+			else if(this->Data[curPos] == 35){	// Sealed Tablet 4
+				curX = 208; curY =   8;
+				sprintf(desc1,"Complete the Green Dungeon");
+				sprintf(desc2,"In District 4.");
+			}
+			else if(this->Data[curPos] == 36){	// Sealed Tablet 5
+				curX = 224; curY =   8;
+				sprintf(desc1,"Complete the Blue Dungeon");
+				sprintf(desc2,"In District 4.");
+			}
+			else if(this->Data[curPos] == 37){	// Sealed Tablet 6
+				curX = 160; curY =  24;
+				sprintf(desc1,"Complete the Yellow Dungeon");
+				sprintf(desc2,"In District 4.");
+			}
+			else if(this->Data[curPos] == 38){	// Sealed Tablet 7
+				curX = 176; curY =  24;
+				sprintf(desc1,"Complete the Red Dungeon");
+				sprintf(desc2,"In District 4.");
+			}
+			else if(this->Data[curPos] == 39){	// Sealed Tablet 8
+				curX = 192; curY =  24;
+				sprintf(desc1,"Complete the Gray Dungeon");
+				sprintf(desc2,"In Elignita Field.");
+			}
+			else if(this->Data[curPos] == 40){	// Sealed Tablet 9
+				curX = 208; curY =  24;
+				sprintf(desc1,"The master of winds awaits you");
+				sprintf(desc2,"in District 4 Yellow Ward.");
+			}
+			else if(this->Data[curPos] == 41){	// Sealed Tablet 10
+				curX = 224; curY =  24;
+				if(Link->Item[186]){
+					sprintf(desc1,"Confront Hal's alter ego");
+					sprintf(desc2,"in District 3.");
+				}
+				else if(Link->Item[142]){
+					sprintf(desc1,"Check out top room in the Chest");
+					sprintf(desc2,"Casino in District 4 Yellow Ward.");
+				}
+				else{
+					sprintf(desc1,"Play at least three games of Chest");
+					sprintf(desc2,"Casino in District 4 Yellow Ward.");
+				}
+			}
+			else if(this->Data[curPos] == 42){	// Sealed Tablet 11
+				curX = 160; curY =  40;
+				sprintf(desc1,"The master of ascension awaits you");
+				sprintf(desc2,"in the Astral Tower.");
+			}
+			else if(this->Data[curPos] == 43){	// Sealed Tablet 12
+				curX = 176; curY =  40;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in Grassland Cave.");
+			}
+			else if(this->Data[curPos] == 44){	// Sealed Tablet 13
+				curX = 192; curY =  40;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in District 2.");
+			}
+			else if(this->Data[curPos] == 45){	// Sealed Tablet 14
+				curX = 208; curY =  40;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in District 3.");
+			}
+			else if(this->Data[curPos] == 46){	// Sealed Tablet 15
+				curX = 224; curY =  40;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in the National Library.");
+			}
+			else if(this->Data[curPos] == 47){	// Sealed Tablet 16
+				curX = 160; curY =  56;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in the Royal District.");
+			}
+			else if(this->Data[curPos] == 48){	// Sealed Tablet 17
+				curX = 176; curY =  56;
+				if(Game->Counter[34] >= 25){
+					sprintf(desc1,"A vengeful soul awaits you");
+					sprintf(desc2,"in the Eastern State.");
+				}
+				else{
+					sprintf(desc1,"A vengeful soul awaits you");
+					sprintf(desc2,"in ???.");
+				}
+			}
+			else if(this->Data[curPos] == 49){	// Sealed Tablet 18
+				curX = 192; curY =  56;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in the Yellow Dungeon.");
+			}
+			else if(this->Data[curPos] == 50){	// Sealed Tablet 19
+				curX = 208; curY =  56;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in District 4 Blue Ward.");
+			}
+			else if(this->Data[curPos] == 51){	// Sealed Tablet 20
+				curX = 224; curY =  56;
+				sprintf(desc1,"A vengeful soul awaits you");
+				sprintf(desc2,"in the Red Dungeon.");
+			}
+			else if(this->Data[curPos] == 52){	// SW: Remote Bombs
+				curX =  16; curY =  80;
+				sprintf(desc1,"A building in District 4");
+				sprintf(desc2,"Yellow Ward hides a secret.");
+			}
+			else if(this->Data[curPos] == 53){	// SW: Alicorn Boots
+				curX =  32; curY =  80;
+				sprintf(desc1,"A building in District 4");
+				sprintf(desc2,"Blue Ward hides a secret.");
+			}
+			else if(this->Data[curPos] == 54){	// SW: Sheikah Lantern
+				curX =  48; curY =  80;
+				sprintf(desc1,"Dive into the water whirlpool");
+				sprintf(desc2,"in District 1.");
+			}
+			else if(this->Data[curPos] == 55){	// SW: Golden Boomerang
+				curX =  64; curY =  80;
+				sprintf(desc1,"Uncover a secret in the northern");
+				sprintf(desc2,"entrance of Grassland Cave.");
+			}
+			else if(this->Data[curPos] == 56){	// SW: Advanced Bombchus
+				curX =  80; curY =  80;
+				if(Game->Counter[34] >= 25){
+					sprintf(desc1,"The houses in the Eastern State");
+					sprintf(desc2,"hides a secret.");
+				}
+				else{
+					sprintf(desc1,"The houses in ???");
+					sprintf(desc2,"hides a secret.");
+				}
+			}
+			else if(this->Data[curPos] == 57){	// SW: Gigaton Hammer
+				curX =  96; curY =  80;
+				sprintf(desc1,"There is a hidden cave underneath");
+				sprintf(desc2,"a cracked rock in District 2.");
+			}
+			else if(this->Data[curPos] == 58){	// SW: Rune Staff
+				curX = 112; curY =  80;
+				sprintf(desc1,"Find the secrets of an abandoned");
+				sprintf(desc2,"house in District 1.");
+			}
+			else if(this->Data[curPos] == 59){	// SW: Golden Dragoon
+				curX = 128; curY =  80;
+				if(Game->Counter[12] >= 26){
+					sprintf(desc1,"Dive into the water whirlpool");
+					sprintf(desc2,"in Hyrulewood.");
+				}
+				else{
+					sprintf(desc1,"Dive into the water whirlpool");
+					sprintf(desc2,"in ???.");
+				}
+			}
+			else if(this->Data[curPos] == 60){	// SW: Grass Lamp
+				curX = 144; curY =  80;
+				sprintf(desc1,"Break the heroic statue");
+				sprintf(desc2,"in Grass Land.");
+			}
+			else if(this->Data[curPos] == 61){	// SW: Eldest Cane
+				curX = 160; curY =  80;
+				if(Game->Counter[15] >= 6){
+					sprintf(desc1,"Break the heroic statue");
+					sprintf(desc2,"in the Lost Woods.");
+				}
+				else{
+					sprintf(desc1,"Break the heroic statue");
+					sprintf(desc2,"in ???.");
+				}
+			}
+			else if(this->Data[curPos] == 62){	// SW: Platinum Bow
+				curX = 176; curY =  80;
+				sprintf(desc1,"Return to Elignita Capital");
+				sprintf(desc2,"with the weapon of the Grasslands.");
+			}
+			else if(this->Data[curPos] == 63){	// SW: Master Sword
+				curX = 192; curY =  80;
+				if(Game->Counter[15] >= 6){
+					sprintf(desc1,"Exit from the western entrance");
+					sprintf(desc2,"of the Forest Temple.");
+				}
+				else{
+					sprintf(desc1,"Exit from the western entrance");
+					sprintf(desc2,"of ???.");
+				}
+			}
+			else if(this->Data[curPos] == 64){	// DR: Black Dragon
+				curX =  16; curY = 104;
+				sprintf(desc1,"A powerful dragon awaits you");
+				sprintf(desc2,"somewhere in the Elignitan Graveyard.");
+			}
+			else if(this->Data[curPos] == 65){	// DR: Purple Dragon
+				curX =  32; curY = 104;
+				sprintf(desc1,"A powerful dragon awaits you");
+				sprintf(desc2,"in Death Mountain.");
+			}
+			else if(this->Data[curPos] == 66){	// DR: Orange Dragon
+				curX =  48; curY = 104;
+				sprintf(desc1,"A powerful dragon awaits you");
+				sprintf(desc2,"somewhere in Death Mountain Peak.");
+			}
+			else if(this->Data[curPos] == 67){	// DR: Green Dragon
+				curX =  64; curY = 104;
+				sprintf(desc1,"A powerful dragon awaits you");
+				sprintf(desc2,"in the Hyrulean Outlands.");
+			}
+			else if(this->Data[curPos] == 68){	// DR: Blue Dragon
+				curX =  80; curY = 104;
+				sprintf(desc1,"A powerful dragon awaits you");
+				sprintf(desc2,"somewhere in Ord Desert.");
+			}
+			else if(this->Data[curPos] == 69){	// DR: White Dragon
+				curX =  96; curY = 104;
+				sprintf(desc1,"A powerful dragon awaits you");
+				sprintf(desc2,"the ruins Elignita Capital.");
+			}
+			else if(this->Data[curPos] == 70){	// DR: Red Dragon
+				curX = 112; curY = 104;
+				if(Link->Item[36]){
+					sprintf(desc1,"A powerful dragon awaits you");
+					sprintf(desc2,"in Lotz's Estate B2.");
+				}
+				else{
+					sprintf(desc1,"A powerful dragon awaits you");
+					sprintf(desc2,"in ???.");
+				}
+			}
+			else if(this->Data[curPos] == 71){	// Bottle 1
+				curX =  144; curY = 104;
+				sprintf(desc1,"Given to you by Ciela");
+				sprintf(desc2,"in Elignita Capital.");
+			}
+			else if(this->Data[curPos] == 72){	// Bottle 2
+				curX =  160; curY = 104;
+				sprintf(desc1,"Reach the top of Hinnow Cave.");
+				sprintf(desc2,"");
+			}
+			else if(this->Data[curPos] == 73){	// Bottle 3
+				curX =  176; curY = 104;
+				sprintf(desc1,"It is the Tsar's Greatest");
+				sprintf(desc2,"treasure in the Royal Tomb.");
+			}
+			else if(this->Data[curPos] == 74){	// Bottle 4
+				curX =  192; curY = 104;
+				if(Game->GetDMapScreenD(107, 0x34, 5) & 1){
+					sprintf(desc1,"Founded in a treasure chest");
+					sprintf(desc2,"in the Capitol Station B1.");
+				}
+				else{
+					sprintf(desc1,"Search for an abandoned house");
+					sprintf(desc2,"in the Ruined Elignita Capital.");
+				}
+			}
+			
+			// Draw Cursor
+			FastTile(6,curX,curY,c_CR,8,OP_OPAQUE);
+			
+			// Description
+			if(this->Data[hintToggle] == 0){
+				Screen->DrawString(6, 128, 134, 69, 0x83, -1, TF_CENTERED, "Toggle the A button", OP_OPAQUE, SHD_SHADOWED, 0x85);
+				Screen->DrawString(6, 128, 146, 69, 0x83, -1, TF_CENTERED, "to view hints.", OP_OPAQUE, SHD_SHADOWED, 0x85);
+			}
+			else{
+				Screen->DrawString(6, 128, 134, 69, 0x8B, -1, TF_CENTERED, desc1, OP_OPAQUE, SHD_SHADOWED, 0x89);
+				Screen->DrawString(6, 128, 146, 69, 0x8B, -1, TF_CENTERED, desc2, OP_OPAQUE, SHD_SHADOWED, 0x89);
+			}
+			
+			// ====================
+			// Control
+			// ====================
+			
+			// Move Direction
+			if(Link->PressUp){
+				this->Data[curPos] = cursorMove(this->Data[curPos], DIR_UP);
+				if(lastCurPos != this->Data[curPos]){
+					Game->PlaySound(5);
+					lastCurPos = this->Data[curPos];
+				}
+			}
+			if(Link->PressDown){
+				this->Data[curPos] = cursorMove(this->Data[curPos], DIR_DOWN);
+				if(lastCurPos != this->Data[curPos]){
+					Game->PlaySound(5);
+					lastCurPos = this->Data[curPos];
+				}
+			}
+			if(Link->PressLeft){
+				this->Data[curPos] = cursorMove(this->Data[curPos], DIR_LEFT);
+				if(lastCurPos != this->Data[curPos]){
+					Game->PlaySound(5);
+					lastCurPos = this->Data[curPos];
+				}
+			}
+			if(Link->PressRight){
+				this->Data[curPos] = cursorMove(this->Data[curPos], DIR_RIGHT);
+				if(lastCurPos != this->Data[curPos]){
+					Game->PlaySound(5);
+					lastCurPos = this->Data[curPos];
+				}
+			}
+			
+			// Toggle Hint
+			if(Link->PressA){
+				Game->PlaySound(91);
+				if(this->Data[hintToggle] == 0){
+					this->Data[hintToggle] = 1;
+				}
+				else{
+					this->Data[hintToggle] = 0;
+				}
+			}
+			
+			// Cancel
+			if(Link->PressB){
+				Game->PlaySound(94);
+				break;
+			}
+			
+			// ====================
+			
+			Waitframe();
+			
+		}
+		
+	}
+	//====================
+	// Move Cursor
+	//====================
+	
+	int cursorMove(int position, int direction){
+		switch(position){
+			case 0:
+			    	 if(direction == DIR_UP)   {return 0;}
+				else if(direction == DIR_DOWN) {return 8;}
+				else if(direction == DIR_LEFT) {return 0;}
+				else if(direction == DIR_RIGHT){return 1;}
+				break;
+			case 1:
+			    	 if(direction == DIR_UP)   {return 1;}
+				else if(direction == DIR_DOWN) {return 9;}
+				else if(direction == DIR_LEFT) {return 0;}
+				else if(direction == DIR_RIGHT){return 2;}
+				break;
+			case 2:
+			    	 if(direction == DIR_UP)   {return 2;}
+				else if(direction == DIR_DOWN) {return 10;}
+				else if(direction == DIR_LEFT) {return 1;}
+				else if(direction == DIR_RIGHT){return 3;}
+				break;
+			case 3:
+			    	 if(direction == DIR_UP)   {return 3;}
+				else if(direction == DIR_DOWN) {return 11;}
+				else if(direction == DIR_LEFT) {return 2;}
+				else if(direction == DIR_RIGHT){return 4;}
+				break;
+			case 4:
+			    	 if(direction == DIR_UP)   {return 4;}
+				else if(direction == DIR_DOWN) {return 12;}
+				else if(direction == DIR_LEFT) {return 3;}
+				else if(direction == DIR_RIGHT){return 5;}
+				break;
+			case 5:
+			    	 if(direction == DIR_UP)   {return 5;}
+				else if(direction == DIR_DOWN) {return 13;}
+				else if(direction == DIR_LEFT) {return 4;}
+				else if(direction == DIR_RIGHT){return 6;}
+				break;
+			case 6:
+			    	 if(direction == DIR_UP)   {return 6;}
+				else if(direction == DIR_DOWN) {return 14;}
+				else if(direction == DIR_LEFT) {return 5;}
+				else if(direction == DIR_RIGHT){return 7;}
+				break;
+			case 7:
+			    	 if(direction == DIR_UP)   {return 7;}
+				else if(direction == DIR_DOWN) {return 15;}
+				else if(direction == DIR_LEFT) {return 6;}
+				else if(direction == DIR_RIGHT){return 32;}
+				break;
+			case 8:
+			    	 if(direction == DIR_UP)   {return 0;}
+				else if(direction == DIR_DOWN) {return 16;}
+				else if(direction == DIR_LEFT) {return 8;}
+				else if(direction == DIR_RIGHT){return 9;}
+				break;
+			case 9:
+			    	 if(direction == DIR_UP)   {return 1;}
+				else if(direction == DIR_DOWN) {return 17;}
+				else if(direction == DIR_LEFT) {return 8;}
+				else if(direction == DIR_RIGHT){return 10;}
+				break;
+			case 10:
+			    	 if(direction == DIR_UP)   {return 2;}
+				else if(direction == DIR_DOWN) {return 18;}
+				else if(direction == DIR_LEFT) {return 9;}
+				else if(direction == DIR_RIGHT){return 11;}
+				break;
+			case 11:
+			    	 if(direction == DIR_UP)   {return 3;}
+				else if(direction == DIR_DOWN) {return 19;}
+				else if(direction == DIR_LEFT) {return 10;}
+				else if(direction == DIR_RIGHT){return 12;}
+				break;
+			case 12:
+			    	 if(direction == DIR_UP)   {return 4;}
+				else if(direction == DIR_DOWN) {return 20;}
+				else if(direction == DIR_LEFT) {return 11;}
+				else if(direction == DIR_RIGHT){return 13;}
+				break;
+			case 13:
+			    	 if(direction == DIR_UP)   {return 5;}
+				else if(direction == DIR_DOWN) {return 21;}
+				else if(direction == DIR_LEFT) {return 12;}
+				else if(direction == DIR_RIGHT){return 14;}
+				break;
+			case 14:
+			    	 if(direction == DIR_UP)   {return 6;}
+				else if(direction == DIR_DOWN) {return 22;}
+				else if(direction == DIR_LEFT) {return 13;}
+				else if(direction == DIR_RIGHT){return 15;}
+				break;
+			case 15:
+			    	 if(direction == DIR_UP)   {return 7;}
+				else if(direction == DIR_DOWN) {return 23;}
+				else if(direction == DIR_LEFT) {return 14;}
+				else if(direction == DIR_RIGHT){return 37;}
+				break;
+			case 16:
+			    	 if(direction == DIR_UP)   {return 8;}
+				else if(direction == DIR_DOWN) {return 24;}
+				else if(direction == DIR_LEFT) {return 16;}
+				else if(direction == DIR_RIGHT){return 17;}
+				break;
+			case 17:
+			    	 if(direction == DIR_UP)   {return 9;}
+				else if(direction == DIR_DOWN) {return 25;}
+				else if(direction == DIR_LEFT) {return 16;}
+				else if(direction == DIR_RIGHT){return 18;}
+				break;
+			case 18:
+			    	 if(direction == DIR_UP)   {return 10;}
+				else if(direction == DIR_DOWN) {return 26;}
+				else if(direction == DIR_LEFT) {return 17;}
+				else if(direction == DIR_RIGHT){return 19;}
+				break;
+			case 19:
+			    	 if(direction == DIR_UP)   {return 11;}
+				else if(direction == DIR_DOWN) {return 27;}
+				else if(direction == DIR_LEFT) {return 18;}
+				else if(direction == DIR_RIGHT){return 20;}
+				break;
+			case 20:
+			    	 if(direction == DIR_UP)   {return 12;}
+				else if(direction == DIR_DOWN) {return 28;}
+				else if(direction == DIR_LEFT) {return 19;}
+				else if(direction == DIR_RIGHT){return 21;}
+				break;
+			case 21:
+			    	 if(direction == DIR_UP)   {return 13;}
+				else if(direction == DIR_DOWN) {return 29;}
+				else if(direction == DIR_LEFT) {return 20;}
+				else if(direction == DIR_RIGHT){return 22;}
+				break;
+			case 22:
+			    	 if(direction == DIR_UP)   {return 14;}
+				else if(direction == DIR_DOWN) {return 30;}
+				else if(direction == DIR_LEFT) {return 21;}
+				else if(direction == DIR_RIGHT){return 23;}
+				break;
+			case 23:
+			    	 if(direction == DIR_UP)   {return 15;}
+				else if(direction == DIR_DOWN) {return 31;}
+				else if(direction == DIR_LEFT) {return 22;}
+				else if(direction == DIR_RIGHT){return 42;}
+				break;
+			case 24:
+			    	 if(direction == DIR_UP)   {return 16;}
+				else if(direction == DIR_DOWN) {return 52;}
+				else if(direction == DIR_LEFT) {return 24;}
+				else if(direction == DIR_RIGHT){return 25;}
+				break;
+			case 25:
+			    	 if(direction == DIR_UP)   {return 17;}
+				else if(direction == DIR_DOWN) {return 53;}
+				else if(direction == DIR_LEFT) {return 24;}
+				else if(direction == DIR_RIGHT){return 26;}
+				break;
+			case 26:
+			    	 if(direction == DIR_UP)   {return 18;}
+				else if(direction == DIR_DOWN) {return 54;}
+				else if(direction == DIR_LEFT) {return 25;}
+				else if(direction == DIR_RIGHT){return 27;}
+				break;
+			case 27:
+			    	 if(direction == DIR_UP)   {return 19;}
+				else if(direction == DIR_DOWN) {return 55;}
+				else if(direction == DIR_LEFT) {return 26;}
+				else if(direction == DIR_RIGHT){return 28;}
+				break;
+			case 28:
+			    	 if(direction == DIR_UP)   {return 20;}
+				else if(direction == DIR_DOWN) {return 56;}
+				else if(direction == DIR_LEFT) {return 27;}
+				else if(direction == DIR_RIGHT){return 29;}
+				break;
+			case 29:
+			    	 if(direction == DIR_UP)   {return 21;}
+				else if(direction == DIR_DOWN) {return 57;}
+				else if(direction == DIR_LEFT) {return 28;}
+				else if(direction == DIR_RIGHT){return 30;}
+				break;
+			case 30:
+			    	 if(direction == DIR_UP)   {return 22;}
+				else if(direction == DIR_DOWN) {return 58;}
+				else if(direction == DIR_LEFT) {return 29;}
+				else if(direction == DIR_RIGHT){return 31;}
+				break;
+			case 31:
+			    	 if(direction == DIR_UP)   {return 23;}
+				else if(direction == DIR_DOWN) {return 59;}
+				else if(direction == DIR_LEFT) {return 30;}
+				else if(direction == DIR_RIGHT){return 47;}
+				break;
+			case 32:
+			    	 if(direction == DIR_UP)   {return 32;}
+				else if(direction == DIR_DOWN) {return 37;}
+				else if(direction == DIR_LEFT) {return 7;}
+				else if(direction == DIR_RIGHT){return 33;}
+				break;
+			case 33:
+			    	 if(direction == DIR_UP)   {return 33;}
+				else if(direction == DIR_DOWN) {return 38;}
+				else if(direction == DIR_LEFT) {return 32;}
+				else if(direction == DIR_RIGHT){return 34;}
+				break;
+			case 34:
+			    	 if(direction == DIR_UP)   {return 34;}
+				else if(direction == DIR_DOWN) {return 39;}
+				else if(direction == DIR_LEFT) {return 33;}
+				else if(direction == DIR_RIGHT){return 35;}
+				break;
+			case 35:
+			    	 if(direction == DIR_UP)   {return 35;}
+				else if(direction == DIR_DOWN) {return 40;}
+				else if(direction == DIR_LEFT) {return 34;}
+				else if(direction == DIR_RIGHT){return 36;}
+				break;
+			case 36:
+			    	 if(direction == DIR_UP)   {return 36;}
+				else if(direction == DIR_DOWN) {return 41;}
+				else if(direction == DIR_LEFT) {return 35;}
+				else if(direction == DIR_RIGHT){return 36;}
+				break;
+			case 37:
+			    	 if(direction == DIR_UP)   {return 32;}
+				else if(direction == DIR_DOWN) {return 42;}
+				else if(direction == DIR_LEFT) {return 15;}
+				else if(direction == DIR_RIGHT){return 38;}
+				break;
+			case 38:
+			    	 if(direction == DIR_UP)   {return 33;}
+				else if(direction == DIR_DOWN) {return 43;}
+				else if(direction == DIR_LEFT) {return 37;}
+				else if(direction == DIR_RIGHT){return 39;}
+				break;
+			case 39:
+			    	 if(direction == DIR_UP)   {return 34;}
+				else if(direction == DIR_DOWN) {return 44;}
+				else if(direction == DIR_LEFT) {return 38;}
+				else if(direction == DIR_RIGHT){return 40;}
+				break;
+			case 40:
+			    	 if(direction == DIR_UP)   {return 35;}
+				else if(direction == DIR_DOWN) {return 45;}
+				else if(direction == DIR_LEFT) {return 39;}
+				else if(direction == DIR_RIGHT){return 41;}
+				break;
+			case 41:
+			    	 if(direction == DIR_UP)   {return 36;}
+				else if(direction == DIR_DOWN) {return 46;}
+				else if(direction == DIR_LEFT) {return 40;}
+				else if(direction == DIR_RIGHT){return 41;}
+				break;
+			case 42:
+			    	 if(direction == DIR_UP)   {return 37;}
+				else if(direction == DIR_DOWN) {return 47;}
+				else if(direction == DIR_LEFT) {return 23;}
+				else if(direction == DIR_RIGHT){return 43;}
+				break;
+			case 43:
+			    	 if(direction == DIR_UP)   {return 38;}
+				else if(direction == DIR_DOWN) {return 48;}
+				else if(direction == DIR_LEFT) {return 42;}
+				else if(direction == DIR_RIGHT){return 44;}
+				break;
+			case 44:
+			    	 if(direction == DIR_UP)   {return 39;}
+				else if(direction == DIR_DOWN) {return 49;}
+				else if(direction == DIR_LEFT) {return 43;}
+				else if(direction == DIR_RIGHT){return 45;}
+				break;
+			case 45:
+			    	 if(direction == DIR_UP)   {return 40;}
+				else if(direction == DIR_DOWN) {return 50;}
+				else if(direction == DIR_LEFT) {return 44;}
+				else if(direction == DIR_RIGHT){return 46;}
+				break;
+			case 46:
+			    	 if(direction == DIR_UP)   {return 41;}
+				else if(direction == DIR_DOWN) {return 51;}
+				else if(direction == DIR_LEFT) {return 45;}
+				else if(direction == DIR_RIGHT){return 46;}
+				break;
+			case 47:
+			    	 if(direction == DIR_UP)   {return 42;}
+				else if(direction == DIR_DOWN) {return 61;}
+				else if(direction == DIR_LEFT) {return 31;}
+				else if(direction == DIR_RIGHT){return 48;}
+				break;
+			case 48:
+			    	 if(direction == DIR_UP)   {return 43;}
+				else if(direction == DIR_DOWN) {return 62;}
+				else if(direction == DIR_LEFT) {return 47;}
+				else if(direction == DIR_RIGHT){return 49;}
+				break;
+			case 49:
+			    	 if(direction == DIR_UP)   {return 44;}
+				else if(direction == DIR_DOWN) {return 63;}
+				else if(direction == DIR_LEFT) {return 48;}
+				else if(direction == DIR_RIGHT){return 50;}
+				break;
+			case 50:
+			    	 if(direction == DIR_UP)   {return 45;}
+				else if(direction == DIR_DOWN) {return 63;}
+				else if(direction == DIR_LEFT) {return 49;}
+				else if(direction == DIR_RIGHT){return 51;}
+				break;
+			case 51:
+			    	 if(direction == DIR_UP)   {return 46;}
+				else if(direction == DIR_DOWN) {return 63;}
+				else if(direction == DIR_LEFT) {return 50;}
+				else if(direction == DIR_RIGHT){return 51;}
+				break;
+			case 52:
+			    	 if(direction == DIR_UP)   {return 24;}
+				else if(direction == DIR_DOWN) {return 64;}
+				else if(direction == DIR_LEFT) {return 52;}
+				else if(direction == DIR_RIGHT){return 53;}
+				break;
+			case 53:
+			    	 if(direction == DIR_UP)   {return 25;}
+				else if(direction == DIR_DOWN) {return 65;}
+				else if(direction == DIR_LEFT) {return 52;}
+				else if(direction == DIR_RIGHT){return 54;}
+				break;
+			case 54:
+			    	 if(direction == DIR_UP)   {return 26;}
+				else if(direction == DIR_DOWN) {return 66;}
+				else if(direction == DIR_LEFT) {return 53;}
+				else if(direction == DIR_RIGHT){return 55;}
+				break;
+			case 55:
+			    	 if(direction == DIR_UP)   {return 27;}
+				else if(direction == DIR_DOWN) {return 67;}
+				else if(direction == DIR_LEFT) {return 54;}
+				else if(direction == DIR_RIGHT){return 56;}
+				break;
+			case 56:
+			    	 if(direction == DIR_UP)   {return 28;}
+				else if(direction == DIR_DOWN) {return 68;}
+				else if(direction == DIR_LEFT) {return 55;}
+				else if(direction == DIR_RIGHT){return 57;}
+				break;
+			case 57:
+			    	 if(direction == DIR_UP)   {return 29;}
+				else if(direction == DIR_DOWN) {return 69;}
+				else if(direction == DIR_LEFT) {return 56;}
+				else if(direction == DIR_RIGHT){return 58;}
+				break;
+			case 58:
+			    	 if(direction == DIR_UP)   {return 30;}
+				else if(direction == DIR_DOWN) {return 70;}
+				else if(direction == DIR_LEFT) {return 57;}
+				else if(direction == DIR_RIGHT){return 59;}
+				break;
+			case 59:
+			    	 if(direction == DIR_UP)   {return 31;}
+				else if(direction == DIR_DOWN) {return 70;}
+				else if(direction == DIR_LEFT) {return 58;}
+				else if(direction == DIR_RIGHT){return 60;}
+				break;
+			case 60:
+			    	 if(direction == DIR_UP)   {return 31;}
+				else if(direction == DIR_DOWN) {return 71;}
+				else if(direction == DIR_LEFT) {return 59;}
+				else if(direction == DIR_RIGHT){return 61;}
+				break;
+			case 61:
+			    	 if(direction == DIR_UP)   {return 47;}
+				else if(direction == DIR_DOWN) {return 72;}
+				else if(direction == DIR_LEFT) {return 60;}
+				else if(direction == DIR_RIGHT){return 62;}
+				break;
+			case 62:
+			    	 if(direction == DIR_UP)   {return 48;}
+				else if(direction == DIR_DOWN) {return 73;}
+				else if(direction == DIR_LEFT) {return 61;}
+				else if(direction == DIR_RIGHT){return 63;}
+				break;
+			case 63:
+			    	 if(direction == DIR_UP)   {return 49;}
+				else if(direction == DIR_DOWN) {return 74;}
+				else if(direction == DIR_LEFT) {return 62;}
+				else if(direction == DIR_RIGHT){return 63;}
+				break;
+			case 64:
+			    	 if(direction == DIR_UP)   {return 52;}
+				else if(direction == DIR_DOWN) {return 64;}
+				else if(direction == DIR_LEFT) {return 64;}
+				else if(direction == DIR_RIGHT){return 65;}
+				break;
+			case 65:
+			    	 if(direction == DIR_UP)   {return 53;}
+				else if(direction == DIR_DOWN) {return 65;}
+				else if(direction == DIR_LEFT) {return 64;}
+				else if(direction == DIR_RIGHT){return 66;}
+				break;
+			case 66:
+			    	 if(direction == DIR_UP)   {return 54;}
+				else if(direction == DIR_DOWN) {return 66;}
+				else if(direction == DIR_LEFT) {return 65;}
+				else if(direction == DIR_RIGHT){return 67;}
+				break;
+			case 67:
+			    	 if(direction == DIR_UP)   {return 55;}
+				else if(direction == DIR_DOWN) {return 67;}
+				else if(direction == DIR_LEFT) {return 66;}
+				else if(direction == DIR_RIGHT){return 68;}
+				break;
+			case 68:
+			    	 if(direction == DIR_UP)   {return 56;}
+				else if(direction == DIR_DOWN) {return 68;}
+				else if(direction == DIR_LEFT) {return 67;}
+				else if(direction == DIR_RIGHT){return 69;}
+				break;
+			case 69:
+			    	 if(direction == DIR_UP)   {return 57;}
+				else if(direction == DIR_DOWN) {return 69;}
+				else if(direction == DIR_LEFT) {return 68;}
+				else if(direction == DIR_RIGHT){return 70;}
+				break;
+			case 70:
+			    	 if(direction == DIR_UP)   {return 58;}
+				else if(direction == DIR_DOWN) {return 70;}
+				else if(direction == DIR_LEFT) {return 69;}
+				else if(direction == DIR_RIGHT){return 71;}
+				break;
+			case 71:
+			    	 if(direction == DIR_UP)   {return 60;}
+				else if(direction == DIR_DOWN) {return 71;}
+				else if(direction == DIR_LEFT) {return 70;}
+				else if(direction == DIR_RIGHT){return 72;}
+				break;
+			case 72:
+			    	 if(direction == DIR_UP)   {return 61;}
+				else if(direction == DIR_DOWN) {return 72;}
+				else if(direction == DIR_LEFT) {return 71;}
+				else if(direction == DIR_RIGHT){return 73;}
+				break;
+			case 73:
+			    	 if(direction == DIR_UP)   {return 62;}
+				else if(direction == DIR_DOWN) {return 73;}
+				else if(direction == DIR_LEFT) {return 72;}
+				else if(direction == DIR_RIGHT){return 74;}
+				break;
+			case 74:
+			    	 if(direction == DIR_UP)   {return 63;}
+				else if(direction == DIR_DOWN) {return 74;}
+				else if(direction == DIR_LEFT) {return 73;}
+				else if(direction == DIR_RIGHT){return 74;}
+				break;
+		}
+	}
+	
+	//====================
+	// Conditions
+	//====================
+	bool checkHP(int type){ // Heart Pieces Check
+		switch(type){
+			case 1:		// Heart Piece 1
+				if(Game->GetDMapScreenD(8, 0x71, 5) & 1){return true;}
+				break;
+			case 2:		// Heart Piece 2
+				if(Game->GetDMapScreenD(11, 0x33, 5) & 1){return true;}
+				break;
+			case 3:		// Heart Piece 3
+				if(Game->LoadMapData(10, 0x16)->State[ST_ITEM]){return true;}
+				break;
+			case 4:		// Heart Piece 4
+				if(Game->LoadMapData(107, 0x5A)->State[ST_ITEM]){return true;}
+				break;
+			case 5:		// Heart Piece 5
+				if(Game->GetDMapScreenD(198, 0x04, 5) & 2){return true;}
+				break;
+			case 6:		// Heart Piece 6
+				if(Game->LoadMapData(10, 0x46)->State[ST_ITEM]){return true;}
+				break;
+			case 7:		// Heart Piece 7
+				if(Game->LoadMapData(149, 0x08)->State[ST_ITEM]){return true;}
+				break;
+			case 8:		// Heart Piece 8
+				if(Game->GetDMapScreenD(34, 0x75, 5) & 1){return true;}
+				break;
+			case 9:		// Heart Piece 9
+				if(Game->GetDMapScreenD(66, 0x04, 5) & 2){return true;}
+				break;
+			case 10:	// Heart Piece 10
+				if(Game->GetDMapScreenD(41, 0x74, 5) & 1){return true;}
+				break;
+			case 11:	// Heart Piece 11
+				if(Game->GetDMapScreenD(50, 0x43, 5) & 1){return true;}
+				break;
+			case 12:	// Heart Piece 12
+				if(Game->GetDMapScreenD(53, 0x61, 5) & 16){return true;}
+				break;
+			case 13:	// Heart Piece 13
+				if(Game->GetDMapScreenD(62, 0x75, 5) & 1){return true;}
+				break;
+			case 14:	// Heart Piece 14
+				if(Game->LoadMapData(28, 0x16)->State[ST_ITEM]){return true;}
+				break;
+			case 15:	// Heart Piece 15
+				if(Game->GetDMapScreenD(246, 0x02, 5) & 2){return true;}
+				break;
+			case 16:	// Heart Piece 16
+				if(Game->GetDMapScreenD(77, 0x65, 5) & 1){return true;}
+				break;
+			case 17:	// Heart Piece 17
+				if(Game->GetDMapScreenD(89, 0x24, 5) & 1){return true;}
+				break;
+			case 18:	// Heart Piece 18
+				if(Game->GetDMapScreenD(94, 0x30, 5) & 1){return true;}
+				break;
+			case 19:	// Heart Piece 19
+				if(Game->GetDMapScreenD(247, 0x37, 5) & 32){return true;}
+				break;
+			case 20:	// Heart Piece 20
+				if(Game->LoadMapData(150, 0x23)->State[ST_ITEM]){return true;}
+				break;
+			case 21:	// Heart Piece 21
+				if(Game->LoadMapData(103, 0x1B)->State[ST_ITEM]){return true;}
+				break;
+			case 22:	// Heart Piece 22
+				if(Game->GetDMapScreenD(232, 0x62, 5) & 2){return true;}
+				break;
+			case 23:	// Heart Piece 23
+				if(Game->GetDMapScreenD(183, 0x75, 5) & 4){return true;}
+				break;
+			case 24:	// Heart Piece 24
+				if(Game->LoadMapData(149, 0x09)->State[ST_ITEM]){return true;}
+				break;
+			case 25:	// Heart Piece 25
+				if(Game->GetDMapScreenD(206, 0x73, 5) & 1){return true;}
+				break;
+			case 26:	// Heart Piece 26
+				if(Game->LoadMapData(87, 0x01)->State[ST_ITEM]){return true;}
+				break;
+			case 27:	// Heart Piece 27
+				if(Game->GetDMapScreenD(215, 0x32, 5) & 4){return true;}
+				break;
+			case 28:	// Heart Piece 28
+				if(Game->GetDMapScreenD(218, 0x54, 5) & 1){return true;}
+				break;
+			case 29:	// Heart Piece 29
+				if(Game->GetDMapScreenD(230, 0x26, 5) & 8){return true;}
+				break;
+			case 30:	// Heart Piece 30
+				if(Game->GetDMapScreenD(251, 0x10, 5) & 2){return true;}
+				break;
+			case 31:	// Heart Piece 31
+				if(Game->GetDMapScreenD(253, 0x25, 5) & 1){return true;}
+				break;
+			case 32:	// Heart Piece 32
+				if(Game->GetDMapScreenD(271, 0x36, 5) & 1){return true;}
+				break;
+		}
+		return false;
+	}
+	
+	bool checkST(int type){ // Sealed Tablets Check
+		switch(type){
+			case 1: // Sealed Tablet 1
+				if(Game->GetDMapScreenD(86, 0x23, 5) & 1){return true;}
+				break;
+			case 2: // Sealed Tablet 2
+				if(Game->GetDMapScreenD(89, 0x25, 5) & 1){return true;}
+				break;
+			case 3: // Sealed Tablet 3
+				if(Game->GetDMapScreenD(175, 0x04, 5) & 1){return true;}
+				break;
+			case 4: // Sealed Tablet 4
+				if(Game->GetDMapScreenD(197, 0x63, 5) & 4){return true;}
+				break;
+			case 5: // Sealed Tablet 5
+				if(Game->GetDMapScreenD(191, 0x13, 5) & 1){return true;}
+				break;
+			case 6: // Sealed Tablet 6
+				if(Game->GetDMapScreenD(233, 0x13, 5) & 1){return true;}
+				break;
+			case 7: // Sealed Tablet 7
+				if(Game->GetDMapScreenD(284, 0x65, 5) & 32){return true;}
+				break;
+			case 8: // Sealed Tablet 8
+				if(Game->GetDMapScreenD(63, 0x13, 5) & 1){return true;}
+				break;
+			case 9: // Sealed Tablet 9
+				if(Game->LoadMapData(103, 0x5B)->State[ST_ITEM]){return true;}
+				break;
+			case 10: // Sealed Tablet 10
+				if(Game->LoadMapData(132, 0x3F)->State[ST_ITEM]){return true;}
+				break;
+			case 11: // Sealed Tablet 11
+				if(Game->LoadMapData(134, 0x4A)->State[ST_ITEM]){return true;}
+				break;
+			case 12: // Sealed Tablet 12
+				if(Game->LoadMapData(116, 0x16)->State[ST_ITEM]){return true;}
+				break;
+			case 13: // Sealed Tablet 13
+				if(Game->LoadMapData(84, 0x79)->State[ST_ITEM]){return true;}
+				break;
+			case 14: // Sealed Tablet 14
+				if(Game->LoadMapData(87, 0x43)->State[ST_ITEM]){return true;}
+				break;
+			case 15: // Sealed Tablet 15
+				if(Game->LoadMapData(90, 0x1E)->State[ST_ITEM]){return true;}
+				break;
+			case 16: // Sealed Tablet 16
+				if(Game->LoadMapData(64, 0x5C)->State[ST_ITEM]){return true;}
+				break;
+			case 17: // Sealed Tablet 17
+				if(Game->LoadMapData(94, 0x50)->State[ST_ITEM]){return true;}
+				break;
+			case 18: // Sealed Tablet 18
+				if(Game->LoadMapData(116, 0x27)->State[ST_ITEM]){return true;}
+				break;
+			case 19: // Sealed Tablet 19
+				if(Game->LoadMapData(115, 0x42)->State[ST_ITEM]){return true;}
+				break;
+			case 20: // Sealed Tablet 20
+				if(Game->LoadMapData(132, 0x6C)->State[ST_ITEM]){return true;}
+				break;
+		}
+		return false;
+	}
+	
+	bool checkSW(int type){ // Sealed Weapons Check
+		switch(type){
+			case 1: // Remote Bombs
+				if(Link->Item[157]){return true;}
+				break;
+			case 2: // Alicorn Boots
+				if(Link->Item[145]){return true;}
+				break;
+			case 3: // Sheikah Lantern
+				if(Link->Item[11]){return true;}
+				break;
+			case 4: // Golden Boomerang
+				if(Link->Item[35]){return true;}
+				break;
+			case 5: // Advanced Bombchus
+				if(Link->Item[134]){return true;}
+				break;
+			case 6: // Gigaton Hammer
+				if(Link->Item[99]){return true;}
+				break;
+			case 7: // Rune Staff
+				if(Link->Item[245]){return true;}
+				break;
+			case 8: // Golden Dragoon
+				if(Link->Item[184]){return true;}
+				break;
+			case 9: // Grass Lamp
+				if(Link->Item[204]){return true;}
+				break;
+			case 10: // Eldest Cane
+				if(Link->Item[247]){return true;}
+				break;
+			case 11: // Platinum Bow
+				if(Link->Item[246]){return true;}
+				break;
+			case 12: // Master Sword
+				if(Link->Item[36]){return true;}
+				break;
+		}
+		return false;
+	}
+	
+	bool checkDR(int type){ // Dragons Check
+		switch(type){
+			case 1: // Black Dragon
+				if(Link->Item[12]){return true;}
+				break;
+			case 2: // Purple Dragon
+				if(Link->Item[105]){return true;}
+				break;
+			case 3: // Orange Dragon
+				if(Link->Item[65]){return true;}
+				break;
+			case 4: // Green Dragon
+				if(Link->Item[63]){return true;}
+				break;
+			case 5: // Blue Dragon
+				if(Link->Item[26]){return true;}
+				break;
+			case 6: // White Dragon
+				if(Link->Item[118]){return true;}
+				break;
+			case 7: // Red Dragon
+				if(Link->Item[90]){return true;}
+				break;
+		}
+		return false;
+	}
+	
+	bool checkBT(int type){ // Bottle Check
+		switch(type){
+			case 1: // Bottle 1
+				return true;
+				break;
+			case 2: // Bottle 2
+				if(Game->GetDMapScreenD(335, 0x13, 5) & 1){return true;}
+				break;
+			case 3: // Bottle 3
+				if(Game->GetDMapScreenD(72, 0x33, 5) & 32){return true;}
+				break;
+			case 4: // Bottle 4
+				if(Game->GetDMapScreenD(107, 0x34, 5) & 1 || Game->GetDMapScreenD(6, 0x22, 5) & 1){return true;}
+				break;
+			
+		}
+		return false;
+	}
+	
+	
+}

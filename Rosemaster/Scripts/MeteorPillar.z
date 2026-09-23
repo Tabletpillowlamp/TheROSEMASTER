@@ -1,0 +1,128 @@
+ffc script MeteorPillar{
+	void run(int enemyid){
+		npc ghost = Ghost_InitAutoGhost(this, enemyid);
+		Ghost_Transform(this, ghost, -1, -1, 2, 3);
+		Ghost_SetHitOffsets(ghost, 8, 0, 4, 4);
+		int type = ghost->Attributes[0];
+		int combo = ghost->Attributes[10];
+		int c = 0x96;
+		Ghost_Y -= 8;
+		while(true){
+			Ghost_Data = combo;
+			Ghost_Waitframes(this, ghost, Rand(100,180));
+			if(true){
+				Game->PlaySound(SFX_CHARGE1);
+				for(int i=0; i<120; ++i){
+					Screen->Circle(6, Ghost_X+16, Ghost_Y+8, ((30-(i%30))/30)*32, c+Rand(3), 1, 0, 0, 0, false, 128);
+					Ghost_Waitframe(this, ghost);
+				}
+				Ghost_Data = combo+1;
+				if(type==0){
+					for(int i=0; i<12; ++i){
+						eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, Rand(8, 232), Rand(8, 152), i*10, 0, ghost->WeaponDamage, 0, 0, CheckEWeaponScript("Meteorite"), {0});
+						if(i%4==0){
+							e->X = Link->X;
+							e->Y = Link->Y;
+						}
+						e->CollDetection = false;
+						e->DrawYOffset = -1000;
+						Ghost_Waitframes(this, ghost, 16);
+					}
+				}
+				else if(type==1){
+					for(int i=0; i<10; ++i){
+						eweapon e = FireEWeaponDegAngle(EW_SCRIPT10, CenterLinkX() + Rand(-16,16), CenterLinkY() + Rand(-16,16), i*10, 0, ghost->WeaponDamage, 0, 0, CheckEWeaponScript("Meteorite"), {0});
+						//if(i%4==0){
+						//	e->X = Link->X;
+						//	e->Y = Link->Y;
+						//}
+						e->CollDetection = false;
+						e->DrawYOffset = -1000;
+						Ghost_Waitframes(this, ghost, 16);
+					}
+				}
+			}
+		}
+	}
+}
+
+const int CMB_METEORITE = 17798; // 2x4 meteorite animation
+const int CMB_METEORITE_SHADOW = 6503; // 1x1 shadow animation
+
+const int SFX_METEORITE_FALL = 84;
+
+eweapon script Meteorite{
+	eweapon MakeHitbox(int x, int y, int w, int h, int damage)
+    {
+        eweapon e = CreateEWeaponAt(EW_SCRIPT10, 120, 80);
+        e->Damage = damage;
+        e->Dir = -1;
+        e->HitXOffset = x-(120);
+        e->HitYOffset = y-(80);
+        e->HitWidth = w;
+        e->HitHeight = h;
+        e->Timeout = 2;
+        e->DrawYOffset = -10000;
+        e->Unblockable = UNBLOCK_ALL;
+        return e;
+    }
+	void DrawMeteoriteImpact(bitmap impact, int x, int y, int c1, int c2, int scale, bool trans, int removeTop, int damage){
+		impact->Clear(0);
+		impact->Circle(0, scale, scale, scale, c1, 1, 0, 0, 0, true, 128);
+		impact->Rectangle(0, 0, scale, scale*2-1, scale*2-1, 0x00, 1, 0, 0, 0, true, 128);
+		impact->Ellipse(0, scale, scale, scale, scale*0.3333, c2, 1, 0, 0, 0, true, 128);
+		if(removeTop){
+			impact->Ellipse(0, scale, Lerp(0, scale, removeTop), Lerp(0, scale*2, removeTop), Lerp(0, scale, removeTop), 0x00, 1, 0, 0, 0, true, 128);
+		}
+		int flag;
+		if(trans)
+			flag = BITDX_TRANS;
+		impact->Blit(6, RT_SCREEN, 0, 0, scale*2, scale*1.3333, x-scale, y-scale, scale*2, scale*1.3333, 0, 0, 0, flag, 0, true);
+	
+		if(damage)
+			MakeHitbox(x-scale, y-scale, scale*2, (scale/48)*64, damage);
+		impact->Clear(6);
+	}
+	void run(int drawBeacon, int skipfall, int size, int fallSpeed){
+		if(size==0)
+			size = 48;
+		if(fallSpeed==0)
+			fallSpeed = 1;
+		if(drawBeacon){
+			for(int i=0; i<12; ++i){
+				int j = 4*(i/12);
+				Screen->Rectangle(4, this->X+8-j, 0, this->X+8+j, this->Y+8, 0x01, 1, 0, 0, 0, true, 128);
+				Screen->Circle(4, this->X+8, this->Y+8, j, 0x01, 1, 0, 0, 0, true, 128);
+				Waitframe();
+			}
+			for(int i=4; i>0; --i){
+				int j = 4*(i/4);
+				Screen->Rectangle(4, this->X+8-j, 0, this->X+8+j, this->Y+8, 0x01, 1, 0, 0, 0, true, 128);
+				Screen->Circle(4, this->X+8, this->Y+8, j, 0x01, 1, 0, 0, 0, true, 128);
+				Waitframe();
+			}
+		}
+		bitmap impact = Game->CreateBitmap(size*2, size*2);
+		impact->Own();
+		if(!skipfall){
+			Game->PlaySound(SFX_METEORITE_FALL);
+			for(int i=64; i>0; i-=fallSpeed){
+				Screen->FastCombo(2, this->X, this->Y, CMB_METEORITE_SHADOW, 7, 128);
+				Screen->DrawCombo(6, this->X+8*i, this->Y-48-16*i, CMB_METEORITE, 2, 4, 8, -1, -1, 0, 0, 0, -1, 0, true, 128);
+				Waitframe();
+			}
+			this->Step = 0;
+		}
+		Game->PlaySound(95);
+		Screen->Quake = 10;
+		for(int i=0; i<16; ++i){
+			DrawMeteoriteImpact(impact, this->X+8, this->Y+8, 0x01, 0x96, size*(i/16), true, 0, this->Damage);
+			Waitframe();
+		}
+		for(int i=0; i<16; ++i){
+			DrawMeteoriteImpact(impact, this->X+8, this->Y+8, 0x01, 0x01, size, false, (i/16), 0);
+			Waitframe();
+		}
+		this->DeadState = 0;
+	}
+}

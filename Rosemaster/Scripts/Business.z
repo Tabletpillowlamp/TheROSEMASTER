@@ -1,0 +1,69 @@
+// In case anyone asks for a "Generic Events" or "Events" script, give them this file
+// Put all functions related to events in this file as well. 
+// For convenience of editing, this file should have minimal dependencies.
+generic script GenericEvents
+{
+	void run()
+	{
+		this->EventListen[GENSCR_EVENT_HERO_HIT_1] = true;
+		this->EventListen[GENSCR_EVENT_HERO_HIT_2] = true;
+		while(true)
+		{
+			int ev = WaitEvent();
+			switch(ev)
+			{
+				case GENSCR_EVENT_HERO_HIT_1:
+				{
+					if(Game->LoadGenericData(CheckGenericScript("EbonyWave"))->Running){
+						Game->LoadGenericData(CheckGenericScript("EbonyWave"))->Running = false;
+					}
+					
+					MagicArmor();
+					break;
+				}
+				case GENSCR_EVENT_HERO_HIT_2:
+				{
+					if(Game->LoadGenericData(CheckGenericScript("EbonyWave"))->Running){
+						Game->LoadGenericData(CheckGenericScript("EbonyWave"))->Running = false;
+					}
+					
+					break;
+				}
+			}
+		}
+	}
+}
+
+void MagicArmor()
+{
+	// If something else has nullified the hit
+	if(Game->EventData[GENEV_HEROHIT_NULLIFY])
+		return;
+	// Nayru takes priority over the armor
+	if(Game->EventData[GENEV_HEROHIT_NAYRUON])
+		return;
+	if(Game->LoadItemData(187)->Level == 2)
+	{
+		// Only sprites actually get their damage reduced
+		bool hitSprite;
+		switch(Game->EventData[GENEV_HEROHIT_HITTYPE])
+		{
+			case OBJTYPE_LWPN:
+			case OBJTYPE_NPC:
+			case OBJTYPE_EWPN:
+				hitSprite = true;
+		}
+		
+		if(hitSprite)
+		{
+			// If the player has at least 1 rupee, they can tank the hit
+			int rupeeCost = Ceiling((Game->EventData[GENEV_HEROHIT_DAMAGE]));
+			if(rupeeCost && Game->Counter[CR_RUPEES]>0)
+			{
+				Game->DCounter[CR_RUPEES] -= rupeeCost;
+				Game->EventData[GENEV_HEROHIT_DAMAGE] = 0;
+				Game->EventData[GENEV_HEROHIT_HITDIR] = -1;
+			}
+		}
+	}
+}
