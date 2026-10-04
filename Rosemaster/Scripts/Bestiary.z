@@ -6209,9 +6209,9 @@ namespace Bestiary
 				sprintf(str3, "8");
 				break;
 			case 339: // 264 Mothula
-				sprintf(str1, "300");
-				sprintf(str2, "16");
-				sprintf(str3, "16");
+				sprintf(str1, "260");
+				sprintf(str2, "12");
+				sprintf(str3, "12");
 				break;
 			case 340: // 265 Baby Mothula
 				sprintf(str1, "1");

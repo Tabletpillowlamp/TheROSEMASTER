@@ -3,7 +3,12 @@ ffc script TheEnd
 	void run(int type){
 		int i; int fr = 4; int sh = 8;
 		Waitframes(50);
-		Game->PlayMIDI(148);
+		if(type > 1){
+			Game->PlayMIDI(156);
+		}
+		else{
+			Game->PlayMIDI(148);
+		}
 		
 		//Give Link "Win Game" Item
 		if(Link->Item[30] != true){Link->Item[30] = true;}
@@ -26,6 +31,9 @@ ffc script TheEnd
 			Waitframe();
 		}
 		Waitframes(700);
+		if(type > 1){
+			Waitframes(60);
+		}
 		int lop = 0;
 		Screen->Message(8);
 		Waitframes(30);

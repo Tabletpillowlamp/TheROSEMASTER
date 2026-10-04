@@ -1877,7 +1877,7 @@ ffc script ContinueScreenSet{
 	}
 }
 
-ffc script ToggleEasyMode{	//0 = OFF, 1 = ON
+ffc script ToggleEasyMode{	//0 = OFF, 1 = ON (UNUSED)
 	void run(int id, int dragon){
 		switch(id){
 			case 0:
@@ -1897,6 +1897,12 @@ ffc script ToggleEasyMode{	//0 = OFF, 1 = ON
 				}
 				break;
 		}
+	}
+}
+
+ffc script ToggleEasyModeNEW{	//0 = OFF, 1 = ON (UNUSED)
+	void run(int id, int dragon){
+		Link->Item[203] = false;
 	}
 }
 

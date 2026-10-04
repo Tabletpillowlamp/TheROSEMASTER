@@ -763,13 +763,13 @@ generic script settingsToggle{
 					else if(Link->Item[111]){ 
 						Link->Item[111] = false;
 						
-						if(Link->Item[203]){	//Easy Mode Disabled
-							Game->Counter[37] = 2;
-						}
-						else{ //Hard to Easy
-							Link->Item[167] = true; Link->Item[41] = true;
-							Game->Counter[37] = 1;
-						}
+						//if(Link->Item[203]){	//Easy Mode Disabled
+						//	Game->Counter[37] = 2;
+						//}
+						//else{ //Hard to Easy
+						Link->Item[167] = true; Link->Item[41] = true;
+						Game->Counter[37] = 1;
+						//}
 					}
 					else{ //Normal to Hard
 						Link->Item[111] = true; Link->Item[41] = false;

@@ -6136,7 +6136,126 @@ ffc script strngCutsceneScene{
 					md03->Set("I guess I'll head back home for now to grab my weapons...");
 					md03->Next = 0;
 					break;
-				case 313: 	
+				case 313: 	// True Ending 01
+					md01->PortraitTile = 54778; md01->Y = 120; md01->PortraitY = 125;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cTalo:%c%c%c Hey, do you guys feel something? %cI feel a comforting presence...",sc(1),sc(7),sc(4),sc(1),sc(0),sc(1),sc(30));
+					md01->Set(str01);
+					md01->Next = 7602;
+					md02->PortraitTile = 54738; md02->Y = 120; md02->PortraitY = 125;
+					char32 str02[1000];
+					sprintf(str02, "%c%c%cLinebeck:%c%c%c I feel it, too. Just slightly though...",sc(1),sc(8),sc(4),sc(1),sc(0),sc(1));
+					md02->Set(str02);
+					md02->Next = 7603;
+					md03->PortraitTile = 54804; md03->Y = 120; md03->PortraitY = 125;
+					char32 str03[1000];
+					sprintf(str03, "%c%c%cJuan:%c%c%c I feel it as well. I can sense someone we all know here with us.",sc(1),sc(11),sc(9),sc(1),sc(0),sc(1));
+					md03->Set(str03);
+					md03->Next = 7604;
+					md04->PortraitTile = 54688; md04->Y = 120; md04->PortraitY = 125;
+					char32 str04[1000];
+					sprintf(str04, "%c%c%cSeth:%c%c%c Yeah, me too! And I honestly think I know who could be causing this...",sc(1),sc(7),sc(8),sc(1),sc(0),sc(1));
+					md04->Set(str04);
+					md04->Next = 0;
+					break;
+				case 314: 	// True Ending 02
+					md01->PortraitTile = 54762; md01->Y = 120; md01->PortraitY = 125;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%c%c%cCiela:%c%c%c ...! %cLink-!? %cAre you... here? %cIt's almost as if, you're here with me...",sc(21),sc(134),sc(1),sc(10),sc(8),sc(1),sc(0),sc(1),sc(30),sc(30),sc(30));
+					md01->Set(str01);
+					md01->Next = 7602;
+					md02->PortraitTile = 54762; md02->Y = 120; md02->PortraitY = 125;
+					md02->Set("Link, just know that... we'll be here for you...!");
+					md02->Next = 0;
+					break;
+				case 315: 	// True Ending 03
+					md01->PortraitTile = 54642; md01->Y = 10; md01->PortraitY = 15;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cZelda:%c%c%c What's that? I feel something.",sc(1),sc(8),sc(8),sc(1),sc(0),sc(1));
+					md01->Set(str01);
+					md01->Next = 7602;
+					md02->PortraitTile = 54684; md02->Y = 10; md02->PortraitY = 15;
+					char32 str02[1000];
+					sprintf(str02, "%c%c%cColin:%c%c%c I feel it, too. But I can't seem to grasp on what it is.",sc(1),sc(7),sc(4),sc(1),sc(0),sc(1));
+					md02->Set(str02);
+					md02->Next = 7603;
+					md03->PortraitTile = 54648; md03->Y = 10; md03->PortraitY = 15;
+					char32 str03[1000];
+					sprintf(str03, "%c%c%cAuru:%c%c%c I sense someone very special. %cAlmost as if they have the power to change things.",sc(1),sc(10),sc(4),sc(1),sc(0),sc(1),sc(30));
+					md03->Set(str03);
+					md03->Next = 0;
+					break;
+				case 316: 	// True Ending 04
+					md01->PortraitTile = 54680; md01->Y = 10; md01->PortraitY = 15;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cCain:%c%c%c Pinky Winky%c%c%c, are you sensing what I'm sensing?",sc(1),sc(8),sc(9),sc(1),sc(8),sc(3),sc(1),sc(0),sc(1));
+					md01->Set(str01);
+					md01->Next = 7602;
+					md02->PortraitTile = 54720; md02->Y = 10; md02->PortraitY = 15;
+					char32 str02[1000];
+					sprintf(str02, "%c%c%cAurelia:%c%c%c Yeah! I feel some sort of strong %c%c%cBOND%c%c%c with Linky!",sc(1),sc(8),sc(3),sc(1),sc(0),sc(1),sc(1),sc(8),sc(8),sc(1),sc(0),sc(1));
+					md02->Set(str02);
+					md02->Next = 7603;
+					md03->PortraitTile = 54680; md03->Y = 10; md03->PortraitY = 15;
+					char32 str03[1000];
+					sprintf(str03, "%c%c%cCain:%c%c%c Yeah, so do I.",sc(1),sc(8),sc(9),sc(1),sc(0),sc(1));
+					md03->Set(str03);
+					md03->Next = 0;
+					break;
+				case 317: 	// True Ending 05
+					md01->PortraitTile = 54680; md01->Y = 10; md01->PortraitY = 15;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cCain:%c%c%c It's Link... I know it's you...",sc(1),sc(8),sc(9),sc(1),sc(0),sc(1));
+					md01->Set(str01);
+					md01->Next = 0;
+					break;
+				case 318: 	// True Ending 06
+					md01->PortraitTile = 54690; md01->Y = 120; md01->PortraitY = 125;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cMedley:%c%c%c I sense something great! There seems to be hope on the horizon.",sc(1),sc(7),sc(8),sc(1),sc(0),sc(1));
+					md01->Set(str01);
+					md01->Next = 0;
+					break;
+				case 319: 	// True Ending 07
+					md01->PortraitTile = 54770; md01->Y = 120; md01->PortraitY = 125;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cSaria:%c%c%c I'm sensing something. It's almost as if... %cfate has changed.",sc(1),sc(7),sc(8),sc(1),sc(0),sc(1),sc(30));
+					md01->Set(str01);
+					md01->Next = 0;
+					break;
+				case 320: 	// True Ending 08
+					md01->PortraitTile = 54808; md01->Y = 10; md01->PortraitY = 15;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cKalin:%c%c%c Elena, even though Ingrid is still out there in her %c%c%cROSEMASTER%c%c%c form...",sc(1),sc(11),sc(3),sc(1),sc(0),sc(1),sc(1),sc(8),sc(5),sc(1),sc(0),sc(1));
+					md01->Set(str01);
+					md01->Next = 7602;
+					md02->PortraitTile = 54808; md02->Y = 10; md02->PortraitY = 15;
+					md02->Set("I'm oddly feeling some comfort right now...");
+					md02->Next = 7603;
+					md03->PortraitTile = 54810; md03->Y = 10; md03->PortraitY = 15;
+					char32 str03[1000];
+					sprintf(str03, "%c%c%cElena:%c%c%c Me too, dad. I feel like there's someone near us. %c%cGiving us a little hope...",sc(1),sc(8),sc(3),sc(1),sc(0),sc(1),sc(30),sc(25));
+					md03->Set(str03);
+					md03->Next = 0;
+					break;
+				case 321: 	// True Ending 09
+					md01->PortraitTile = 55242; md01->Y = 120; md01->PortraitY = 125;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cIngrid:%c%c%c Link...? %cW-where are you-!?",sc(1),sc(10),sc(4),sc(1),sc(0),sc(1),sc(30));
+					md01->Set(str01);
+					md01->Next = 0;
+					break;
+				case 322: 	// True Ending 10
+					md01->PortraitTile = 55328; md01->Y = 10; md01->PortraitY = 15;
+					char32 str01[1000];
+					sprintf(str01, "%c%c%cAurelia:%c%c%c ...!? %cWhat's happening here?",sc(1),sc(8),sc(3),sc(1),sc(0),sc(1),sc(30));
+					md01->Set(str01);
+					md01->Next = 7602;
+					md02->PortraitTile = 55328; md02->Y = 10; md02->PortraitY = 15;
+					md02->Set("My brain feels funny wunny, but for some reason, I feel so happy!");
+					md02->Next = 0;
+					break;
+				case 323: 	
 					
 					break;
 			}
@@ -7282,7 +7401,26 @@ ffc script strngCutsceneScene{
 				Screen->Message(7990);
 			}
 		}
-		
+		else if (type == 3){
+			messagedata md01 = Game->LoadMessageData(7990);
+			messagedata md02 = Game->LoadMessageData(7991);
+			messagedata md03 = Game->LoadMessageData(7992);
+			messagedata md04 = Game->LoadMessageData(7993);
+			messagedata md05 = Game->LoadMessageData(7994);
+			messagedata md06 = Game->LoadMessageData(7995);
+			messagedata md07 = Game->LoadMessageData(7996);
+			messagedata md08 = Game->LoadMessageData(7997);
+			messagedata md09 = Game->LoadMessageData(7998);
+			messagedata md10 = Game->LoadMessageData(7999);
+			switch(id)
+			{
+				case 0:	//Test
+					md01->Y = 120; md01->Next = 0;
+					md01->Set("Test");
+					break;
+			}
+			Screen->Message(7990);
+		}
 	}
 	
 	int sc (int value){
